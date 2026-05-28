@@ -1,0 +1,5 @@
+dist_electron/**
+out/**
+storybook-static/**
+coverage/**
+node_modules/**

@@ -1,0 +1,194 @@
+@font-face {
+  font-family: SourceSansPro;
+  src: url('../../assets/fonts/SourceSansPro-Semibold.ttf');
+}
+
+@font-face {
+  font-family: AvenirNext-Bold;
+  src: url('../../assets/fonts/AvenirNextBold.ttf');
+}
+
+@font-face {
+  font-family: AvenirNext-Medium;
+  src: url('../../assets/fonts/AvenirNextMedium.ttf');
+}
+
+@font-face {
+  font-family: AvenirNext-Regular;
+  src: url('../../assets/fonts/avenirnextregular.otf');
+}
+
+:root {
+  --ow-font-semibold: 'SourceSansPro', sans-serif;
+  --ow-font-bold: 'AvenirNext-Bold', sans-serif;
+  --ow-font-medium: 'AvenirNext-Medium', sans-serif;
+  --ow-font-regular: 'AvenirNext-Regular', sans-serif;
+
+  --ow-color-text-primary: #000000;
+  --ow-color-text-secondary: #5e6369;
+  --ow-color-text-muted: #6f7781;
+  --ow-color-text-subtle: #a5a7a9;
+  --ow-color-text-inverse: #ffffff;
+  --ow-color-text-on-brand: var(--ow-color-text-inverse);
+  --ow-color-border-default: #dfe2e9;
+  --ow-color-border-subtle: #f4f4f6;
+  --ow-color-border-strong: #ced4da;
+  --ow-color-surface: #ffffff;
+  --ow-color-surface-muted: #f5f7fb;
+  --ow-color-surface-hover: #e4e6ea;
+  --ow-color-surface-selected: #eaf2ff;
+  --ow-color-surface-elevated: #ffffff;
+  --ow-color-surface-card: #ffffff;
+  --ow-color-surface-dialog: #fcfdff;
+  --ow-color-overlay: rgba(0, 0, 0, 0.5);
+  --ow-color-overlay-muted: #8a9098;
+  --ow-color-modal-border: rgba(25, 107, 216, 0.12);
+  --ow-color-modal-header: rgba(25, 107, 216, 0.06);
+  --ow-color-modal-close-hover: rgba(25, 107, 216, 0.1);
+  --ow-color-loading-surface: rgba(0, 0, 0, 0.05);
+  --ow-color-brand: #196bd8;
+  --ow-color-brand-hover: #619ae5;
+  --ow-color-card-create-hover: #498fef;
+  --ow-color-accent: #fbe45a;
+  --ow-color-accent-hover: #ffe978;
+  --ow-color-accent-foreground: #1f2530;
+  --ow-color-info: #196bd8;
+  --ow-color-info-soft: rgba(25, 107, 216, 0.1);
+  --ow-color-warning: #d69b00;
+  --ow-color-warning-soft: rgba(251, 228, 90, 0.24);
+  --ow-color-secondary-bg: #f5f7fb;
+  --ow-color-secondary-hover: #e4e6ea;
+  --ow-color-secondary-foreground: #5e6369;
+  --ow-color-ghost-border: #dfe2e9;
+  --ow-color-ghost-hover: #f5f7fb;
+  --ow-color-ghost-foreground: #000000;
+  --ow-color-danger: #ff4d4f;
+  --ow-color-success: #4eb926;
+  --ow-color-success-soft: rgba(78, 185, 38, 0.1);
+  --ow-color-danger-soft: rgba(234, 69, 69, 0.1);
+  --ow-color-focus-ring: rgba(25, 107, 216, 0.22);
+  --ow-color-sidebar-bg: #373a42;
+  --ow-color-sidebar-text: #ffffff;
+
+  --ow-space-1: 4px;
+  --ow-space-2: 8px;
+  --ow-space-3: 12px;
+  --ow-space-4: 16px;
+  --ow-space-5: 20px;
+  --ow-space-6: 24px;
+  --ow-space-7: 28px;
+  --ow-space-8: 32px;
+  --ow-space-10: 40px;
+  --ow-space-12: 48px;
+  --ow-space-16: 64px;
+  --ow-space-20: 80px;
+
+  --ow-radius-control: 0;
+  --ow-radius-card: 4px;
+  --ow-radius-panel: 6px;
+  --ow-radius-elevated: 8px;
+  --ow-radius-modal: 12px;
+  --ow-radius-pill: 999px;
+
+  --ow-font-size-micro: 10px;
+  --ow-font-size-caption: 12px;
+  --ow-font-size-small: 13px;
+  --ow-font-size-body: 14px;
+  --ow-font-size-body-lg: 15px;
+  --ow-font-size-section: 16px;
+  --ow-font-size-subtitle: 18px;
+  --ow-font-size-title: 20px;
+  --ow-font-size-display: 24px;
+  --ow-line-height-caption: 16px;
+  --ow-line-height-body: 20px;
+  --ow-line-height-title: 24px;
+  --ow-line-height-display: 30px;
+
+  --ow-shadow-footer: 0 -1px 6px 0 #f2f2f2;
+  --ow-shadow-card: 0 10px 30px rgba(25, 107, 216, 0.08);
+  --ow-shadow-elevated: 0 18px 45px rgba(15, 27, 45, 0.1);
+  --ow-shadow-modal: 0 28px 60px rgba(15, 27, 45, 0.18);
+  --ow-shadow-focus: 0 0 0 3px var(--ow-color-focus-ring);
+
+  --ow-layout-sidebar-width: 4rem;
+  --ow-layout-content-offset: 5.13rem;
+  --ow-layout-page-max-width: 1120px;
+  --ow-layout-form-width: 540px;
+  --ow-layout-flow-width: 600px;
+  --ow-layout-summary-width: 540px;
+  --ow-layout-settings-content-width: 812px;
+  --ow-layout-settings-control-width: 340px;
+  --ow-card-grid-column-width: 25rem;
+  --ow-card-grid-wide-column-width: 27.5rem;
+  --ow-card-grid-gap-x: var(--ow-space-12);
+  --ow-card-grid-gap-y: var(--ow-space-8);
+  --ow-card-height: 13.19rem;
+  --ow-card-height-tall: 15.625rem;
+  --ow-card-height-entry: 13.75rem;
+  // Indent applied to fields/labels nested under `.ow-flow-content`,
+  // mirrors the sidebar width so contents align under the page header.
+  --ow-layout-form-indent: 4rem;
+  // Symmetric horizontal gutter consumed by centered panels via
+  // `max-width: calc(100% - var(--ow-layout-gutter))`.
+  --ow-layout-gutter: 32px;
+  --ow-button-height: 34px;
+  --ow-button-height-compact: 32px;
+  --ow-button-min-width: 100px;
+  --ow-button-min-width-compact: 72px;
+  --ow-modal-header-padding: 18px 24px;
+  --ow-modal-body-padding: 20px 24px;
+  --ow-modal-footer-padding: 16px 24px 24px;
+  --ow-modal-close-size: 34px;
+}
+
+:root[data-theme='dark'] {
+  --ow-color-text-primary: #f3f6fa;
+  --ow-color-text-secondary: #c2cad4;
+  --ow-color-text-muted: #98a2b3;
+  --ow-color-text-subtle: #7f8a99;
+  --ow-color-text-inverse: #0f141a;
+  --ow-color-border-default: #3a4555;
+  --ow-color-border-subtle: #242c36;
+  --ow-color-border-strong: #546171;
+  --ow-color-surface: #0f141a;
+  --ow-color-surface-muted: #161d26;
+  --ow-color-surface-hover: #202833;
+  --ow-color-surface-selected: #17335f;
+  --ow-color-surface-elevated: #1b232d;
+  --ow-color-surface-card: #151c25;
+  --ow-color-surface-dialog: #19212b;
+  --ow-color-overlay: rgba(3, 7, 12, 0.72);
+  --ow-color-overlay-muted: #364152;
+  --ow-color-modal-border: rgba(119, 175, 255, 0.16);
+  --ow-color-modal-header: rgba(119, 175, 255, 0.08);
+  --ow-color-modal-close-hover: rgba(119, 175, 255, 0.14);
+  --ow-color-loading-surface: rgba(255, 255, 255, 0.04);
+  --ow-color-brand: #4f95ff;
+  --ow-color-brand-hover: #77afff;
+  --ow-color-card-create-hover: #255ba5;
+  --ow-color-accent: #fbe45a;
+  --ow-color-accent-hover: #ffed91;
+  --ow-color-accent-foreground: #141a22;
+  --ow-color-info: #77afff;
+  --ow-color-info-soft: rgba(79, 149, 255, 0.18);
+  --ow-color-warning: #ffcf4d;
+  --ow-color-warning-soft: rgba(251, 228, 90, 0.16);
+  --ow-color-secondary-bg: #161d26;
+  --ow-color-secondary-hover: #202833;
+  --ow-color-secondary-foreground: #c2cad4;
+  --ow-color-ghost-border: #3a4555;
+  --ow-color-ghost-hover: #161d26;
+  --ow-color-ghost-foreground: #f3f6fa;
+  --ow-color-danger: #ff6b6d;
+  --ow-color-success: #79d34f;
+  --ow-color-success-soft: rgba(121, 211, 79, 0.16);
+  --ow-color-danger-soft: rgba(255, 107, 109, 0.16);
+  --ow-color-focus-ring: rgba(79, 149, 255, 0.32);
+  --ow-color-sidebar-bg: #0b1016;
+  --ow-color-sidebar-text: #f3f6fa;
+
+  --ow-shadow-footer: 0 -1px 6px 0 rgba(0, 0, 0, 0.45);
+  --ow-shadow-card: 0 14px 34px rgba(0, 0, 0, 0.35);
+  --ow-shadow-elevated: 0 18px 50px rgba(0, 0, 0, 0.45);
+  --ow-shadow-modal: 0 30px 72px rgba(0, 0, 0, 0.5);
+}

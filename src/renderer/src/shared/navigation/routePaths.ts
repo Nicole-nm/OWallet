@@ -1,0 +1,66 @@
+export const SHARED_WALLET_CHILD_PATHS = Object.freeze({
+  home: 'home',
+  sendTransfer: 'sendTransfer',
+  pendingTxHome: 'pendingTxHome',
+  copayers: 'copayers',
+  txMgmt: 'txMgmt',
+})
+
+export const VOTE_CHILD_PATHS = Object.freeze({
+  login: 'login',
+  list: 'votes',
+  create: 'create',
+  detail: 'detail',
+})
+
+export const ROUTE_PATHS = Object.freeze({
+  home: '/',
+  walletDashboard: '/Wallets/dashboard',
+  identities: '/identities',
+  wallets: '/Wallets',
+  loginLedger: '/loginLedger',
+  setting: '/setting',
+  dapps: '/dapps',
+  createIdentity: '/identities/createIdentity',
+  importIdentity: '/identities/importIdentity',
+  createJsonWallet: '/Wallets/createJsonWallet',
+  importJsonWallet: '/Wallets/importJsonWallet',
+  importLedgerWallet: '/Wallets/importLedgerWallet',
+  createSharedWallet: '/Wallets/createSharedWallet',
+  importSharedWallet: '/Wallets/importSharedWallet',
+  sharedWallet: '/sharedWallet',
+  sharedWalletHome: '/sharedWallet/home',
+  sharedWalletSendTransfer: '/sharedWallet/sendTransfer',
+  sharedWalletPendingTxHome: '/sharedWallet/pendingTxHome',
+  sharedWalletCopayers: '/sharedWallet/copayers',
+  sharedWalletTxMgmt: '/sharedWallet/txMgmt',
+  vote: '/vote',
+  voteLogin: '/vote/login',
+  voteList: '/vote/votes',
+  voteCreate: '/vote/create',
+  voteDetail: '/vote/detail',
+  node: '/node',
+  nodeApply: '/node/apply',
+  nodeApplySuccess: '/node/applysuccess',
+  myNode: '/node/mynode',
+  commonSend: '/commonWalletSend',
+  commonReceivePattern: '/commonWalletReceive/:walletType',
+  commonReceive(walletType: unknown) {
+    return `/commonWalletReceive/${walletType}`
+  },
+  commonRedeemPattern: '/commonWalletRedeem/:walletType',
+  commonRedeem(walletType: unknown) {
+    return `/commonWalletRedeem/${walletType}`
+  },
+  nodeStakeIntro: '/node/nodeStakeIntro',
+  nodeStakeRegister: '/node/nodeStakeRegister',
+  nodeStakeInfo: '/node/nodeStakeInfo',
+  nodeStakeMgmt: '/node/nodeStakeMgmt',
+  nodeList: '/node/nodeList',
+  stakeHistory: '/node/stakeHistory',
+  authorizeLogin: '/node/authorizeLogin',
+  authorizationMgmt: '/node/authorizationMgmt',
+  newAuthorization: '/node/newAuthorization',
+  oep4Home: '/oep4Home',
+  notFound: '/:pathMatch(.*)*',
+})

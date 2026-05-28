@@ -1,0 +1,78 @@
+.clearfix::after {
+  display: block;
+  clear: both;
+  content: '';
+}
+
+.text-center {
+  text-align: center;
+}
+
+.ow-text-display {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-display);
+  line-height: var(--ow-line-height-display);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-text-title {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-title);
+  line-height: var(--ow-line-height-title);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-text-section {
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-section);
+  line-height: var(--ow-line-height-title);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-text-body {
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-text-muted {
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-muted);
+}
+
+.ow-text-caption {
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  color: var(--ow-color-text-secondary);
+}
+
+.ow-text-link {
+  color: var(--ow-color-brand);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ow-text-link:hover,
+.ow-text-link:focus-visible {
+  color: var(--ow-color-brand-hover);
+  text-decoration: underline;
+}
+
+.ow-error-text {
+  color: var(--ow-color-danger);
+}
+
+.left-footer {
+  margin-top: var(--ow-space-5);
+}
+
+// Cancels the 4rem top padding that .container-fluid adds for the global
+// top nav. Apply to pages whose first row is its own visual header (e.g.,
+// .ow-section-tabs) so it sits flush under the nav line.
+.negative-margin-top {
+  margin-top: -4rem;
+}

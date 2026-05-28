@@ -1,0 +1,6 @@
+export { HomePageObject } from './HomePageObject'
+export { WalletsPageObject } from './WalletsPageObject'
+export { CreateJsonWalletPageObject } from './CreateJsonWalletPageObject'
+export { SendPageObject } from './SendPageObject'
+export { GovernancePageObject } from './GovernancePageObject'
+export { SettingsPageObject } from './SettingsPageObject'

@@ -1,0 +1,264 @@
+.ant-spin-text {
+  color: var(--ow-color-surface) !important;
+  text-shadow: none !important;
+}
+
+.ant-tabs-tab-active {
+  color: var(--ow-color-text-primary);
+}
+
+.ant-input,
+.ant-input-password,
+.ant-input-number,
+.ant-select-selector,
+.ant-picker,
+.ant-input-affix-wrapper {
+  border-radius: var(--ow-radius-control) !important;
+  font-family: var(--ow-font-regular);
+  color: var(--ow-color-text-primary);
+  background-color: var(--ow-color-surface) !important;
+}
+
+.ant-input:hover,
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-password:hover,
+.ant-input-password-focused,
+.ant-input-number:hover,
+.ant-input-number-focused,
+.ant-select:hover .ant-select-selector,
+.ant-select-focused .ant-select-selector,
+.ant-picker:hover,
+.ant-picker-focused,
+.ant-input-affix-wrapper:hover,
+.ant-input-affix-wrapper-focused {
+  border-color: var(--ow-color-brand) !important;
+  box-shadow: var(--ow-shadow-focus) !important;
+}
+
+.ant-table-wrapper,
+.ant-table,
+.ant-table-thead > tr > th,
+.ant-table-tbody > tr > td {
+  color: var(--ow-color-text-primary);
+  background: var(--ow-color-surface);
+  border-color: var(--ow-color-border-subtle);
+}
+
+.ant-table-thead > tr > th {
+  background: var(--ow-color-surface-muted) !important;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+  color: var(--ow-color-text-secondary) !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: var(--ow-color-surface-muted) !important;
+}
+
+.ant-tabs-tab {
+  font-family: var(--ow-font-medium);
+}
+
+.ant-modal-content,
+.ant-modal-header,
+.ant-dropdown-menu,
+.ant-select-dropdown,
+.ant-picker-dropdown,
+.ant-tooltip-inner {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ant-modal-root .ant-modal-mask {
+  background: color-mix(in srgb, var(--ow-color-overlay) 88%, transparent) !important;
+  backdrop-filter: blur(8px);
+}
+
+.ant-modal-wrap {
+  padding: var(--ow-space-6);
+}
+
+.ant-modal,
+.ant-modal-confirm {
+  max-width: min(100vw - var(--ow-space-8), 560px);
+}
+
+.ant-modal .ant-modal-content,
+.ant-modal-confirm .ant-modal-content {
+  overflow: hidden;
+  border: 1px solid var(--ow-color-modal-border);
+  border-radius: var(--ow-radius-modal) !important;
+  background: linear-gradient(
+    180deg,
+    var(--ow-color-surface-elevated) 0%,
+    var(--ow-color-surface-dialog) 100%
+  ) !important;
+  box-shadow: var(--ow-shadow-modal) !important;
+}
+
+.ant-modal .ant-modal-header,
+.ant-modal-confirm .ant-modal-header {
+  margin-bottom: 0;
+  padding: var(--ow-modal-header-padding);
+  padding-right: calc(var(--ow-space-6) + var(--ow-modal-close-size) + var(--ow-space-2));
+  border-bottom: 1px solid var(--ow-color-border-subtle);
+  background: var(--ow-color-modal-header) !important;
+}
+
+.ant-modal .ant-modal-title,
+.ant-modal-confirm-title {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-subtitle);
+  line-height: var(--ow-line-height-title);
+  color: var(--ow-color-text-primary) !important;
+}
+
+.ant-modal .ant-modal-body,
+.ant-modal-confirm .ant-modal-body {
+  padding: var(--ow-modal-body-padding);
+  color: var(--ow-color-text-primary);
+}
+
+.ant-modal .ant-modal-body,
+.ant-modal-confirm .ant-modal-confirm-content,
+.ant-modal-confirm .ant-modal-confirm-content p {
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-secondary);
+}
+
+.ant-modal .ant-modal-close,
+.ant-modal-confirm .ant-modal-close {
+  top: 12px;
+  right: 12px;
+  width: var(--ow-modal-close-size);
+  height: var(--ow-modal-close-size);
+  border: 1px solid color-mix(in srgb, var(--ow-color-modal-border) 90%, transparent);
+  border-radius: var(--ow-radius-elevated);
+  background: color-mix(in srgb, var(--ow-color-surface) 82%, var(--ow-color-modal-header));
+  color: var(--ow-color-text-secondary);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.ant-modal .ant-modal-close:hover,
+.ant-modal .ant-modal-close:focus-visible,
+.ant-modal-confirm .ant-modal-close:hover,
+.ant-modal-confirm .ant-modal-close:focus-visible {
+  border-color: color-mix(in srgb, var(--ow-color-brand) 24%, var(--ow-color-modal-border));
+  background: color-mix(in srgb, var(--ow-color-modal-close-hover) 88%, var(--ow-color-surface));
+  color: var(--ow-color-text-primary);
+  transform: translateY(-1px);
+}
+
+.ant-modal .ant-modal-close-x,
+.ant-modal-confirm .ant-modal-close-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 14px;
+}
+
+.ant-modal-footer,
+.ant-modal-confirm-btns {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--ow-space-3);
+  margin-top: 0;
+  padding: var(--ow-modal-footer-padding);
+  border-top: 1px solid var(--ow-color-border-subtle);
+  background: color-mix(in srgb, var(--ow-color-modal-header) 50%, transparent);
+}
+
+.ant-modal-footer .ant-btn,
+.ant-modal-confirm-btns .ant-btn {
+  min-width: var(--ow-button-min-width);
+  height: var(--ow-button-height);
+  padding: 0 var(--ow-space-4);
+  border-radius: var(--ow-radius-control) !important;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  box-shadow: none !important;
+}
+
+.ant-modal-confirm-btns .ant-btn + .ant-btn {
+  margin-inline-start: 0;
+}
+
+.ant-modal-footer .ant-btn:not(.ant-btn-primary),
+.ant-modal-confirm-btns .ant-btn:not(.ant-btn-primary) {
+  border-color: var(--ow-color-secondary-bg) !important;
+  background: var(--ow-color-secondary-bg) !important;
+  color: var(--ow-color-secondary-foreground) !important;
+}
+
+.ant-modal-footer .ant-btn:not(.ant-btn-primary):hover,
+.ant-modal-footer .ant-btn:not(.ant-btn-primary):focus-visible,
+.ant-modal-confirm-btns .ant-btn:not(.ant-btn-primary):hover,
+.ant-modal-confirm-btns .ant-btn:not(.ant-btn-primary):focus-visible {
+  border-color: var(--ow-color-secondary-hover) !important;
+  background: var(--ow-color-secondary-hover) !important;
+  color: var(--ow-color-secondary-foreground) !important;
+}
+
+.ant-modal-footer .ant-btn-primary,
+.ant-modal-confirm-btns .ant-btn-primary {
+  border-color: var(--ow-color-brand) !important;
+  background: var(--ow-color-brand) !important;
+  color: var(--ow-color-text-inverse) !important;
+}
+
+.ant-modal-footer .ant-btn-primary:hover,
+.ant-modal-footer .ant-btn-primary:focus-visible,
+.ant-modal-confirm-btns .ant-btn-primary:hover,
+.ant-modal-confirm-btns .ant-btn-primary:focus-visible {
+  border-color: var(--ow-color-brand-hover) !important;
+  background: var(--ow-color-brand-hover) !important;
+  color: var(--ow-color-text-inverse) !important;
+}
+
+.ant-modal-confirm .ant-modal-confirm-body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ow-space-3);
+}
+
+.ant-modal-confirm .ant-modal-confirm-body > .anticon {
+  margin-top: 2px;
+  font-size: var(--ow-font-size-title);
+}
+
+.ant-modal-confirm .ant-modal-confirm-title + .ant-modal-confirm-content {
+  margin-top: var(--ow-space-2);
+}
+
+@media (max-width: 720px) {
+  .ant-modal-wrap {
+    padding: var(--ow-space-4);
+  }
+
+  .ant-modal,
+  .ant-modal-confirm {
+    max-width: calc(100vw - var(--ow-space-4) * 2);
+  }
+
+  .ant-modal .ant-modal-header,
+  .ant-modal .ant-modal-body,
+  .ant-modal .ant-modal-footer,
+  .ant-modal-confirm .ant-modal-header,
+  .ant-modal-confirm .ant-modal-body,
+  .ant-modal-confirm .ant-modal-confirm-btns {
+    padding-left: var(--ow-space-4);
+    padding-right: var(--ow-space-4);
+  }
+}

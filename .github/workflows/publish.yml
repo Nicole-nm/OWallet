@@ -3,163 +3,131 @@ name: Release on Tag
 on:
   push:
     tags:
-      - '*' # Listen for any tag push events
+      - 'v*'
+
+permissions:
+  contents: read
 
 jobs:
   build-and-release:
     runs-on: macos-latest
-
-    # permissions: # Add this permissions block
-    #   contents: write
-    #   packages: write
-    #   issues: write
-    #   pull-requests: write
-
-    permissions: write-all
+    permissions:
+      contents: write
 
     steps:
-    # Check out the code
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
-    # Set up Node.js and Yarn environment
-    - name: Setup Node.js and Yarn
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
-        cache: 'yarn'
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '20.x'
+          cache: yarn
 
-    - name: 🔐 Setup Temporary Keychain and Import Certificate
-      run: |
-        KEYCHAIN_NAME="temp.keychain"
-        NODE_PATH=$(which node)
-        echo "Found Node executable at: $NODE_PATH"
+      - name: Enable Corepack
+        run: corepack enable
 
-        # 1. Create a new temporary keychain
-        security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_NAME
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-        # 2. Set the new keychain as the default for the session
-        security default-keychain -s $KEYCHAIN_NAME
-        security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_NAME
+      - name: Lint
+        run: yarn lint
 
-        # 3. Increase the keychain search timeout
-        security set-keychain-settings -t 3600 $KEYCHAIN_NAME
+      - name: Typecheck
+        run: yarn typecheck
 
-        # 4. Decode the P12 file content from the secret and save it to a file
-        echo "${{ secrets.DEV_ID_CERTIFICATE_P12 }}" | base64 --decode > dev_cert.p12
+      - name: Unit tests
+        run: yarn test:unit
 
+      - name: Setup temporary keychain and import certificate
+        run: |
+          KEYCHAIN_NAME="temp.keychain"
+          NODE_PATH=$(which node)
+          echo "Found Node executable at: $NODE_PATH"
 
-        # 6. Set the partition list to ensure automated tools can access the key
-        #    This is crucial for CI environments.
-        CERT_ID='Developer ID Application: Ontology Foundation Ltd (29B4VVVVKM)' # <-- Replace with your exact Identity name
+          security create-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" "$KEYCHAIN_NAME"
+          security default-keychain -s "$KEYCHAIN_NAME"
+          security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" "$KEYCHAIN_NAME"
+          security set-keychain-settings -t 3600 "$KEYCHAIN_NAME"
 
-        #security set-key-partition-list -S apple-tool: -S apple: -k $KEYCHAIN_NAME -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_NAME
-        curl https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer -o DeveloperIDG2CA.cer
-        sudo security add-trusted-cert -d -r unspecified -k $KEYCHAIN_NAME DeveloperIDG2CA.cer
-        rm -f DeveloperIDG2CA.cer
+          echo "${{ secrets.DEV_ID_CERTIFICATE_P12 }}" | base64 --decode > dev_cert.p12
 
-        # 5. Import the certificate and private key into the new keychain
-        security import dev_cert.p12 -k $KEYCHAIN_NAME -P "${{ secrets.P12_PASSWORD }}" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/xcodebuild -T $NODE_PATH
-        echo "import success!"
-        security set-key-partition-list -S apple-tool:,apple: -s -k ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_NAME
-        echo "partition list success"
+          CERT_ID='Developer ID Application: Ontology Foundation Ltd (29B4VVVVKM)'
+          curl --fail --location --show-error --silent \
+            https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer \
+            --output DeveloperIDG2CA.cer
+          sudo security add-trusted-cert -d -r unspecified -k "$KEYCHAIN_NAME" DeveloperIDG2CA.cer
+          rm -f DeveloperIDG2CA.cer
 
+          security import dev_cert.p12 \
+            -k "$KEYCHAIN_NAME" \
+            -P "${{ secrets.P12_PASSWORD }}" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security \
+            -T /usr/bin/xcodebuild \
+            -T "$NODE_PATH"
+          echo "import success"
 
-        # Set the temporary keychain as the default for the session
-        security default-keychain -s $KEYCHAIN_NAME
-        echo "default keychain success"
+          security set-key-partition-list \
+            -S apple-tool:,apple: \
+            -s \
+            -k "${{ secrets.KEYCHAIN_PASSWORD }}" \
+            "$KEYCHAIN_NAME"
+          echo "partition list success"
 
-        # Unlock the keychain
-        security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $KEYCHAIN_NAME
+          security default-keychain -s "$KEYCHAIN_NAME"
+          security unlock-keychain -p "${{ secrets.KEYCHAIN_PASSWORD }}" "$KEYCHAIN_NAME"
+          security set-keychain-settings -l -u -t 3600 "$KEYCHAIN_NAME"
 
-        # Set lock timeout to the maximum (3600 seconds) and ensure it's always searched
-        security set-keychain-settings -l -u -t 3600 $KEYCHAIN_NAME
-        if security find-identity -p codesigning $KEYCHAIN_NAME | grep -q "$CERT_ID"; then
-        echo "✅ SUCCESS: Code Signing Identity '$CERT_ID' found in the temporary keychain."
-        else
-        echo "❌ FAILURE: Code Signing Identity '$CERT_ID' NOT found. Codesign will likely fail."
-        exit 1 # Exit the job immediately if the identity isn't found
-        fi
+          if security find-identity -p codesigning "$KEYCHAIN_NAME" | grep -q "$CERT_ID"; then
+            echo "SUCCESS: Code signing identity '$CERT_ID' found in the temporary keychain."
+          else
+            echo "FAILURE: Code signing identity '$CERT_ID' not found. Codesign will likely fail."
+            exit 1
+          fi
 
+      - name: Build macOS packages
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: yarn build:mac
 
+      - name: Build Windows app
+        run: yarn build:win
 
+      - name: Build Linux app
+        run: yarn build:linux
 
-    # Install dependencies
-    - name: Install dependencies
-      run: |
-        yarn install
+      - name: Clean up keychain and files
+        if: always()
+        run: |
+          security delete-keychain temp.keychain || true
+          rm -f dev_cert.p12
 
-    # # Build all packages (macOS, Linux, and Windows)
-    - name: Build macos packages
-      env:
-        APPLE_ID: ${{ secrets.APPLE_ID }}
-        TEAM_ID: ${{ secrets.TEAM_ID }}
-        PASSWORD: ${{ secrets.PASSWORD }}
-      run: |
-        yarn build:mac
+      - name: Generate checksums
+        run: |
+          echo "" > CHECKSUMS.md
+          echo "CHANGELOG: $(git log -1 --format=%s ${{ github.ref_name }})" >> CHECKSUMS.md
+          echo "## SHA256 Checksums" >> CHECKSUMS.md
+          echo "| File | SHA256 Checksum |" >> CHECKSUMS.md
+          echo "|------|-----------------|" >> CHECKSUMS.md
+          find dist_electron -maxdepth 1 -type f \
+            \( -name 'OWallet-*.deb' -o -name 'OWallet-*.exe' -o -name 'OWallet-*.AppImage' -o -name 'OWallet-*.dmg' \) \
+            | sort | while IFS= read -r file; do
+              checksum=$(shasum -a 256 "$file" | awk '{print $1}')
+              echo "| $(basename "$file") | \`$checksum\` |" >> CHECKSUMS.md
+            done
 
-    - name: Build Windows App
-      # if: matrix.os == 'windows-latest'
-      run: |
-        yarn build:win
-
-    - name: Build Linux App
-      # if: matrix.os == 'ubuntu-latest'
-      run: |
-        yarn build:linux
-
-    # - name: Create Release v1
-    #   id: create_release
-    #   uses: actions/create-release@latest
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-    #   with:
-    #     tag_name: ${{ github.ref }}
-    #     release_name: Release ${{ github.ref }}
-    #     body: |
-    #       Change Log
-    #       - TODO
-    #     draft: false
-    #     prerelease: false
-
-
-    # --- Cleanup ---
-    - name: 🗑️ Clean Up Keychain and Files
-      if: always() # Ensure cleanup runs even on failure
-      run: |
-        security delete-keychain temp.keychain
-        rm dev_cert.p12
-
-
-    - name: Generate Checksums
-      run: |
-        brew install coreutils
-        #echo "# OWallet ${{ github.ref_name }}" > CHECKSUMS.md
-        echo "" > CHECKSUMS.md
-        echo "CHANGELOG: $(git log -1 --format=%s ${{ github.ref_name }})" >> CHECKSUMS.md
-        echo "## SHA256 Checksums" >> CHECKSUMS.md
-        echo "| File | SHA256 Checksum |" >> CHECKSUMS.md
-        echo "|------|----------------|" >> CHECKSUMS.md
-        # find dist_electron/ -type f -name OWallet\*.AppImage -o -name OWallet\*.dmg -o -name OWallet\*.exe -o -name OWallet\*.deb -exec sh -c '
-        #   for file; do
-        #     echo "| $(basename "$file") | \`$(sha256sum "$file" | cut -d " " -f1)\` |" >> CHECKSUMS.md
-        #   done
-        # ' sh {} +
-        echo "| $(ls dist_electron/OWallet-*.deb | sed -e 's#dist_electron/##') | \`$(sha256sum dist_electron/OWallet-*.deb | cut -d " " -f1)\` |" >> CHECKSUMS.md
-        echo "| $(ls dist_electron/OWallet-*.exe | sed -e 's#dist_electron/##') | \`$(sha256sum dist_electron/OWallet-*.exe | cut -d " " -f1)\` |" >> CHECKSUMS.md
-        echo "| $(ls dist_electron/OWallet-*.AppImage | sed -e 's#dist_electron/##') | \`$(sha256sum dist_electron/OWallet-*.AppImage | cut -d " " -f1)\` |" >> CHECKSUMS.md
-        for dmg in dist_electron/OWallet-*.dmg; do
-          echo "| $(basename "$dmg") | \`$(sha256sum "$dmg" | cut -d " " -f1)\` |" >> CHECKSUMS.md
-        done
-
-    - name: Create Release v2
-      uses: softprops/action-gh-release@v1
-      with:
-        name: Release ${{ github.ref_name }}
-        body_path: CHECKSUMS.md
-        files: |
-          dist_electron/*.deb
-          dist_electron/*.AppImage
-          dist_electron/*.dmg
-          dist_electron/*.exe
-
+      - name: Create release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          name: Release ${{ github.ref_name }}
+          body_path: CHECKSUMS.md
+          files: |
+            dist_electron/*.deb
+            dist_electron/*.AppImage
+            dist_electron/*.dmg
+            dist_electron/*.exe

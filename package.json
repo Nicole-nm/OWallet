@@ -1,76 +1,180 @@
 {
   "name": "owallet",
   "homepage": "http://ont.io",
-  "version": "v0.10.4",
+  "version": "v0.11.0",
   "author": "Ontology Foundation Ltd. <devops@ont.io>",
   "description": "OWallet is a comprehensive Ontology desktop wallet",
   "license": "Apache-2.0",
   "private": true,
-  "scripts": {
-    "serve": "vue-cli-service electron:serve",
-    "build": "vue-cli-service electron:build -mlw --publish=never",
-    "build:mac": "vue-cli-service electron:build -m --publish=never",
-    "build:linux": "vue-cli-service electron:build -l --publish=never",
-    "build:win": "vue-cli-service electron:build -w --publish=never",
-    "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps"
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0",
+    "yarn": ">=1.22.22 <2"
   },
-  "main": "background.js",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build && electron-builder -mlw --publish=never",
+    "build:mac": "electron-vite build && electron-builder -m --publish=never",
+    "build:linux": "electron-vite build && electron-builder -l --publish=never",
+    "build:win": "electron-vite build && electron-builder -w --publish=never",
+    "test": "vitest run",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.renderer.json",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --config vitest.unit.config.ts --coverage",
+    "test:e2e": "playwright test --config e2e/playwright.config.ts",
+    "test:e2e:headed": "playwright test --config e2e/playwright.config.ts --headed",
+    "test:e2e:debug": "playwright test --config e2e/playwright.config.ts --debug",
+    "test:visual": "vitest run --project storybook",
+    "test:all": "yarn test:unit && yarn test:e2e && yarn test:visual",
+    "verify": "yarn lint && yarn typecheck && yarn test:unit && yarn test:coverage",
+    "lint": "eslint --no-error-on-unmatched-pattern src scripts",
+    "lint:fix": "eslint --no-error-on-unmatched-pattern src scripts --fix",
+    "format": "prettier --write \"{src,build,scripts,.storybook}/**/*.{js,ts,mjs,vue,scss,json}\" \"{package.json,electron.vite.config.ts,eslint.config.ts,vitest.config.ts,vitest.unit.config.ts}\"",
+    "format:check": "prettier --check \"{src,build,scripts,.storybook}/**/*.{js,ts,mjs,vue,scss,json}\" \"{package.json,electron.vite.config.ts,eslint.config.ts,vitest.config.ts,vitest.unit.config.ts}\"",
+    "check:boundaries": "tsx scripts/check-import-boundaries.ts",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "prepare": "simple-git-hooks"
+  },
   "dependencies": {
-    "@electron/remote": "^2.1.2",
-    "@ledgerhq/hw-transport-node-hid": "^5.19.1",
-    "@xkeshi/vue-qrcode": "^1.0.0",
-    "ant-design-vue": "^1.1.9",
-    "axios": "^0.21.1",
-    "bignumber.js": "^7.2.1",
-    "bootstrap": "^4.1.1",
-    "caniuse-lite": "^1.0.30001749",
-    "clipboard": "^2.0.1",
-    "core-js": "^3.6.5",
-    "dateformat": "^3.0.3",
-    "delay": "^4.4.0",
-    "elliptic": "^6.5.4",
-    "font-awesome": "^4.7.0",
-    "lodash": "^4.17.21",
-    "nedb": "^1.8.0",
-    "node-hid": "^2.1.1",
-    "numeral": "^2.0.6",
-    "ontology-ts-sdk": "^1.1.14-alpha.5",
-    "opn": "^5.4.0",
-    "popper.js": "^1.14.3",
-    "sass": "^1.83.1",
-    "usb": "1.7.1",
-    "vee-validate": "^2.2.15",
-    "vue": "^2.7.0",
-    "vue-axios": "^2.1.1",
-    "vue-clipboard2": "^0.2.1",
-    "vue-electron": "^1.0.6",
-    "vue-i18n": "^8.0.0",
-    "vue-router": "^3.2.0",
-    "vuedraggable": "^2.16.0",
-    "vuex": "^3.4.0"
+    "@ant-design/icons-vue": "^7.0.1",
+    "@ledgerhq/hw-transport-webhid": "^6.30.0",
+    "ant-design-vue": "^4.2.6",
+    "bignumber.js": "^9.3.1",
+    "buffer": "^5.5.0",
+    "elliptic": "^6.6.1",
+    "lodash": "^4.18.1",
+    "nedb-promises": "^6.2.3",
+    "ontology-ts-sdk": "^2.0.3",
+    "pinia": "^2.3.1",
+    "qrcode.vue": "^3.8.1",
+    "sortablejs": "^1.15.7",
+    "vue": "^3.5.32",
+    "vue-i18n": "^11.3.1",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^4.4.0",
-    "@vue/cli-plugin-eslint": "^4.4.0",
-    "@vue/cli-plugin-router": "^4.4.0",
-    "@vue/cli-plugin-vuex": "^4.4.0",
-    "@vue/cli-service": "^4.4.0",
-    "babel-eslint": "^10.1.0",
-    "babel-plugin-import": "^1.11.0",
-    "electron": "^33.0.0",
-    "electron-devtools-installer": "^3.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "jquery": "^3.3.1",
-    "sass-loader": "^10.0.0",
-    "vue-cli-plugin-electron-builder": "^2.0.0",
-    "vue-template-compiler": "^2.6.11"
+    "@chromatic-com/storybook": "^5.1.1",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.59.1",
+    "@storybook/addon-a11y": "^10.3.5",
+    "@storybook/addon-docs": "^10.3.5",
+    "@storybook/addon-onboarding": "^10.3.5",
+    "@storybook/addon-vitest": "^10.3.5",
+    "@storybook/vue3-vite": "^10.3.5",
+    "@types/lodash": "^4.17.24",
+    "@types/node": "^25.5.2",
+    "@types/sortablejs": "^1.15.9",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vitest/browser-playwright": "^4.1.2",
+    "@vitest/coverage-v8": "^4.1.2",
+    "electron": "^41.1.1",
+    "electron-builder": "^26.8.1",
+    "electron-devtools-installer": "^4.0.0",
+    "electron-vite": "^5.0.0",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-storybook": "^10.3.5",
+    "eslint-plugin-vue": "^10.8.0",
+    "globals": "^17.4.0",
+    "lint-staged": "^16.2.1",
+    "playwright": "^1.59.1",
+    "prettier": "^3.6.2",
+    "sass": "^1.99.0",
+    "simple-git-hooks": "^2.13.1",
+    "storybook": "^10.4.1",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8",
+    "typescript-eslint": "^8.58.1",
+    "vite": "^6.4.2",
+    "vite-plugin-node-polyfills": "^0.26.0",
+    "vitest": "^4.1.2",
+    "vue-eslint-parser": "^10.4.0",
+    "vue-tsc": "^3.2.6"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "yarn lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,ts,mjs,vue}": [
+      "eslint --fix --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{scss,json}": [
+      "prettier --write"
+    ]
   },
   "resolutions": {
-    "usb": "1.7.1",
-    "node-hid": "2.1.1",
     "app-builder-bin": "3.5.13",
-    "electron-builder": "23.6.0"
+    "electron-builder": "26.8.1",
+    "@xmldom/xmldom": "0.8.13",
+    "postcss": "8.5.15"
+  },
+  "build": {
+    "appId": "com.ontio.owallet",
+    "productName": "OWallet",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist_electron"
+    },
+    "files": [
+      "out/**/*"
+    ],
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true
+    },
+    "afterSign": "build/after-sign.js",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "src/renderer/src/assets/icons/icon.ico",
+      "artifactName": "${productName}-${version}-${os}.${ext}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "icon": "src/renderer/src/assets/icons",
+      "artifactName": "${productName}-${version}-${os}.${ext}"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "forceCodeSigning": false,
+      "identity": null,
+      "icon": "src/renderer/src/assets/icons/icon.icns",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    }
   }
 }
