@@ -5,7 +5,6 @@
         <span class="ledger-import__section-title">{{
           $t('ledgerWallet.nameOfLedgerWallet')
         }}</span>
-        <span class="ledger-import__section-caption">{{ $t('ledgerWallet.enterName') }}</span>
       </div>
 
       <a-input
@@ -19,11 +18,6 @@
     <section class="ledger-import__section">
       <div class="ledger-import__section-copy">
         <span class="ledger-import__section-title">{{ $t('ledgerWallet.info') }}</span>
-        <span class="ledger-import__section-caption">
-          {{
-            form.isAdvancedMode ? $t('ledgerWallet.specifyPath') : $t('ledgerWallet.selectAccount')
-          }}
-        </span>
       </div>
 
       <div class="ledger-import__panel">
@@ -121,8 +115,8 @@
     </div>
 
     <page-footer-actions align="between" class="ledger-import__actions">
-      <a-button type="default" @click="emit('cancel')" variant="secondary">{{
-        $t('importJsonWallet.cancel')
+      <a-button type="default" @click="emit('back')" variant="secondary">{{
+        $t('importJsonWallet.back')
       }}</a-button>
       <a-button type="primary" @click="emit('next')" variant="primary" :disabled="addDisabled">{{
         $t('importLedgerWallet.next')
@@ -177,7 +171,7 @@ const emit = defineEmits([
   'selectAddress',
   'prevPage',
   'nextPage',
-  'cancel',
+  'back',
   'next',
 ])
 
@@ -238,7 +232,6 @@ function getInitialPageStatusKey() {
   color: var(--ow-color-text-primary);
 }
 
-.ledger-import__section-caption,
 .ledger-import__loading-status {
   font-size: var(--ow-font-size-caption);
   line-height: var(--ow-line-height-caption);

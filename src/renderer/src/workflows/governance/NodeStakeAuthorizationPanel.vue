@@ -29,7 +29,7 @@
         <div class="content-row">
           <div class="content-column">
             <span class="content-column-label">{{ $t('nodeMgmt.yourStakeAmount') }}</span>
-            <span class="content-column-value">{{ initPosStr }} ONT</span>
+            <span class="content-column-value">{{ initPosDisplay }} ONT</span>
           </div>
           <div class="content-column">
             <span class="content-column-label">{{ $t('nodeMgmt.stakeLimit') }}</span>
@@ -39,11 +39,11 @@
         <div class="content-row">
           <div class="content-column">
             <span class="content-column-label">{{ $t('nodeMgmt.userStakeAmount') }}</span>
-            <span class="content-column-value">{{ currentPeer.totalPosStr }} ONT</span>
+            <span class="content-column-value">{{ totalPosDisplay }} ONT</span>
           </div>
           <div class="content-column">
             <span class="content-column-label">{{ $t('nodeMgmt.expectedUserStakeCap') }}</span>
-            <span class="content-column-value">{{ peerAttributes.maxAuthorizeStr }} ONT</span>
+            <span class="content-column-value">{{ maxAuthorizeDisplay }} ONT</span>
           </div>
         </div>
       </div>
@@ -93,16 +93,16 @@
 
     <div class="redeem-profit">
       <div class="redeem-item ow-panel ow-panel--compact">
-        <span class="ow-info-label">{{ $t('nodeMgmt.profit') }}: </span>
-        <span class="ow-info-value">{{ splitFee.amount }} ONG</span>
-        <a-button type="primary" variant="accent" @click="redeemRewards">{{
+        <span class="ow-info-label">{{ $t('nodeMgmt.unboundOng') }}: </span>
+        <span class="ow-info-value">{{ peerUnboundOngDisplay }} ONG</span>
+        <a-button type="primary" variant="accent" @click="redeemPeerUnboundOng">{{
           $t('nodeMgmt.redeem')
         }}</a-button>
       </div>
       <div class="redeem-item ow-panel ow-panel--compact">
-        <span class="ow-info-label">{{ $t('nodeMgmt.unboundOng') }}: </span>
-        <span class="ow-info-value">{{ peerUnboundOng }} ONG</span>
-        <a-button type="primary" variant="accent" @click="redeemPeerUnboundOng">{{
+        <span class="ow-info-label">{{ $t('nodeMgmt.profit') }}: </span>
+        <span class="ow-info-value">{{ splitFeeAmountDisplay }} ONG</span>
+        <a-button type="primary" variant="accent" @click="redeemRewards">{{
           $t('nodeMgmt.redeem')
         }}</a-button>
       </div>
@@ -170,12 +170,13 @@ const {
   validUnit,
   peerAttributes,
   confirmChangeAuthorization,
-  initPosStr,
+  initPosDisplay,
   maxStakeLimit,
-  currentPeer,
-  splitFee,
+  totalPosDisplay,
+  maxAuthorizeDisplay,
+  splitFeeAmountDisplay,
   redeemRewards,
-  peerUnboundOng,
+  peerUnboundOngDisplay,
   redeemPeerUnboundOng,
   signVisible,
   tx,

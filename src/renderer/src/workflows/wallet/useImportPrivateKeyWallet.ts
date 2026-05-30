@@ -9,7 +9,7 @@ import { createValidationErrors } from '../../shared/lib/formValidation'
 import { buildImportedJsonWalletDraftFromPrivateKeyHex } from '../../modules/wallet/application/json/importJsonWalletApplicationService'
 import type { WalletImportTabDependencies } from './importJsonWallet.types'
 
-const PK_VALIDATION_FIELDS = ['pk', 'pkPassword', 'pkRePassword'] as const
+const PK_VALIDATION_FIELDS = ['pkLabel', 'pk', 'pkPassword', 'pkRePassword'] as const
 
 export function useImportPrivateKeyWallet({
   form,
@@ -21,10 +21,12 @@ export function useImportPrivateKeyWallet({
 }: WalletImportTabDependencies) {
   function validatePkForm() {
     const errors = createValidationErrors(PK_VALIDATION_FIELDS)
+    const labelField = t('importJsonWallet.label')
     const privateKeyLabel = t('FormField.privateKey')
     const passwordLabel = t('FormField.password')
     const passwordConfirmationLabel = t('FormField.passwordConfirmation')
 
+    validateRequired(errors, 'pkLabel', labelField, form.pkLabel)
     const hasPk = validateRequired(errors, 'pk', privateKeyLabel, form.pk)
     if (hasPk) {
       validateExactLength(errors, 'pk', privateKeyLabel, form.pk, 64)

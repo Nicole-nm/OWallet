@@ -18,10 +18,7 @@
         >
           <span class="ow-flow-shell__step-index">1</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('createJsonWallet.basicInfo') }}</span>
-            <span class="ow-flow-shell__step-caption">
-              {{ $t('createJsonWallet.label') }} / {{ $t('createJsonWallet.password') }}
-            </span>
+            <span class="ow-flow-shell__step-label">{{ $t('createJsonWallet.setupWallet') }}</span>
           </div>
         </div>
 
@@ -32,10 +29,9 @@
         >
           <span class="ow-flow-shell__step-index">2</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('createJsonWallet.confirmInfo') }}</span>
-            <span class="ow-flow-shell__step-caption">
-              {{ $t('createJsonWallet.addressN') }} / {{ $t('createJsonWallet.wif') }}
-            </span>
+            <span class="ow-flow-shell__step-label">{{
+              $t('createJsonWallet.backupWalletStep')
+            }}</span>
           </div>
         </div>
       </div>

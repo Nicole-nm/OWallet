@@ -4,12 +4,17 @@
       :current="$t('nodeMgmt.stakeAuthorization')"
       @backEvent="handleRouteBack"
     ></breadcrumb>
-    <div class="ow-form-panel">
-      <form-field :label="$t('nodeStake.selectStakeWallet')" label-tag="p">
+    <div class="ow-form-panel stake-authorization-form">
+      <form-field
+        :label="$t('nodeStake.selectStakeWallet')"
+        label-tag="p"
+        class="stake-wallet-field"
+      >
         <wallet-select-field
           :options="normalWalletAndLedgerWallet"
           v-model:value="selectedWalletValue"
           :placeholder="$t('createIdentity.selectCommonWallet')"
+          class="stake-wallet-select"
           @walletSelected="handleChangePayer"
         >
         </wallet-select-field>
@@ -37,3 +42,33 @@ const { walletOptions, selectedWalletValue, handleRouteBack, handleChangePayer, 
 
 const normalWalletAndLedgerWallet = walletOptions
 </script>
+
+<style scoped>
+.stake-authorization-form {
+  width: min(560px, calc(100% - var(--ow-layout-gutter)));
+}
+
+.stake-wallet-field :deep(.ant-form-item-row) {
+  flex-wrap: wrap;
+}
+
+.stake-wallet-field :deep(.ant-form-item-label) {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding-bottom: var(--ow-space-2);
+  text-align: left;
+}
+
+.stake-wallet-field :deep(.ant-form-item-label > label) {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.stake-wallet-field :deep(.ant-form-item-control) {
+  width: 100%;
+}
+
+.stake-wallet-select {
+  width: 100%;
+}
+</style>

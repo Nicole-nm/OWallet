@@ -9,11 +9,13 @@ import { ROUTE_NAMES } from '../../router/routes'
 import { openExternalUrl } from '../../modules/app/application/externalNavigationApplicationService'
 import { openAuthorizationLogin } from '../../modules/governance/application/authorization/authorizationContextService'
 import { applyAuthorizationContext } from '../support/governanceContextStoreSync'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import {
   loadAuthorizationBlockCountdown,
   loadAuthorizationNodeListPage,
 } from '../../modules/governance/application/authorization/authorizationQueryApplicationService'
 import type { GovernanceNode } from '../../shared/types'
+import { getAuthorizationBlockUnitLabel } from './countLabels'
 
 let countdownIntervalId: ReturnType<typeof setInterval> | null = null
 
@@ -31,6 +33,8 @@ export function useNodeAuthorizationListPage() {
 
   const requesting = ref(false)
   const countdown = ref(0)
+  const countdownDisplay = computed(() => formatNumberForDisplay(countdown.value))
+  const countdownUnitLabel = computed(() => getAuthorizationBlockUnitLabel(t, countdown.value))
   const pagination = ref({
     current: 1,
     pageSize: 10,
@@ -41,29 +45,44 @@ export function useNodeAuthorizationListPage() {
       title: t('nodeMgmt.rank'),
       dataIndex: 'rank',
       key: 'rank',
+      width: 64,
+      className: 'authorization-col-rank',
     },
     {
       title: t('nodeMgmt.name'),
       dataIndex: 'name',
       key: 'name',
+      width: 190,
+      className: 'authorization-col-name',
     },
     {
       dataIndex: 'nodeProportion',
       key: 'nodeProportion',
+      width: 220,
+      className: 'authorization-col-proportion',
     },
     {
       title: t('nodeMgmt.currentStake'),
       dataIndex: 'currentStake',
       key: 'currentStake',
+      width: 150,
+      align: 'right' as const,
+      className: 'authorization-col-current-stake',
     },
     {
       title: t('nodeMgmt.process'),
       dataIndex: 'process',
       key: 'process',
+      width: 96,
+      align: 'right' as const,
+      className: 'authorization-col-process',
     },
     {
       title: '',
       key: 'action',
+      width: 56,
+      align: 'center' as const,
+      className: 'authorization-col-action',
     },
   ])
 
@@ -196,6 +215,8 @@ export function useNodeAuthorizationListPage() {
     authorizationListPagination: pagination,
     authorizationListNodes: computed(() => nodeAuthStore.nodeList),
     authorizationListCountdown: computed(() => countdown.value),
+    authorizationListCountdownDisplay: countdownDisplay,
+    authorizationListCountdownUnit: countdownUnitLabel,
     handleRouteBack,
     handleAuthorizeLogin,
     handleNodeDetail,

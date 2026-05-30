@@ -118,6 +118,10 @@ defineProps({
 
 .ow-app-state__actions {
   margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ow-space-4);
 }
 
 .ow-visually-hidden {

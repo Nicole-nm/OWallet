@@ -6,9 +6,11 @@ export const IMPORT_JSON_VALIDATION_FIELDS = [
   'wif',
   'wifPassword',
   'wifRePassword',
+  'mnemonicLabel',
   'mnemonic',
   'mnemonicPassword',
   'mnemonicRePassword',
+  'pkLabel',
   'pk',
   'pkPassword',
   'pkRePassword',
@@ -91,7 +93,7 @@ export interface WalletImportTabDependencies {
 export interface DatWalletImportDependencies {
   form: ImportJsonWalletForm
   datFile: Ref<File | null>
-  t: (key: string) => string
+  t: (key: string, values?: Record<string, unknown>) => string
   loadingStore: LoadingStoreLike
   notifyError: ImportJsonNotify
   notifySuccess: ImportJsonNotify

@@ -56,6 +56,10 @@ function toNumericValue(...values: unknown[]) {
   return candidate === undefined ? 0 : Number(candidate)
 }
 
+function toDisplayNumberInput(value: unknown, fallback: number) {
+  return typeof value === 'string' || typeof value === 'number' ? value : fallback
+}
+
 export function createEmptyAuthorizationNode() {
   return createEmptyFromTemplate(EMPTY_AUTHORIZATION_NODE)
 }
@@ -84,8 +88,10 @@ export function mapAuthorizationCurrentNode(node: Record<string, unknown> = {}) 
   return {
     ...mappedNode,
     maxAuthorize,
-    maxAuthorizeStr: mappedNode.maxAuthorizeStr || formatNumberForDisplay(maxAuthorize),
+    maxAuthorizeStr: formatNumberForDisplay(
+      toDisplayNumberInput(mappedNode.maxAuthorizeStr, maxAuthorize)
+    ),
     totalPos,
-    totalPosStr: mappedNode.totalPosStr || formatNumberForDisplay(totalPos),
+    totalPosStr: formatNumberForDisplay(toDisplayNumberInput(mappedNode.totalPosStr, totalPos)),
   }
 }

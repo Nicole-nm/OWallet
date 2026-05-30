@@ -1,4 +1,4 @@
-import { computed, onBeforeUnmount, unref, watch } from 'vue'
+import { computed, getCurrentInstance, onBeforeUnmount, unref, watch } from 'vue'
 import type { MaybeRef } from 'vue'
 import i18n from '../../../lang'
 import { APP_CLOSED } from '../../../shared/chain/ledgerTransport'
@@ -7,6 +7,7 @@ import { useLedgerConnectorStore } from '../../../stores/modules/LedgerConnector
 import { readLedgerConnectionSelection } from '../application/ledger/ledgerWalletConnectionService'
 
 const logger = createLogger('useLedgerStatusMonitor')
+const DEFAULT_LEDGER_STATUS_POLL_INTERVAL_MS = 1000
 
 function translateLedgerStatus(status: string) {
   return i18n.global.t(`ledgerStatus.${status}`)
@@ -53,7 +54,7 @@ export function useLedgerStatusMonitor({
   interval?: MaybeRef<number | undefined>
 } = {}) {
   const ledgerConnectorStore = useLedgerConnectorStore()
-  let intervalId: number | null = null
+  let intervalId: ReturnType<typeof setInterval> | null = null
 
   async function refreshLedgerStatus() {
     const connectionResult = await readLedgerConnectionSelection()
@@ -76,21 +77,22 @@ export function useLedgerStatusMonitor({
   function startMonitoring() {
     stopMonitoring()
 
-    const pollingInterval = interval === undefined ? undefined : unref(interval)
+    const pollingInterval =
+      interval === undefined ? DEFAULT_LEDGER_STATUS_POLL_INTERVAL_MS : unref(interval)
     void refreshLedgerStatus()
 
     if (pollingInterval === undefined) {
       return
     }
 
-    intervalId = window.setInterval(() => {
+    intervalId = globalThis.setInterval(() => {
       void refreshLedgerStatus()
     }, pollingInterval)
   }
 
   function stopMonitoring() {
     if (intervalId !== null) {
-      clearInterval(intervalId)
+      globalThis.clearInterval(intervalId)
       intervalId = null
     }
     ledgerConnectorStore.resetLedgerState()
@@ -111,9 +113,11 @@ export function useLedgerStatusMonitor({
     )
   }
 
-  onBeforeUnmount(() => {
-    stopMonitoring()
-  })
+  if (getCurrentInstance()) {
+    onBeforeUnmount(() => {
+      stopMonitoring()
+    })
+  }
 
   return {
     ledgerConnectorStore,

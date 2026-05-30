@@ -3,7 +3,6 @@
     <section class="shared-confirm__section">
       <div class="shared-confirm__section-copy">
         <span class="shared-confirm__section-title">{{ $t('createSharedWallet.basicInfo') }}</span>
-        <span class="shared-confirm__section-caption">{{ $t('createSharedWallet.label') }}</span>
       </div>
 
       <div class="shared-confirm__value-card">{{ label }}</div>
@@ -130,7 +129,6 @@ const requiredSigNum = computed({
   color: var(--ow-color-text-primary);
 }
 
-.shared-confirm__section-caption,
 .shared-confirm__copayer-address,
 .shared-confirm__copayer-key {
   font-size: var(--ow-font-size-caption);

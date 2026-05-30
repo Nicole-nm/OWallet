@@ -38,26 +38,21 @@ export interface LedgerTransportError {
 }
 
 /**
- * Map a raw Ledger transport error into a user-facing message. Mutates the
- * error object in place (and returns it) to preserve whatever stack/prototype
- * info the transport attached.
+ * Map a raw Ledger transport error into a user-facing message.
  */
 export function evalTransportError(err: LedgerTransportError): LedgerTransportError {
   switch (err.statusCode) {
     case APP_CLOSED:
-      err.message = 'Your ONT app is closed! Please login.'
-      break
+      return { ...err, message: i18n.global.t('ledgerWallet.appClosed') }
     case MSG_TOO_BIG:
-      err.message = 'Your transaction is too big for the ledger to sign!'
-      break
+      return { ...err, message: i18n.global.t('ledgerWallet.transactionTooBig') }
     case TX_DENIED:
-      err.message = 'You have denied the transaction on your ledger.'
-      break
+      return { ...err, message: i18n.global.t('ledgerWallet.transactionDenied') }
     case TX_PARSE_ERR:
-      err.message = 'Error parsing transaction. Make sure your ONT app version is up to date.'
-      break
+      return { ...err, message: i18n.global.t('ledgerWallet.transactionParseError') }
+    default:
+      return err
   }
-  return err
 }
 
 /* -------------------------------------------------------------------------- */
@@ -257,14 +252,14 @@ export class LedgerProtocolClient {
         }
 
         if (!result) {
-          throw new Error('Ledger returned no signature data.')
+          throw new Error(i18n.global.t('ledgerWallet.noSignatureData'))
         }
         return parseLegacySignatureReply(result)
       }
 
       const reply = await this.sendChunkedMessage(path, INS.SIGN, Buffer.from(msg, 'hex'))
       if (reply.length <= 2) {
-        throw new Error('No more data but Ledger did not return signature!')
+        throw new Error(i18n.global.t('ledgerWallet.noSignatureReturned'))
       }
 
       return parseModernSignatureReply(reply)
@@ -280,7 +275,7 @@ export class LedgerProtocolClient {
   ): Promise<Buffer> {
     const supportsNewProtocol = await this.supportsModernProtocol()
     if (!supportsNewProtocol) {
-      throw new Error('Unsupported app version')
+      throw new Error(i18n.global.t('ledgerWallet.unsupportedAppVersion'))
     }
 
     try {
@@ -326,8 +321,7 @@ export class LedgerProtocolClient {
 
   private convertTransportError(error: LedgerTransportError): LedgerTransportError {
     if (error.statusCode === TX_DENIED) {
-      error.message = i18n.global.t('common.rejectedByUser')
-      return error
+      return { ...error, message: i18n.global.t('common.rejectedByUser') }
     }
     return evalTransportError(error)
   }

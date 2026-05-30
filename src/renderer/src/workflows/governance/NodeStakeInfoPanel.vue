@@ -34,15 +34,15 @@
       <section class="stake-summary-grid ow-stat-grid">
         <article class="stake-summary-card ow-stat-card">
           <span class="ow-stat-label">{{ $t('nodeStake.commitmentQuantity') }}</span>
-          <p class="ow-stat-value">{{ detail.commitmentQuantity }}</p>
+          <p class="ow-stat-value">{{ commitmentQuantityDisplay }}</p>
         </article>
         <article class="stake-summary-card ow-stat-card">
           <span class="ow-stat-label">{{ $t('nodeStake.stakeQuantity') }}</span>
-          <p class="ow-stat-value">{{ currentPeer.initPos }}</p>
+          <p class="ow-stat-value">{{ stakeQuantityDisplay }}</p>
         </article>
         <article class="stake-summary-card ow-stat-card">
           <span class="ow-stat-label">{{ $t('nodeStake.claimableQuantity') }}</span>
-          <p class="ow-stat-value">{{ authorizationInfo.claimable }}</p>
+          <p class="ow-stat-value">{{ claimableQuantityDisplay }}</p>
         </article>
       </section>
 
@@ -155,11 +155,11 @@
       <div class="stake-modal-summary ow-kv-panel">
         <div class="ow-kv-row">
           <span class="ow-kv-label">{{ $t('nodeMgmt.initPosInLock') }}</span>
-          <span class="ow-kv-value">{{ authorizationInfo.locked }} ONT</span>
+          <span class="ow-kv-value">{{ lockedQuantityDisplay }} ONT</span>
         </div>
         <div class="ow-kv-row">
           <span class="ow-kv-label">{{ $t('nodeMgmt.initPosRedeemable') }}</span>
-          <span class="ow-kv-value">{{ authorizationInfo.claimable }} ONT</span>
+          <span class="ow-kv-value">{{ claimableQuantityDisplay }} ONT</span>
         </div>
       </div>
     </a-modal>
@@ -219,7 +219,10 @@ const {
   detail,
   nodePublicKey,
   currentPeer,
-  authorizationInfo,
+  commitmentQuantityDisplay,
+  stakeQuantityDisplay,
+  lockedQuantityDisplay,
+  claimableQuantityDisplay,
   handleAddInitPos,
   handleReduceInitPos,
   openRedeemPosModal,

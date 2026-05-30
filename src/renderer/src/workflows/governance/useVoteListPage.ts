@@ -11,6 +11,7 @@ import { usePollingTask } from '../../shared/composables/usePollingTask'
 import { notifyWarning } from '../../shared/ui/feedback'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { VOTE_STATUS_TEXT, useVoteStore } from '../../stores/modules/Vote'
 import { useVoteAdminOperations } from './useVoteAdminOperations'
@@ -69,6 +70,26 @@ function sortVotesByNewest<T extends { startTime?: unknown; endTime?: unknown }>
   })
 }
 
+function getVoteCount(vote: Record<string, unknown>, primaryKey: string, fallbackKey: string) {
+  return vote[primaryKey] ?? vote[fallbackKey] ?? 0
+}
+
+function toDisplayNumberInput(value: unknown) {
+  return typeof value === 'number' || typeof value === 'string' ? value : undefined
+}
+
+function formatVoteListRow<T extends Record<string, unknown>>(vote: T) {
+  return {
+    ...vote,
+    approvesDisplay: formatNumberForDisplay(
+      toDisplayNumberInput(getVoteCount(vote, 'approves', 'approve'))
+    ),
+    rejectsDisplay: formatNumberForDisplay(
+      toDisplayNumberInput(getVoteCount(vote, 'rejects', 'reject'))
+    ),
+  }
+}
+
 export function useVoteListPage() {
   const { t } = useI18n()
   const router = useRouter()
@@ -94,7 +115,9 @@ export function useVoteListPage() {
   const voteWallet = computed(() => voteStore.voteWallet)
   const isAdmin = computed(() => Array.isArray(role.value) && role.value.includes(VOTE_ROLE.ADMIN))
   const activeVotes = computed(() =>
-    sortVotesByNewest(currentMenu.value[0] === 'created' ? adminVotes.value : allVotes.value)
+    sortVotesByNewest(currentMenu.value[0] === 'created' ? adminVotes.value : allVotes.value).map(
+      (vote) => formatVoteListRow(vote as Record<string, unknown>)
+    )
   )
   const columns = computed(() => [
     {

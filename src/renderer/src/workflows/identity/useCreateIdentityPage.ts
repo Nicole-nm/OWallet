@@ -7,7 +7,7 @@ import {
   persistCreatedIdentity,
   submitIdentityRegistration,
 } from '../../modules/identity/application/createIdentityApplicationService'
-import { useLedgerStatusMonitor } from '../../modules/wallet/ledger/statusMonitor'
+import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { createValidationErrors } from '../../shared/lib/formValidation'
 import { notifyError, notifySuccess, notifyWarning } from '../../shared/ui/feedback'

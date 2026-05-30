@@ -14,11 +14,7 @@
           >
             <span class="ow-flow-shell__step-index">1</span>
             <div class="ow-flow-shell__step-copy">
-              <span class="ow-flow-shell__step-label">{{ $t('createJsonWallet.basicInfo') }}</span>
-              <span class="ow-flow-shell__step-caption">
-                {{ $t('nodeApply.stakeWallet') }} /
-                {{ $t('nodeApply.operationWallet') }}
-              </span>
+              <span class="ow-flow-shell__step-label">{{ $t('nodeApply.configureNodeStep') }}</span>
             </div>
           </div>
 
@@ -30,12 +26,8 @@
             <span class="ow-flow-shell__step-index">2</span>
             <div class="ow-flow-shell__step-copy">
               <span class="ow-flow-shell__step-label">{{
-                $t('sharedWalletHome.confirmation')
+                $t('nodeApply.reviewApplicationStep')
               }}</span>
-              <span class="ow-flow-shell__step-caption">
-                {{ $t('nodeApply.operationWalletPublickey') }} /
-                {{ $t('nodeApply.stakeAmount') }}
-              </span>
             </div>
           </div>
         </div>
@@ -156,7 +148,7 @@
 
             <page-footer-actions align="between" class="node-apply-actions">
               <a-button type="default" @click="cancel" variant="secondary">{{
-                $t('nodeApply.cancel')
+                $t('nodeApply.back')
               }}</a-button>
               <a-button type="primary" variant="primary" @click="confirm">{{
                 $t('nodeApply.ok')

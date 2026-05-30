@@ -1,4 +1,5 @@
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
@@ -8,6 +9,7 @@ import { usePollingTask } from '../../shared/composables/usePollingTask'
 import { ROUTE_NAMES } from '../../router/routes'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 import { isCommonWallet, type CommonWallet, type HardwareWallet } from '../../shared/lib/types'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import { refreshNodeStakeManagementDetails } from '../../modules/governance/application/nodeStake/nodeStakeManagementApplicationService'
 import { useNodeStakeDialogs } from './useNodeStakeDialogs'
 import { useNodeStakeTransactions } from './useNodeStakeTransactions'
@@ -18,6 +20,18 @@ interface NodeStakeStatusRefs {
   statusStep3: { value: string }
   currentStep: { value: number }
   statusTip: { value: string }
+}
+
+type Translate = (key: string) => string
+
+function createDefaultStakeStatus(translate: Translate) {
+  return {
+    status1: translate('nodeStakeStatus.transfered'),
+    status2: translate('nodeStakeStatus.audited'),
+    status3: translate('nodeStakeStatus.staked'),
+    current: 0,
+    statusTip: '',
+  }
 }
 
 function applyNodeStakeManagementDetails({
@@ -40,15 +54,28 @@ function applyNodeStakeManagementDetails({
   authStore.setAuthorizationInfo({ authorizationInfo: details.authorizationInfo })
 }
 
-function applyStakeStatus(state: NodeStakeStatusRefs, stakeStatus: Record<string, unknown> = {}) {
-  state.statusStep1.value = String(stakeStatus.status1 || '')
-  state.statusStep2.value = String(stakeStatus.status2 || '')
-  state.statusStep3.value = String(stakeStatus.status3 || '')
-  state.currentStep.value = Number(stakeStatus.current ?? 0)
-  state.statusTip.value = String(stakeStatus.statusTip || '')
+function applyStakeStatus(
+  state: NodeStakeStatusRefs,
+  stakeStatus: Record<string, unknown> = {},
+  defaultStatus: Record<string, unknown> = {}
+) {
+  state.statusStep1.value = String(stakeStatus.status1 || defaultStatus.status1 || '')
+  state.statusStep2.value = String(stakeStatus.status2 || defaultStatus.status2 || '')
+  state.statusStep3.value = String(stakeStatus.status3 || defaultStatus.status3 || '')
+  state.currentStep.value = Number(stakeStatus.current ?? defaultStatus.current ?? 0)
+  state.statusTip.value = String(stakeStatus.statusTip || defaultStatus.statusTip || '')
+}
+
+function formatStakeAmount(value: unknown) {
+  if (typeof value === 'number' || (typeof value === 'string' && value.trim() !== '')) {
+    return formatNumberForDisplay(value) || '0'
+  }
+
+  return '0'
 }
 
 export function useNodeStakeInfoPanel() {
+  const { t } = useI18n()
   const router = useRouter()
   const settingStore = useSettingStore()
   const nodeStakeStore = useNodeStakeStore()
@@ -60,11 +87,12 @@ export function useNodeStakeInfoPanel() {
   const validAddPos = ref(true)
   const reducePos = ref(0)
   const validReducePos = ref(true)
-  const statusStep1 = ref('')
-  const statusStep2 = ref('')
-  const statusStep3 = ref('')
-  const currentStep = ref(0)
-  const statusTip = ref('')
+  const defaultStakeStatus = createDefaultStakeStatus(t)
+  const statusStep1 = ref(defaultStakeStatus.status1)
+  const statusStep2 = ref(defaultStakeStatus.status2)
+  const statusStep3 = ref(defaultStakeStatus.status3)
+  const currentStep = ref(defaultStakeStatus.current)
+  const statusTip = ref(defaultStakeStatus.statusTip)
 
   const stakeIdentity = computed(() => nodeStakeStore.stakeIdentity)
   const stakeWallet = computed(() => nodeStakeStore.stakeWallet)
@@ -76,6 +104,14 @@ export function useNodeStakeInfoPanel() {
   const currentPeer = computed(() => nodeAuthStore.currentPeer)
   const posLimit = computed(() => nodeAuthStore.posLimit)
   const authorizationInfo = computed(() => nodeAuthStore.authorizationInfo)
+  const commitmentQuantityDisplay = computed(() =>
+    formatStakeAmount(detail.value.commitmentQuantity)
+  )
+  const stakeQuantityDisplay = computed(() => formatStakeAmount(currentPeer.value.initPos))
+  const lockedQuantityDisplay = computed(() => formatStakeAmount(authorizationInfo.value.locked))
+  const claimableQuantityDisplay = computed(() =>
+    formatStakeAmount(authorizationInfo.value.claimable)
+  )
 
   const dialogs = useNodeStakeDialogs()
   const {
@@ -150,7 +186,7 @@ export function useNodeStakeInfoPanel() {
   } = transactions
 
   onMounted(() => {
-    startPolling()
+    void initializeStakeInfo()
   })
 
   function handleRouteBack() {
@@ -181,6 +217,24 @@ export function useNodeStakeInfoPanel() {
     redeemPosVisible.value = true
   }
 
+  function resetStakeInfoView() {
+    nodeStakeStore.setStakeDetail()
+    nodeAuthStore.setCurrentPeer()
+    nodeAuthStore.setAuthorizationInfo()
+    nodeAuthStore.setPosLimit()
+    applyStakeStatus(
+      {
+        statusStep1,
+        statusStep2,
+        statusStep3,
+        currentStep,
+        statusTip,
+      },
+      {},
+      defaultStakeStatus
+    )
+  }
+
   async function refreshStakeInfo() {
     const wallet = resolveStakeWallet()
     if (!wallet) {
@@ -207,11 +261,24 @@ export function useNodeStakeInfoPanel() {
           currentStep,
           statusTip,
         },
-        result.stakeStatus
+        result.stakeStatus,
+        defaultStakeStatus
       )
     }
 
     return result
+  }
+
+  async function initializeStakeInfo() {
+    resetStakeInfoView()
+    loadingStore.showLoadingModals()
+
+    try {
+      await refreshStakeInfo()
+    } finally {
+      loadingStore.hideLoadingModals()
+      startPolling({ immediate: false })
+    }
   }
 
   return {
@@ -238,6 +305,10 @@ export function useNodeStakeInfoPanel() {
     detail,
     currentPeer,
     posLimit,
+    commitmentQuantityDisplay,
+    stakeQuantityDisplay,
+    lockedQuantityDisplay,
+    claimableQuantityDisplay,
     statusStep1,
     statusStep2,
     statusStep3,
@@ -263,5 +334,6 @@ export function useNodeStakeInfoPanel() {
     openRedeemPosModal,
     handleRedeemPosOk,
     handleRedeemPosCancel,
+    initializeStakeInfo,
   }
 }

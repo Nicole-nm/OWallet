@@ -13,8 +13,8 @@
             </div>
             <div class="countdown-text">
               <p>{{ $t('nodeMgmt.toNextRound') }}</p>
-              <span class="countdown-value">{{ authorizationListCountdown }}</span>
-              <span class="countdown-label">{{ $t('nodeMgmt.blocks') }}</span>
+              <span class="countdown-value">{{ authorizationListCountdownDisplay }}</span>
+              <span class="countdown-label">{{ authorizationListCountdownUnit }}</span>
             </div>
             <span class="ow-icon-action question-icon" @click="toQuestion">
               <QuestionCircleOutlined />
@@ -31,6 +31,8 @@
           :dataSource="authorizationListNodes"
           :loading="authorizationListRequesting"
           :pagination="authorizationListPagination"
+          tableLayout="fixed"
+          :scroll="{ x: 786 }"
           @change="handleTableChange"
         >
           <template #headerCell="{ column }">
@@ -57,7 +59,14 @@
               <a-tooltip placement="top" :title="$t('nodeMgmt.candidateNode')">
                 <StarOutlined v-if="record.status === 1" />
               </a-tooltip>
-              {{ text }}
+              <a-tooltip
+                placement="topLeft"
+                :title="text ? String(text) : ''"
+                :mouse-enter-delay="0.08"
+                :mouse-leave-delay="0"
+              >
+                <span class="node-name__text">{{ text }}</span>
+              </a-tooltip>
             </a>
             <div
               v-else-if="
@@ -97,7 +106,8 @@ const {
   authorizationListRequesting,
   authorizationListPagination,
   authorizationListNodes,
-  authorizationListCountdown,
+  authorizationListCountdownDisplay,
+  authorizationListCountdownUnit,
   handleRouteBack,
   handleAuthorizeLogin,
   handleNodeDetail,
@@ -122,6 +132,18 @@ const {
 
 .authorization-list-table {
   width: 100%;
+}
+
+.authorization-list-table :deep(.authorization-col-rank),
+.authorization-list-table :deep(.authorization-col-proportion),
+.authorization-list-table :deep(.authorization-col-current-stake),
+.authorization-list-table :deep(.authorization-col-process),
+.authorization-list-table :deep(.authorization-col-action) {
+  white-space: nowrap;
+}
+
+.authorization-list-table :deep(.authorization-col-name) {
+  overflow: hidden;
 }
 
 .block-clock {
@@ -177,7 +199,11 @@ const {
 }
 
 .proportion-title p {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ow-space-1);
   margin: 0;
+  white-space: nowrap;
 }
 
 .proportion-info-icon {
@@ -188,6 +214,27 @@ const {
   position: absolute;
   top: var(--ow-space-3);
   right: var(--ow-space-3);
+}
+
+.node-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ow-space-1);
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: middle;
+}
+
+.node-name :deep(.anticon) {
+  flex: 0 0 auto;
+}
+
+.node-name__text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .node-name:hover {

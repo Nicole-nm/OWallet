@@ -171,7 +171,7 @@ const resolvedIconSrc = computed(() => props.iconSrc || createWalletIcon)
 
 .ow-create-card__actions--stacked {
   display: grid;
-  gap: var(--ow-space-3);
+  gap: var(--ow-space-4);
   justify-items: center;
 }
 

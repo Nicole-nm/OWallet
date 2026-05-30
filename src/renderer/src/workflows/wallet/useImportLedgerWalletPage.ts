@@ -106,6 +106,12 @@ export function useImportLedgerWalletPage() {
     currentStep.value = 1
   }
 
+  function previousStep() {
+    pagination.stopInitialLedgerPageLoading()
+    step.value = 1
+    currentStep.value = 0
+  }
+
   function openLedgerSupport() {
     openExternalUrl('https://support.ledgerwallet.com/hc/en-us/articles/360007583514')
   }
@@ -186,6 +192,7 @@ export function useImportLedgerWalletPage() {
     publicKey,
     addDisabled,
     nextStep,
+    previousStep,
     openLedgerSupport,
     loadInitialLedgerAccounts: pagination.loadInitialLedgerAccounts,
     updateImportLedgerField,

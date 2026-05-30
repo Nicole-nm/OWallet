@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import {
   createNewAuthorizationTransaction,
   resolveNewAuthorizationInput,
@@ -21,6 +22,11 @@ export function useNewAuthorizationPage() {
   const tx = ref<GovernanceSignablePayload>('')
 
   const currentNode = computed(() => nodeAuthStore.currentNode)
+  const currentNodeDisplay = computed(() => ({
+    ...currentNode.value,
+    maxAuthorizeDisplay: formatNumberForDisplay(currentNode.value.maxAuthorizeStr),
+    totalPosDisplay: formatNumberForDisplay(currentNode.value.totalPosStr),
+  }))
   const stakeWallet = computed(() => nodeStakeStore.stakeWallet)
 
   function setUnits(nextUnits: unknown) {
@@ -101,6 +107,7 @@ export function useNewAuthorizationPage() {
 
   return {
     currentNode,
+    currentNodeDisplay,
     stakeWallet,
     units,
     amount,

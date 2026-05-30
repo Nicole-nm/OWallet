@@ -112,6 +112,16 @@ describe('useImportLedgerWalletPage', () => {
     expect(page.form.publicKeyList).toEqual([{ acct: 0, publicKey: 'PUB-0', address: 'AQ000' }])
   })
 
+  it('returns from the selection step to the connect step', async () => {
+    const page = useImportLedgerWalletPage()
+    await page.nextStep()
+
+    page.previousStep()
+
+    expect(page.step.value).toBe(1)
+    expect(page.currentStep.value).toBe(0)
+  })
+
   it('does not reload the first ledger account page when addresses are already present', async () => {
     mocks.application.loadLedgerAccountPage.mockResolvedValue({
       ok: true,

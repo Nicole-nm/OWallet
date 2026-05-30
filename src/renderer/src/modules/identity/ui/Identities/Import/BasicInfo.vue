@@ -3,9 +3,6 @@
     <section class="identity-import__section">
       <div class="identity-import__section-copy">
         <span class="identity-import__section-title">{{ $t('importIdentity.basicInfo') }}</span>
-        <span class="identity-import__section-caption">
-          {{ $t('importIdentity.keystoreImport') }} / {{ $t('importIdentity.ontidPassword') }}
-        </span>
       </div>
 
       <form-field
@@ -101,12 +98,6 @@ const emit = defineEmits(['updateField', 'cancel', 'next'])
   font-size: var(--ow-font-size-body);
   line-height: var(--ow-line-height-body);
   color: var(--ow-color-text-primary);
-}
-
-.identity-import__section-caption {
-  font-size: var(--ow-font-size-caption);
-  line-height: var(--ow-line-height-caption);
-  color: var(--ow-color-text-secondary);
 }
 
 .identity-import__keystore {

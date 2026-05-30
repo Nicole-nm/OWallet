@@ -4,6 +4,7 @@ import { getExplorerApiBaseUrl, getExplorerApiUrl } from '../../shared/lib/const
 import { settledWithConcurrency } from '../../shared/lib/concurrency'
 import type { AuthorizationInfo, NodeInfo } from '../../shared/lib/types'
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import {
   getPeerPoolMap,
   getAttributes,
@@ -13,8 +14,6 @@ import {
   getPeerUnboundOng,
 } from './transactionBuilder'
 import type { StakeHistoryEntry } from './types'
-
-const formatNumberForDisplay = (v: number | string) => Number(v).toLocaleString('en-US')
 
 export function formatAuthorizationInfo(info: AuthorizationInfo) {
   let inAuthorization: string | number = info.consensusPos + info.freezePos + info.newPos

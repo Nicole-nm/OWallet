@@ -15,6 +15,9 @@ export function useSharedWalletSendPage() {
     { name: sharedWallet.value.sharedWalletName, path: ROUTE_PATHS.sharedWalletHome },
   ])
   const isRedeem = computed(() => Boolean(currentWalletStore.transfer.isRedeem))
+  const displayedStep = computed(() =>
+    isRedeem.value ? Math.max(current.value - 1, 0) : current.value
+  )
 
   onMounted(() => {
     current.value = isRedeem.value ? 1 : 0
@@ -37,7 +40,7 @@ export function useSharedWalletSendPage() {
   }
 
   function handleSendConfirmBack() {
-    current.value = 0
+    current.value = isRedeem.value ? 1 : 0
   }
 
   function handleInputPassBack() {
@@ -50,6 +53,7 @@ export function useSharedWalletSendPage() {
 
   return {
     current,
+    displayedStep,
     handleCancel,
     handleInputPassBack,
     handleInputPassNext,

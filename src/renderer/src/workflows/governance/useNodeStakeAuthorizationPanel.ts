@@ -4,6 +4,7 @@ import { notifyError, notifyWarning } from '../../shared/ui/feedback'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import {
   createChangeStakeAuthorizationTransaction,
   createChangeStakeCostTransaction,
@@ -54,9 +55,16 @@ export function useNodeStakeAuthorizationPanel() {
   const peerUnboundOng = computed(() => nodeAuthStore.peerUnboundOng)
   const maxStakeLimit = computed(() => {
     const initPos = nodeAuthStore.currentPeer.initPos
-    return Number(posLimit.value * initPos).toLocaleString('en-US')
+    return formatNumberForDisplay(posLimit.value * initPos)
   })
   const initPosStr = computed(() => currentPeer.value.initPosStr)
+  const initPosDisplay = computed(() => formatNumberForDisplay(currentPeer.value.initPosStr))
+  const totalPosDisplay = computed(() => formatNumberForDisplay(currentPeer.value.totalPosStr))
+  const maxAuthorizeDisplay = computed(() =>
+    formatNumberForDisplay(peerAttributes.value.maxAuthorizeStr)
+  )
+  const splitFeeAmountDisplay = computed(() => formatNumberForDisplay(splitFee.value.amount))
+  const peerUnboundOngDisplay = computed(() => formatNumberForDisplay(peerUnboundOng.value))
   usePollingTask(refresh, { intervalMs: 10000 })
 
   function resolveStakeWallet() {
@@ -164,7 +172,6 @@ export function useNodeStakeAuthorizationPanel() {
   function handleCancel() {
     signVisible.value = false
     tx.value = ''
-    unit.value = 0
   }
 
   function handleTxSent() {
@@ -224,6 +231,11 @@ export function useNodeStakeAuthorizationPanel() {
     peerUnboundOng,
     maxStakeLimit,
     initPosStr,
+    initPosDisplay,
+    totalPosDisplay,
+    maxAuthorizeDisplay,
+    splitFeeAmountDisplay,
+    peerUnboundOngDisplay,
     peerCost,
     stakeCost,
     validUnit,

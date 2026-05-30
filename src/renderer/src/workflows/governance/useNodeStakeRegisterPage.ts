@@ -14,6 +14,7 @@ import { useSettingStore } from '../../stores/modules/Setting'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { isCommonWallet } from '../../shared/lib/types'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 
 function applyStakeDetail(nodeStakeStore: unknown, result: Record<string, unknown>) {
@@ -46,6 +47,7 @@ export function useNodeStakeRegisterPage() {
     ontid: detail.value?.ontid || stakeIdentity.value?.ontid || '',
     stakeWalletAddress: detail.value?.stakeWalletAddress || stakeWallet.value?.address || '',
     publicKey: detail.value?.publicKey || '',
+    commitmentQuantityDisplay: formatNumberForDisplay(detail.value?.commitmentQuantity),
   }))
 
   onMounted(() => {

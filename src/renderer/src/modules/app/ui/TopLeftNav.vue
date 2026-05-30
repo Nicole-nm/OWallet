@@ -31,7 +31,7 @@
       </router-link>
 
       <router-link :to="{ name: ROUTE_NAMES.NODE_MANAGEMENT }" active-class="node-stake-active">
-        <a-tooltip placement="right" :title="$t('setting.nodeStake')">
+        <a-tooltip placement="right" :title="$t('vote.node')">
           <div class="node-stake-icon"></div>
         </a-tooltip>
       </router-link>

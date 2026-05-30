@@ -43,7 +43,17 @@ vi.mock('vue-router', () => ({
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key: unknown) => key,
+    t: (key: unknown, values?: Record<string, unknown>) => {
+      if (key === 'importJsonWallet.importDatSuccessOne') {
+        return `A total of ${String(values?.count)} address was imported successfully.`
+      }
+
+      if (key === 'importJsonWallet.importDatSuccessMany') {
+        return `A total of ${String(values?.count)} addresses were imported successfully.`
+      }
+
+      return key
+    },
   }),
 }))
 
@@ -86,11 +96,62 @@ vi.mock('../../modules/wallet/application/json/importJsonWalletApplicationServic
 }))
 
 import { useImportJsonWalletPage } from './useImportJsonWalletPage'
+import { getImportDatSuccessMessage } from './useImportDatWallet'
+
+describe('getImportDatSuccessMessage', () => {
+  const translate = (key: string, values?: Record<string, unknown>) => `${key}:${values?.count}`
+
+  it('uses the singular message for one imported address', () => {
+    expect(getImportDatSuccessMessage(translate, 1)).toBe('importJsonWallet.importDatSuccessOne:1')
+  })
+
+  it('uses the plural message for zero or multiple imported addresses', () => {
+    expect(getImportDatSuccessMessage(translate, 0)).toBe('importJsonWallet.importDatSuccessMany:0')
+    expect(getImportDatSuccessMessage(translate, 2)).toBe('importJsonWallet.importDatSuccessMany:2')
+    expect(getImportDatSuccessMessage(translate, 1000)).toBe(
+      'importJsonWallet.importDatSuccessMany:1\u2009000'
+    )
+  })
+})
 
 describe('useImportJsonWalletPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     setActivePinia(createPinia())
+  })
+
+  it('opens the DAT import tab by default', () => {
+    const page = useImportJsonWalletPage()
+
+    expect(page.form.tabName).toBe('dat')
+  })
+
+  it('requires a wallet name when importing a mnemonic wallet', async () => {
+    const page = useImportJsonWalletPage()
+    page.updateImportJsonField({ field: 'tabName', value: 'mnemonic' })
+    page.updateImportJsonField({ field: 'mnemonic', value: 'abandon '.repeat(11) + 'about' })
+    page.updateImportJsonField({ field: 'mnemonicPassword', value: 'secret123' })
+    page.updateImportJsonField({ field: 'mnemonicRePassword', value: 'secret123' })
+
+    await page.submitImportJsonWallet()
+
+    expect(page.validationErrors.mnemonicLabel).toBe('importJsonWallet.label is required')
+    expect(mocks.loading.showLoadingModals).not.toHaveBeenCalled()
+    expect(mocks.application.buildImportedJsonWalletDraftFromMnemonic).not.toHaveBeenCalled()
+  })
+
+  it('requires a wallet name when importing a 64-hex private key wallet', async () => {
+    const page = useImportJsonWalletPage()
+    page.updateImportJsonField({ field: 'tabName', value: 'pk' })
+    page.updateImportJsonField({ field: 'pk', value: 'a'.repeat(64) })
+    page.updateImportJsonField({ field: 'pkPassword', value: 'secret123' })
+    page.updateImportJsonField({ field: 'pkRePassword', value: 'secret123' })
+
+    await page.submitImportJsonWallet()
+
+    expect(page.validationErrors.pkLabel).toBe('importJsonWallet.label is required')
+    expect(mocks.loading.showLoadingModals).not.toHaveBeenCalled()
+    expect(mocks.application.buildImportedJsonWalletDraftFromPrivateKeyHex).not.toHaveBeenCalled()
   })
 
   it('imports a WIF wallet in the workflow and refreshes wallet cache', async () => {
@@ -231,7 +292,7 @@ describe('useImportJsonWalletPage', () => {
       hardwareWallets: [] as unknown[],
     })
     expect(mocks.feedback.notifySuccess).toHaveBeenCalledWith(
-      'A total of 1 addresses succeed to import.',
+      'A total of 1 address was imported successfully.',
       { literal: true }
     )
     expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })

@@ -13,9 +13,8 @@
         >
           <span class="ow-flow-shell__step-index">1</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('importSharedWallet.import') }}</span>
-            <span class="ow-flow-shell__step-caption">{{
-              $t('importSharedWallet.inputAddress')
+            <span class="ow-flow-shell__step-label">{{
+              $t('importSharedWallet.findWalletStep')
             }}</span>
           </div>
         </div>
@@ -27,11 +26,9 @@
         >
           <span class="ow-flow-shell__step-index">2</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('sharedWalletHome.confirmation') }}</span>
-            <span class="ow-flow-shell__step-caption">
-              {{ $t('importSharedWallet.totalCopayerNumber') }} /
-              {{ $t('importSharedWallet.requiredCopayerNumber') }}
-            </span>
+            <span class="ow-flow-shell__step-label">{{
+              $t('importSharedWallet.confirmJoinStep')
+            }}</span>
           </div>
         </div>
       </div>

@@ -45,7 +45,11 @@
               <div class="ow-kv-value authorization-kv-value">
                 <span>{{ authorizationInfo.inAuthorization }} ONT</span>
                 <a-tooltip placement="top" :title="$t('nodeMgmt.refresh')">
-                  <button type="button" class="ow-icon-action refresh-icon" @click="handleRefresh">
+                  <button
+                    type="button"
+                    class="ow-icon-action authorization-refresh-action"
+                    @click="handleRefresh"
+                  >
                     <ReloadOutlined />
                   </button>
                 </a-tooltip>
@@ -99,7 +103,7 @@
         </header>
 
         <div class="ow-panel-body authorization-panel__body">
-          <div class="ow-governance-highlight">
+          <div class="ow-governance-highlight reward-primary">
             <div class="reward-meta">
               <span class="ow-governance-card__label label-with-icon">
                 <a-tooltip placement="right" :title="$t('nodeMgmt.profitONG')">
@@ -107,9 +111,11 @@
                 </a-tooltip>
                 {{ $t('nodeMgmt.profit') }}
               </span>
-              <span class="ow-governance-title">{{ splitFee.amount }} ONG</span>
+              <span class="ow-governance-title reward-primary__amount">
+                {{ splitFeeAmountDisplay }} ONG
+              </span>
             </div>
-            <div class="ow-governance-actions ow-governance-actions--start">
+            <div class="reward-primary__actions">
               <a-button type="primary" variant="accent" @click="redeemRewards">{{
                 $t('nodeMgmt.redeem')
               }}</a-button>
@@ -128,7 +134,7 @@
               </a-tooltip>
               {{ $t('nodeMgmt.unboundOng') }}
             </span>
-            <span class="ow-governance-card__value">{{ unboundOng }} ONG</span>
+            <span class="ow-governance-card__value">{{ unboundOngDisplay }} ONG</span>
           </div>
         </div>
       </section>
@@ -156,11 +162,11 @@
             v-model:value="cancelAmount"
             @change="validateCancelAmount"
           ></a-input>
-          <span class="ow-info-value">{{ $t('nodeMgmt.cancelUnits') }}</span>
+          <span class="ow-info-value">{{ cancelUnitLabel }}</span>
         </div>
         <div class="ow-info-row">
           <span class="ow-info-label">{{ $t('nodeMgmt.amountToCancel') }}: </span>
-          <span class="ow-info-value">{{ cancelAmount }} ONT</span>
+          <span class="ow-info-value">{{ cancelAmountDisplay }} ONT</span>
         </div>
       </div>
     </a-modal>
@@ -192,13 +198,15 @@ defineOptions({
 const {
   currentNode,
   stakeWallet,
-  splitFee,
   authorizationInfo,
-  unboundOng,
+  splitFeeAmountDisplay,
+  unboundOngDisplay,
   signVisible,
   tx,
   cancelVisible,
   cancelAmount,
+  cancelAmountDisplay,
+  cancelUnitLabel,
   validCancelAmount,
   handleRouteBack,
   newStakeAuthorization,
@@ -221,8 +229,10 @@ const {
 }
 
 .authorization-actions {
-  width: min(100%, 380px);
+  width: min(100%, 240px);
   margin-left: auto;
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .authorization-panel__body {
@@ -275,15 +285,16 @@ const {
   margin-bottom: var(--ow-space-1);
 }
 
-.refresh-icon {
+.authorization-refresh-action {
   padding: 0;
 }
 
 .new-stake {
   margin: 0;
   border-radius: var(--ow-radius-control);
-  flex: 1 1 180px;
-  min-width: 180px;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .authorize-tip {
@@ -293,8 +304,9 @@ const {
 .cancel-btn {
   margin: 0;
   border-radius: var(--ow-radius-control);
-  flex: 1 1 180px;
-  min-width: 180px;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .label-with-icon {
@@ -307,6 +319,25 @@ const {
   display: flex;
   flex-direction: column;
   gap: var(--ow-space-1);
+}
+
+.reward-primary {
+  justify-items: stretch;
+}
+
+.reward-primary__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ow-space-2);
+  min-width: 0;
+  text-align: right;
+}
+
+.reward-primary__amount {
+  align-self: flex-end;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .reward-secondary {
@@ -325,9 +356,13 @@ const {
   }
 
   .authorization-actions {
-    width: 100%;
+    width: min(100%, 240px);
     justify-content: flex-start;
     margin-left: 0;
+  }
+
+  .reward-primary__actions {
+    width: 100%;
   }
 }
 

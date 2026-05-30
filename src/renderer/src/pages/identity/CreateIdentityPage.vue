@@ -14,10 +14,9 @@
         >
           <span class="ow-flow-shell__step-index">1</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('createIdentity.basicInfo') }}</span>
-            <span class="ow-flow-shell__step-caption">
-              {{ $t('createIdentity.label') }} / {{ $t('createIdentity.selectWallet') }}
-            </span>
+            <span class="ow-flow-shell__step-label">{{
+              $t('createIdentity.setupIdentityStep')
+            }}</span>
           </div>
         </div>
 
@@ -28,10 +27,9 @@
         >
           <span class="ow-flow-shell__step-index">2</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('createIdentity.confirmInfo') }}</span>
-            <span class="ow-flow-shell__step-caption">
-              {{ $t('createIdentity.label') }} / {{ $t('createIdentity.ontid') }}
-            </span>
+            <span class="ow-flow-shell__step-label">{{
+              $t('createIdentity.reviewIdentityStep')
+            }}</span>
           </div>
         </div>
       </div>

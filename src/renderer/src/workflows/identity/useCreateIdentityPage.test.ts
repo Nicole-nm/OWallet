@@ -20,6 +20,9 @@ const mocks = vi.hoisted(() => ({
     persistCreatedIdentity: vi.fn(),
     submitIdentityRegistration: vi.fn(),
   },
+  ledgerMonitor: {
+    useLedgerStatusMonitor: vi.fn(),
+  },
 }))
 
 vi.mock('vue', async () => {
@@ -58,11 +61,8 @@ vi.mock('../../modules/identity/application/createIdentityApplicationService', (
 }))
 
 vi.mock('../../modules/wallet/composables/useLedgerStatusMonitor', () => ({
-  useLedgerStatusMonitor: () => ({
-    ledgerStatus: ref('connected'),
-    ledgerPk: ref('ledger-pk'),
-    ledgerWallet: ref({ address: 'ALedger' }),
-  }),
+  useLedgerStatusMonitor: (...args: unknown[]) =>
+    mocks.ledgerMonitor.useLedgerStatusMonitor(...args),
 }))
 
 vi.mock('../../shared/composables/useGlobalLoading', () => ({
@@ -98,6 +98,11 @@ describe('useCreateIdentityPage', () => {
       ok: true,
       options: [{ address: 'AQ123', label: 'Alice Wallet' }],
     })
+    mocks.ledgerMonitor.useLedgerStatusMonitor.mockReturnValue({
+      ledgerStatus: ref('connected'),
+      ledgerPk: ref('ledger-pk'),
+      ledgerWallet: ref({ address: 'ALedger' }),
+    })
   })
 
   it('loads payer wallet options in the workflow on page entry', async () => {
@@ -105,6 +110,22 @@ describe('useCreateIdentityPage', () => {
     await Promise.resolve()
 
     expect(page.payerWalletOptions.value).toEqual([{ address: 'AQ123', label: 'Alice Wallet' }])
+  })
+
+  it('enables ledger status polling while the ledger payer is selected on the basic step', () => {
+    const page = useCreateIdentityPage()
+    expect(mocks.ledgerMonitor.useLedgerStatusMonitor).toHaveBeenCalledTimes(1)
+    const monitorOptions = mocks.ledgerMonitor.useLedgerStatusMonitor.mock.calls[0]?.[0] as {
+      shouldPoll: { value: boolean }
+    }
+
+    expect(monitorOptions.shouldPoll.value).toBe(false)
+
+    page.payerWalletType.value = 'ledgerWallet'
+    expect(monitorOptions.shouldPoll.value).toBe(true)
+
+    page.currentStep.value = 1
+    expect(monitorOptions.shouldPoll.value).toBe(false)
   })
 
   it('submits the basic step through the workflow and advances after signing', async () => {

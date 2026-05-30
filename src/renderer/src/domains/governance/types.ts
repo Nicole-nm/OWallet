@@ -88,7 +88,7 @@ export interface GlobalParam {
  * `searchUserStakeHistory`.  Each entry represents the caller's authorization
  * position at one governance node.
  *
- * The numeric pos fields are formatted locale strings (e.g. "1,000") so they
+ * The numeric pos fields are formatted locale strings (e.g. "1\u2009000") so they
  * are ready for display; `claimableVal` is the raw number kept for computation.
  */
 export interface StakeHistoryEntry {

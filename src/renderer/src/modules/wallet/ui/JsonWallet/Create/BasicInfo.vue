@@ -3,9 +3,6 @@
     <section class="json-create__section">
       <div class="json-create__section-copy">
         <span class="json-create__section-title">{{ $t('createJsonWallet.basicInfo') }}</span>
-        <span class="json-create__section-caption">
-          {{ $t('createJsonWallet.label') }} / {{ $t('createJsonWallet.password') }}
-        </span>
       </div>
 
       <div class="json-create__field-grid">
@@ -122,12 +119,6 @@ const rePassword = computed({
   font-size: var(--ow-font-size-body);
   line-height: var(--ow-line-height-body);
   color: var(--ow-color-text-primary);
-}
-
-.json-create__section-caption {
-  font-size: var(--ow-font-size-caption);
-  line-height: var(--ow-line-height-caption);
-  color: var(--ow-color-text-secondary);
 }
 
 .json-create__field-grid {

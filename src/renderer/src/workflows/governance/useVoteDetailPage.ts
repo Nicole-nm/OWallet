@@ -1,12 +1,14 @@
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { loadVoteDetail } from '../../modules/governance/application/vote/voteTopicApplicationService'
 import { openExternalUrl } from '../../modules/app/application/externalNavigationApplicationService'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
+import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { getExplorerUrl } from '../../shared/lib/urlBuilder'
 import { notifyWarning } from '../../shared/ui/feedback'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { MY_VOTED, VOTE_STATUS_TEXT, useVoteStore } from '../../stores/modules/Vote'
 import { formatVoteTime, formatVoteStatus, reverseVoteHash } from './useVoteFormatting'
@@ -30,6 +32,8 @@ interface RefreshVoteDetailOptions {
   showError?: boolean
 }
 
+type VoteRecordRow = Record<string, unknown>
+
 function isSilentVoteFailure(result: unknown): result is { silent: true } {
   return Boolean(result && typeof result === 'object' && 'silent' in result && result.silent)
 }
@@ -49,11 +53,27 @@ function getVoteFailureMessage(result: unknown, translate: (key: string) => stri
   return translate(errorKey) + statusText
 }
 
+function getVoteCount(voteItem: Record<string, unknown>, primaryKey: string, fallbackKey: string) {
+  return voteItem[primaryKey] ?? voteItem[fallbackKey] ?? 0
+}
+
+function toDisplayNumberInput(value: unknown) {
+  return typeof value === 'number' || typeof value === 'string' ? value : undefined
+}
+
+function formatVoteRecordRow(record: VoteRecordRow) {
+  return {
+    ...record,
+    weightDisplay: formatNumberForDisplay(toDisplayNumberInput(record.weight)),
+  }
+}
+
 export function useVoteDetailPage() {
   const { t } = useI18n()
   const router = useRouter()
   const voteStore = useVoteStore()
   const settingStore = useSettingStore()
+  const loadingStore = useLoadingModalStore()
 
   const routes = ref<VoteRoute[]>([
     { name: t('vote.node'), path: '/node' },
@@ -75,8 +95,6 @@ export function useVoteDetailPage() {
       align: 'right',
     },
   ])
-  const approveData = ref<unknown[]>([])
-  const rejectData = ref<unknown[]>([])
   const myVoted = ref('')
   const isVoter = ref(false)
   const signVisible = ref(false)
@@ -85,16 +103,24 @@ export function useVoteDetailPage() {
   const vote = computed(() => voteStore.currentVote)
   const role = computed(() => voteStore.role)
   const myWeight = computed(() => voteStore.myWeight)
+  const voteApprovesDisplay = computed(() =>
+    formatNumberForDisplay(toDisplayNumberInput(getVoteCount(vote.value, 'approves', 'approve')))
+  )
+  const voteRejectsDisplay = computed(() =>
+    formatNumberForDisplay(toDisplayNumberInput(getVoteCount(vote.value, 'rejects', 'reject')))
+  )
+  const myWeightDisplay = computed(() => formatNumberForDisplay(myWeight.value))
   const voteWallet = computed(() => voteStore.voteWallet)
   const votedRecords = computed(() => voteStore.currentVoteRecords)
-
-  watch(
-    votedRecords,
-    (records) => {
-      approveData.value = records.filter((item) => item.isApproval)
-      rejectData.value = records.filter((item) => !item.isApproval)
-    },
-    { immediate: true }
+  const approveData = computed(() =>
+    votedRecords.value
+      .filter((item) => (item as VoteRecordRow).isApproval)
+      .map((item) => formatVoteRecordRow(item as VoteRecordRow))
+  )
+  const rejectData = computed(() =>
+    votedRecords.value
+      .filter((item) => !(item as VoteRecordRow).isApproval)
+      .map((item) => formatVoteRecordRow(item as VoteRecordRow))
   )
 
   const { startPolling } = usePollingTask(() => refreshVoteDetail(), {
@@ -135,8 +161,14 @@ export function useVoteDetailPage() {
   }
 
   async function initializeVoteDetailPage() {
-    await refreshVoteDetail({ showError: true })
-    startPolling({ immediate: false })
+    loadingStore.showLoadingModals()
+
+    try {
+      await refreshVoteDetail({ showError: true })
+    } finally {
+      loadingStore.hideLoadingModals()
+      startPolling({ immediate: false })
+    }
   }
 
   async function refreshVoteDetail({ showError = false }: RefreshVoteDetailOptions = {}) {
@@ -277,6 +309,9 @@ export function useVoteDetailPage() {
     vote,
     role,
     myWeight,
+    voteApprovesDisplay,
+    voteRejectsDisplay,
+    myWeightDisplay,
     voteWallet,
     votedRecords,
     back,

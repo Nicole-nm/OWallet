@@ -82,7 +82,7 @@ describe('authorizationQueryApplicationService', () => {
         nodeProportion: '20%',
         userProportion: '80%',
         currentStakeValue: 1200,
-        currentStake: '1,200',
+        currentStake: '1\u2009200',
         detailUrl: 'https://example.com/node-a',
       }),
     ])

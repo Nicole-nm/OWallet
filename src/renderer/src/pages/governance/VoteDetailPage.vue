@@ -13,13 +13,13 @@
         <div class="voted-container ow-stat-grid">
           <div class="visiter-approve ow-stat-card" v-if="!page.isVoter">
             <CaretUpFilled class="icon-approve" />
-            <span class="ow-stat-value">{{ page.vote.approves }}</span>
+            <span class="ow-stat-value">{{ page.voteApprovesDisplay }}</span>
             <span class="vote-inline-label">votes</span>
           </div>
           <div class="short-line" v-if="!page.isVoter"></div>
           <div class="visiter-reject ow-stat-card" v-if="!page.isVoter">
             <CaretDownFilled class="icon-reject" />
-            <span class="ow-stat-value">{{ page.vote.rejects }}</span>
+            <span class="ow-stat-value">{{ page.voteRejectsDisplay }}</span>
             <span class="vote-inline-label">votes</span>
           </div>
 
@@ -39,7 +39,7 @@
                   'my-voted-text': page.myVoted === page.MY_VOTED.APPROVED,
                 }"
                 class="ow-stat-value"
-                >{{ page.vote.approves }}</span
+                >{{ page.voteApprovesDisplay }}</span
               >
               <span
                 :class="{
@@ -52,7 +52,7 @@
             <p class="vote-option" v-if="page.myVoted !== page.MY_VOTED.APPROVED">Vote Up</p>
             <p class="my-voted my-voted-approve" v-if="page.myVoted === page.MY_VOTED.APPROVED">
               <span>Voted</span>
-              <span class="added-votes"> +{{ page.myWeight }}</span>
+              <span class="added-votes"> +{{ page.myWeightDisplay }}</span>
             </p>
           </div>
           <div
@@ -71,7 +71,7 @@
                   'my-voted-text': page.myVoted === page.MY_VOTED.REJECTED,
                 }"
                 class="ow-stat-value"
-                >{{ page.vote.rejects }}</span
+                >{{ page.voteRejectsDisplay }}</span
               >
               <span
                 :class="{
@@ -83,7 +83,7 @@
             </p>
             <p class="my-voted my-voted-reject" v-if="page.myVoted === page.MY_VOTED.REJECTED">
               <span>Voted</span>
-              <span class="added-votes"> +{{ page.myWeight }}</span>
+              <span class="added-votes"> +{{ page.myWeightDisplay }}</span>
             </p>
             <p class="vote-option" v-if="page.myVoted !== page.MY_VOTED.REJECTED">Vote Down</p>
           </div>
@@ -132,7 +132,7 @@
             </div>
             <div class="info-item ow-kv-row">
               <span class="ow-kv-label">{{ $t('vote.myVotes') }}</span>
-              <span class="ow-kv-value">{{ page.myWeight }}</span>
+              <span class="ow-kv-value">{{ page.myWeightDisplay }}</span>
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@
                     v-else-if="column.key === 'weight'"
                     class="vote-record-cell vote-record-cell--weight"
                   >
-                    {{ record.weight }}
+                    {{ record.weightDisplay }}
                   </div>
                 </template>
               </a-table>
@@ -187,7 +187,7 @@
                     v-else-if="column.key === 'weight'"
                     class="vote-record-cell vote-record-cell--weight"
                   >
-                    {{ record.weight }}
+                    {{ record.weightDisplay }}
                   </div>
                 </template>
               </a-table>

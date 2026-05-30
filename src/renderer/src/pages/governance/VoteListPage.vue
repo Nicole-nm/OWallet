@@ -38,11 +38,11 @@
             <div class="vote-status-detail">
               <div class="status-item">
                 <CaretUpFilled class="icon-approve" />
-                <span>{{ record.approves }}</span>
+                <span>{{ record.approvesDisplay }}</span>
               </div>
               <div class="status-item">
                 <CaretDownFilled class="icon-reject" />
-                <span>{{ record.rejects }}</span>
+                <span>{{ record.rejectsDisplay }}</span>
               </div>
             </div>
           </div>

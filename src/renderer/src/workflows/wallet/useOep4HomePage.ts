@@ -10,6 +10,7 @@ import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useOep4sStore } from '../../stores/modules/Oep4s'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import {
   createTrackedOep4Token,
   loadTrackedOep4Balances,
@@ -31,6 +32,13 @@ export function useOep4HomePage() {
   const currentWallet = computed(() => currentWalletStore.wallet)
   const address = computed(() => currentWalletStore.wallet.address || '')
   const oep4s = computed(() => oep4sStore.oep4s)
+  const oep4sDisplay = computed(() =>
+    oep4s.value.map((token) => ({
+      ...token,
+      scriptHash: String(token.scriptHash || token.contractHash || token.contract_hash || ''),
+      balanceDisplay: formatNumberForDisplay(token.balance),
+    }))
+  )
   const completedTx = computed(() => oep4sStore.completedTx)
   const isSharedWallet = computed(
     () => sharedWalletSessionStore.wallet?.sharedWalletAddress === address.value
@@ -168,6 +176,7 @@ export function useOep4HomePage() {
     handleCancel,
     net,
     oep4s,
+    oep4sDisplay,
     refresh,
     routes,
     scriptHash,

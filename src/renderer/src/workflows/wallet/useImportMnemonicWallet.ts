@@ -8,7 +8,12 @@ import { createValidationErrors } from '../../shared/lib/formValidation'
 import { buildImportedJsonWalletDraftFromMnemonic } from '../../modules/wallet/application/json/importJsonWalletApplicationService'
 import type { ImportJsonWalletAccount, WalletImportTabDependencies } from './importJsonWallet.types'
 
-const MNEMONIC_VALIDATION_FIELDS = ['mnemonic', 'mnemonicPassword', 'mnemonicRePassword'] as const
+const MNEMONIC_VALIDATION_FIELDS = [
+  'mnemonicLabel',
+  'mnemonic',
+  'mnemonicPassword',
+  'mnemonicRePassword',
+] as const
 
 export function useImportMnemonicWallet({
   form,
@@ -20,10 +25,12 @@ export function useImportMnemonicWallet({
 }: WalletImportTabDependencies) {
   function validateMnemonicForm() {
     const errors = createValidationErrors(MNEMONIC_VALIDATION_FIELDS)
+    const labelField = t('importJsonWallet.label')
     const mnemonicLabelField = t('FormField.mnemonic')
     const passwordLabel = t('FormField.password')
     const passwordConfirmationLabel = t('FormField.passwordConfirmation')
 
+    validateRequired(errors, 'mnemonicLabel', labelField, form.mnemonicLabel)
     validateRequired(errors, 'mnemonic', mnemonicLabelField, form.mnemonic)
 
     const hasPassword = validateRequired(

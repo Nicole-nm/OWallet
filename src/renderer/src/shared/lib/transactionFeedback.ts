@@ -19,6 +19,10 @@ type TransactionFeedbackResult =
   | { ok: false; errorKey: string; message?: string | null }
   | { ok: true; txHash?: string }
 
+export function formatTransactionHash(txHash: string, prefix?: string): string {
+  return `${prefix ?? translateFeedback('common.transactionHashPrefix')}${txHash}`
+}
+
 export function handleTransactionFeedback(
   result: TransactionFeedbackInput | null | undefined,
   options: TransactionFeedbackOptions = {}
@@ -26,7 +30,7 @@ export function handleTransactionFeedback(
   const {
     successMessageKey = 'common.transSentSuccess',
     successModalTitle = 'common.transSentSuccess',
-    txHashPrefix = 'Transaction hash: ',
+    txHashPrefix,
     prependErrorPrefix = true,
     errorPrefixKey = 'common.txFailed',
   } = options
@@ -51,11 +55,12 @@ export function handleTransactionFeedback(
 
   notifySuccess(successMessageKey)
 
-  if (result.txHash) {
+  const txHash = result.txHash
+  if (txHash) {
     setTimeout(() => {
       showSuccessModal({
         title: successModalTitle,
-        content: `${txHashPrefix}${result.txHash}`,
+        content: formatTransactionHash(txHash, txHashPrefix),
       })
     }, 100)
   }

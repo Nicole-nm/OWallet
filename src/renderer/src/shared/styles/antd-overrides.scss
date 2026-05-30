@@ -173,11 +173,26 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--ow-space-3);
   margin-top: 0;
   padding: var(--ow-modal-footer-padding);
   border-top: 1px solid var(--ow-color-border-subtle);
   background: color-mix(in srgb, var(--ow-color-modal-header) 50%, transparent);
+}
+
+.ant-modal .ant-modal-body > p,
+.ant-modal .ant-modal-body > div > p:first-child {
+  margin: 0 0 var(--ow-space-3);
+  color: var(--ow-color-text-secondary);
+}
+
+.ant-modal .ant-modal-body .ant-input,
+.ant-modal .ant-modal-body .ant-input-password,
+.ant-modal .ant-modal-body .ant-input-number,
+.ant-modal .ant-modal-body .ant-select,
+.ant-modal .ant-modal-body .ant-picker {
+  max-width: 100%;
 }
 
 .ant-modal-footer .ant-btn,
@@ -236,6 +251,23 @@
 .ant-modal-confirm .ant-modal-confirm-body > .anticon {
   margin-top: 2px;
   font-size: var(--ow-font-size-title);
+}
+
+.ant-modal-confirm-info .ant-modal-confirm-body > .anticon {
+  color: var(--ow-color-info);
+}
+
+.ant-modal-confirm-success .ant-modal-confirm-body > .anticon {
+  color: var(--ow-color-success);
+}
+
+.ant-modal-confirm-warning .ant-modal-confirm-body > .anticon,
+.ant-modal-confirm-confirm .ant-modal-confirm-body > .anticon {
+  color: var(--ow-color-warning);
+}
+
+.ant-modal-confirm-error .ant-modal-confirm-body > .anticon {
+  color: var(--ow-color-danger);
 }
 
 .ant-modal-confirm .ant-modal-confirm-title + .ant-modal-confirm-content {

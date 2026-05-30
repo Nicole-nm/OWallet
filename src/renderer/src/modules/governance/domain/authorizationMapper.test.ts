@@ -37,9 +37,9 @@ describe('authorizationMapper', () => {
       publickey: 'authorization-public-key',
       nodeAddress: 'Abc123',
       maxAuthorize: 12000,
-      maxAuthorizeStr: '12,000',
+      maxAuthorizeStr: '12\u2009000',
       totalPos: 3456,
-      totalPosStr: '3,456',
+      totalPosStr: '3\u2009456',
       name: 'Node_author',
     })
   })

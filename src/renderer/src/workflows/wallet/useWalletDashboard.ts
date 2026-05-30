@@ -4,7 +4,7 @@
  * This stays in the workflow layer because it coordinates stores, UI feedback,
  * and wallet-specific refresh flows.
  */
-import { ref, type Ref } from 'vue'
+import { computed, ref, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useTokensStore } from '../../stores/modules/Tokens'
@@ -15,6 +15,7 @@ import { useWalletTransactions } from './useWalletTransactions'
 import { useOep4SelectionModal } from './useOep4SelectionModal'
 import { notifyError } from '../../shared/ui/feedback'
 import { logger } from '../../shared/lib/logger'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 
 export function useWalletDashboard(
   address: Ref<string>,
@@ -37,6 +38,19 @@ export function useWalletDashboard(
     settingStore,
     t,
   })
+  const balanceDisplay = computed(() => ({
+    ...balance.value,
+    ont: formatNumberForDisplay(balance.value.ont),
+    ong: formatNumberForDisplay(balance.value.ong),
+    unboundOng: formatNumberForDisplay(balance.value.unboundOng),
+    waitBoundOng: formatNumberForDisplay(balance.value.waitBoundOng),
+  }))
+  const oep4sDisplay = computed(() =>
+    oep4s.value.map((token) => ({
+      ...token,
+      balanceDisplay: formatNumberForDisplay(token.balance),
+    }))
+  )
   const { completedTx, showTxDetail, checkMoreTx, getTransactions } = useWalletTransactions({
     address,
     settingStore,
@@ -99,7 +113,9 @@ export function useWalletDashboard(
     oep4SelectionPageNumber,
     oep4SelectionTotal,
     balance,
+    balanceDisplay,
     oep4s,
+    oep4sDisplay,
     showTxDetail,
     checkMoreTx,
     getBalance,

@@ -36,7 +36,7 @@ export function useImportJsonWalletPage() {
   const walletsStore = useWalletsStore()
 
   const form = reactive<ImportJsonWalletForm>({
-    tabName: 'wif',
+    tabName: 'dat',
     pk: '',
     pkLabel: '',
     pkPassword: '',

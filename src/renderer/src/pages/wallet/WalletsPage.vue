@@ -1,5 +1,5 @@
 <template>
-  <div class="negative-margin-top">
+  <div class="negative-margin-top wallets-page">
     <a-tabs :activeKey="activeTab" @update:activeKey="activeTab = $event" class="ow-section-tabs">
       <a-tab-pane key="1" :tab="$t('wallets.common')">
         <app-state
@@ -10,7 +10,7 @@
           :error-title="$t('wallets.loadFailed')"
           :error-description="$t('wallets.loadFailedDescription')"
           :empty-title="$t('wallets.emptyCommonWallets')"
-          :empty-description="$t('wallets.emptyWalletDescription')"
+          :empty-description="$t('wallets.emptyCommonWalletDescription')"
         >
           <template #actions>
             <app-button v-if="hasWalletLoadError" variant="primary" @click="reloadWallets()">
@@ -63,7 +63,7 @@
           :error-title="$t('wallets.loadFailed')"
           :error-description="$t('wallets.loadFailedDescription')"
           :empty-title="$t('wallets.emptySharedWallets')"
-          :empty-description="$t('wallets.emptyWalletDescription')"
+          :empty-description="$t('wallets.emptySharedWalletDescription')"
         >
           <template #actions>
             <app-button v-if="hasWalletLoadError" variant="primary" @click="reloadWallets()">
@@ -116,7 +116,7 @@
           :error-title="$t('wallets.loadFailed')"
           :error-description="$t('wallets.loadFailedDescription')"
           :empty-title="$t('wallets.emptyLedgerWallets')"
-          :empty-description="$t('wallets.emptyWalletDescription')"
+          :empty-description="$t('wallets.emptyLedgerWalletDescription')"
         >
           <template #actions>
             <app-button v-if="hasWalletLoadError" variant="primary" @click="reloadWallets()">
@@ -187,3 +187,12 @@ const {
   showPathModal,
 } = useWalletsPage()
 </script>
+
+<style scoped>
+.wallets-page :deep(.ow-app-state__actions) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ow-space-4);
+}
+</style>

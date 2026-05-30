@@ -21,7 +21,7 @@
           @select-address="selectImportLedgerAddress"
           @prev-page="prevImportLedgerPage"
           @next-page="nextImportLedgerPage"
-          @cancel="cancelImportLedgerWallet"
+          @back="previousStep"
           @next="submitImportLedgerWallet"
         />
       </div>
@@ -48,6 +48,7 @@ const {
   publicKey,
   addDisabled,
   nextStep,
+  previousStep,
   openLedgerSupport,
   loadInitialLedgerAccounts,
   updateImportLedgerField,

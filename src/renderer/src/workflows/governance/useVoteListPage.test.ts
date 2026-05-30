@@ -239,4 +239,20 @@ describe('useVoteListPage', () => {
       'admin-older',
     ])
   })
+
+  it('exposes thin-space formatted vote totals for list rows', () => {
+    mocks.voteStore.allVotes = [
+      { hash: 'vote-1', approves: 1234567, rejects: '9876543' },
+      { hash: 'vote-2', approve: 1000, reject: 2000 },
+    ]
+
+    const page = useVoteListPage()
+
+    expect(
+      page.activeVotes.value.map((vote: any) => [vote.approvesDisplay, vote.rejectsDisplay])
+    ).toEqual([
+      ['1\u2009234\u2009567', '9\u2009876\u2009543'],
+      ['1\u2009000', '2\u2009000'],
+    ])
+  })
 })

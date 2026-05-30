@@ -12,7 +12,7 @@ export function useCommonSendConfirmStep() {
   const loadingStore = useLoadingModalStore()
   const currentWalletStore = useCurrentWalletStore()
 
-  const interval = ref(10000)
+  const interval = ref(1000)
   const checked = ref(false)
   const password = ref('')
   const sending = ref(false)

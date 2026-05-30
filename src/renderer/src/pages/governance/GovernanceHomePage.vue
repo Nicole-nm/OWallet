@@ -18,19 +18,19 @@
             </div>
           </div>
           <div class="ow-action-card ow-action-card--tile">
+            <p class="ow-action-card__title">{{ $t('nodeMgmt.newNodeApply') }}</p>
+            <p class="ow-action-card__meta">{{ $t('nodeMgmt.nodeApplyTip') }}</p>
+            <div class="ow-action-card__control" @click="handleNodeApply">
+              <ArrowRightOutlined />
+            </div>
+          </div>
+          <div class="ow-action-card ow-action-card--tile">
             <p class="ow-action-card__title">{{ $t('vote.vote') }}</p>
             <p class="ow-action-card__meta">{{ $t('vote.voteTip') }}</p>
             <div class="ow-icon-action governance-policy" @click="openPolicyPage">
               <QuestionCircleOutlined class="policy-icon" />
             </div>
             <div class="ow-action-card__control" @click="handleVote">
-              <ArrowRightOutlined />
-            </div>
-          </div>
-          <div class="ow-action-card ow-action-card--tile">
-            <p class="ow-action-card__title">{{ $t('nodeMgmt.newNodeApply') }}</p>
-            <p class="ow-action-card__meta">{{ $t('nodeMgmt.nodeApplyTip') }}</p>
-            <div class="ow-action-card__control" @click="handleNodeApply">
               <ArrowRightOutlined />
             </div>
           </div>

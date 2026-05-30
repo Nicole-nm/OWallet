@@ -5,9 +5,19 @@ import {
   parseImportedDatWallet,
 } from '../../modules/wallet/application/json/importJsonWalletApplicationService'
 import { readImportedWalletFile } from '../../modules/wallet/application/json/walletImportFileApplicationService'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import type { DatWalletImportDependencies, ImportJsonDatAccount } from './importJsonWallet.types'
 
 const logger = createLogger('useImportDatWallet')
+
+export function getImportDatSuccessMessage(
+  t: (key: string, values?: Record<string, unknown>) => string,
+  count: number
+) {
+  const key =
+    count === 1 ? 'importJsonWallet.importDatSuccessOne' : 'importJsonWallet.importDatSuccessMany'
+  return t(key, { count: formatNumberForDisplay(count) })
+}
 
 export function useImportDatWallet({
   form,
@@ -38,12 +48,12 @@ export function useImportDatWallet({
 
     loadingStore.hideLoadingModals()
     if (!result.ok) {
-      notifyError('Import failed.', { literal: true })
+      notifyError('importJsonWallet.importFailed')
       return
     }
 
     applyCollectionsResult(result.collectionsResult)
-    notifySuccess(`A total of ${result.insertedCount} addresses succeed to import.`, {
+    notifySuccess(getImportDatSuccessMessage(t, result.insertedCount), {
       literal: true,
     })
     await goToWallets()

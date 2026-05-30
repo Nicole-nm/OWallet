@@ -20,17 +20,17 @@
         <div class="ow-asset-list">
           <div class="ow-asset-row">
             <span class="ow-asset-label">ONT</span>
-            <span class="ow-asset-amount">{{ balance.ont }}</span>
+            <span class="ow-asset-amount">{{ balanceDisplay.ont }}</span>
           </div>
 
           <div class="ow-asset-row">
             <span class="ow-asset-label">ONG</span>
-            <span class="ow-asset-amount">{{ balance.ong }}</span>
+            <span class="ow-asset-amount">{{ balanceDisplay.ong }}</span>
           </div>
 
-          <div class="ow-asset-row" v-for="item of oep4s" :key="item.contract_hash">
+          <div class="ow-asset-row" v-for="item of oep4sDisplay" :key="item.contract_hash">
             <span class="ow-asset-label">{{ item.symbol }}</span>
-            <span class="ow-asset-amount">{{ item.balance }}</span>
+            <span class="ow-asset-amount">{{ item.balanceDisplay }}</span>
           </div>
         </div>
 
@@ -39,18 +39,18 @@
             <div class="claim-ong">
               <div class="claim-ong-item">
                 <span>{{ $t('commonWalletHome.claimableOng') }}:</span>
-                <span>{{ balance.unboundOng }}</span>
+                <span>{{ balanceDisplay.unboundOng }}</span>
               </div>
               <div class="claim-ong-item">
                 <span>{{ $t('commonWalletHome.unboundOng') }}:</span>
-                <span>{{ balance.waitBoundOng }}</span>
+                <span>{{ balanceDisplay.waitBoundOng }}</span>
               </div>
             </div>
             <div class="redeem-container">
+              <redeem-info-icon></redeem-info-icon>
               <a-button type="default" class="btn-redeem" @click="redeemOng">{{
                 $t('commonWalletHome.redeem')
               }}</a-button>
-              <redeem-info-icon></redeem-info-icon>
             </div>
           </div>
 
@@ -164,8 +164,8 @@ const {
   refresh,
   addOep4,
   handleBack,
-  balance,
-  oep4s,
+  balanceDisplay,
+  oep4sDisplay,
   redeemOng,
   hasLocalCopayer,
   showTransferBox,
@@ -213,6 +213,16 @@ const {
 .shared-wallet-home__redeem-note {
   font-family: var(--ow-font-regular);
   color: var(--ow-color-text-primary);
+}
+
+.redeem-container {
+  justify-content: flex-end;
+  gap: var(--ow-space-2);
+  margin-left: auto;
+}
+
+.redeem-container :deep(.redeem-info-icon) {
+  margin-left: 0;
 }
 
 .pending-tx {

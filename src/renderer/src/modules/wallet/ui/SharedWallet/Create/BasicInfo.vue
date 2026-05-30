@@ -3,7 +3,6 @@
     <section class="shared-create__section">
       <div class="shared-create__section-copy">
         <span class="shared-create__section-title">{{ $t('createSharedWallet.basicInfo') }}</span>
-        <span class="shared-create__section-caption">{{ $t('createSharedWallet.label') }}</span>
       </div>
 
       <a-input
@@ -20,7 +19,6 @@
         <span class="shared-create__section-title">{{
           $t('createSharedWallet.copayers2_12')
         }}</span>
-        <span class="shared-create__section-caption">{{ $t('createSharedWallet.inputPks') }}</span>
       </div>
 
       <div class="shared-create__copayer-list">
@@ -150,12 +148,6 @@ const label = computed({
   font-size: var(--ow-font-size-body);
   line-height: var(--ow-line-height-body);
   color: var(--ow-color-text-primary);
-}
-
-.shared-create__section-caption {
-  font-size: var(--ow-font-size-caption);
-  line-height: var(--ow-line-height-caption);
-  color: var(--ow-color-text-secondary);
 }
 
 .shared-create__wallet-name {

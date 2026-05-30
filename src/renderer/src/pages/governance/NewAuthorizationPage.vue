@@ -18,7 +18,7 @@
               $t('nodeMgmt.allowedStakeAmount')
             }}</span>
             <span class="ow-governance-highlight__value"
-              >{{ currentNode.maxAuthorizeStr }} ONT</span
+              >{{ currentNodeDisplay.maxAuthorizeDisplay }} ONT</span
             >
           </div>
         </div>
@@ -26,7 +26,9 @@
         <div class="ow-governance-card-grid">
           <div class="ow-governance-card">
             <span class="ow-governance-card__label">{{ $t('nodeMgmt.totalStakeAmount') }}</span>
-            <span class="ow-governance-card__value">{{ currentNode.totalPosStr }} ONT</span>
+            <span class="ow-governance-card__value"
+              >{{ currentNodeDisplay.totalPosDisplay }} ONT</span
+            >
           </div>
           <div class="ow-governance-card ow-governance-card--wide">
             <span class="ow-governance-card__label">{{ $t('nodeMgmt.walletAddress') }}</span>
@@ -86,6 +88,7 @@ defineOptions({
 
 const {
   currentNode,
+  currentNodeDisplay,
   stakeWallet,
   units,
   validInput,

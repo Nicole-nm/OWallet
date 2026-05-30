@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
     balance: {
       ont: 10,
       ontValue: 0,
-    },
+    } as Record<string, unknown>,
     setNativeBalance: vi.fn(function setNativeBalance(
       this: { balance: unknown },
       balance: unknown
@@ -177,6 +177,29 @@ describe('useWalletDashboard', () => {
     expect(mocks.tokensStore.setOep4Balances).toHaveBeenCalledWith([{ symbol: 'TK1', balance: 99 }])
     expect(dashboard.completedTx.value).toEqual([{ txHash: 'tx-1', asset: 'ONT', amount: '+10' }])
     expect(mocks.loadingStore.hideLoadingModals).toHaveBeenCalled()
+  })
+
+  it('exposes thin-space formatted wallet balance display values', () => {
+    mocks.currentWalletStore.balance = {
+      ont: 1234567,
+      ong: '12345.6789',
+      unboundOng: 1000,
+      waitBoundOng: 2000,
+      ontValue: 0,
+    }
+    mocks.tokensStore.oep4WithBalances = [{ symbol: 'TK1', balance: '9876543.21' }]
+
+    const dashboard = useWalletDashboard(ref('AQ123'))
+
+    expect(dashboard.balanceDisplay.value.ont).toBe('1\u2009234\u2009567')
+    expect(dashboard.balanceDisplay.value.ong).toBe('12\u2009345.6789')
+    expect(dashboard.balanceDisplay.value.unboundOng).toBe('1\u2009000')
+    expect(dashboard.balanceDisplay.value.waitBoundOng).toBe('2\u2009000')
+    expect(dashboard.oep4sDisplay.value[0]).toEqual({
+      symbol: 'TK1',
+      balance: '9876543.21',
+      balanceDisplay: '9\u2009876\u2009543.21',
+    })
   })
 
   it('opens explorer links and applies exchange rates to the current balance', async () => {

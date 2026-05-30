@@ -13,10 +13,9 @@
         >
           <span class="ow-flow-shell__step-index">1</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('createSharedWallet.basicInfo') }}</span>
-            <span class="ow-flow-shell__step-caption">
-              {{ $t('createSharedWallet.label') }} / {{ $t('createSharedWallet.copayers2_12') }}
-            </span>
+            <span class="ow-flow-shell__step-label">{{
+              $t('createSharedWallet.addCopayersStep')
+            }}</span>
           </div>
         </div>
 
@@ -27,11 +26,9 @@
         >
           <span class="ow-flow-shell__step-index">2</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('sharedWalletHome.confirmation') }}</span>
-            <span class="ow-flow-shell__step-caption">
-              {{ $t('createSharedWallet.copayers') }} /
-              {{ $t('createSharedWallet.requiredSigNum') }}
-            </span>
+            <span class="ow-flow-shell__step-label">{{
+              $t('createSharedWallet.signatureRuleStep')
+            }}</span>
           </div>
         </div>
       </div>

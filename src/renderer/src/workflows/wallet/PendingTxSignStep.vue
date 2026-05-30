@@ -48,6 +48,7 @@ import { computed, ref } from 'vue'
 import { submitPendingSharedTransferSignature } from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import { notifyError, notifySuccess, showSuccessModal } from '../../shared/ui/feedback'
+import { formatTransactionHash } from '../../shared/lib/transactionFeedback'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
@@ -119,7 +120,7 @@ async function submit() {
     setTimeout(() => {
       showSuccessModal({
         title: 'common.transSentSuccess',
-        content: 'Transaction hash: ' + result.txHash,
+        content: formatTransactionHash(result.txHash),
       })
     }, 100)
     return

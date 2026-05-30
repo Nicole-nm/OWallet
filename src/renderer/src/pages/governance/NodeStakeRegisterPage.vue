@@ -15,7 +15,7 @@
         <p>{{ stakeDetail.contract }}</p>
       </form-field>
       <form-field :label="$t('nodeStake.commitmentQuantity')" label-tag="p">
-        <p>{{ stakeDetail.commitmentQuantity }}</p>
+        <p>{{ stakeDetail.commitmentQuantityDisplay }}</p>
       </form-field>
       <form-field :label="$t('nodeStake.stakeQuantity')" label-tag="p">
         <a-input class="input ow-field-control" v-model:value="stakeQuantity"></a-input>

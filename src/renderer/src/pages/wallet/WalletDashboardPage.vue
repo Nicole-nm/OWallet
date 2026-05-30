@@ -53,21 +53,21 @@
           <div class="wallet-dashboard__asset-list">
             <div class="wallet-dashboard__asset-row">
               <span class="wallet-dashboard__asset-label">ONT</span>
-              <span class="wallet-dashboard__asset-amount">{{ balance.ont }}</span>
+              <span class="wallet-dashboard__asset-amount">{{ balanceDisplay.ont }}</span>
             </div>
 
             <div class="wallet-dashboard__asset-row">
               <span class="wallet-dashboard__asset-label">ONG</span>
-              <span class="wallet-dashboard__asset-amount">{{ balance.ong }}</span>
+              <span class="wallet-dashboard__asset-amount">{{ balanceDisplay.ong }}</span>
             </div>
 
             <div
               class="wallet-dashboard__asset-row"
-              v-for="item of oep4s"
+              v-for="item of oep4sDisplay"
               :key="item.contract_hash"
             >
               <span class="wallet-dashboard__asset-label">{{ item.symbol }}</span>
-              <span class="wallet-dashboard__asset-amount">{{ item.balance }}</span>
+              <span class="wallet-dashboard__asset-amount">{{ item.balanceDisplay }}</span>
             </div>
           </div>
         </section>
@@ -78,19 +78,23 @@
               <span class="wallet-dashboard__maintenance-label">{{
                 $t('commonWalletHome.claimableOng')
               }}</span>
-              <span class="wallet-dashboard__maintenance-value">{{ balance.unboundOng }}</span>
+              <span class="wallet-dashboard__maintenance-value">{{
+                balanceDisplay.unboundOng
+              }}</span>
             </div>
             <div class="wallet-dashboard__maintenance-row">
               <span class="wallet-dashboard__maintenance-label">{{
                 $t('commonWalletHome.unboundOng')
               }}</span>
-              <span class="wallet-dashboard__maintenance-value">{{ balance.waitBoundOng }}</span>
+              <span class="wallet-dashboard__maintenance-value">{{
+                balanceDisplay.waitBoundOng
+              }}</span>
             </div>
             <div class="wallet-dashboard__maintenance-actions">
+              <redeem-info-icon></redeem-info-icon>
               <a-button type="default" class="wallet-dashboard__redeem" @click="redeemOng">{{
                 $t('commonWalletHome.redeem')
               }}</a-button>
-              <redeem-info-icon></redeem-info-icon>
             </div>
           </div>
         </section>
@@ -166,8 +170,8 @@ const {
   copy,
   refresh,
   addOep4,
-  balance,
-  oep4s,
+  balanceDisplay,
+  oep4sDisplay,
   redeemOng,
   sendAsset,
   commonReceive,
@@ -399,10 +403,15 @@ const {
 }
 
 .wallet-dashboard__asset-amount,
-.wallet-dashboard__tx-amount,
 .wallet-dashboard__maintenance-value {
   font-family: var(--ow-font-bold);
   font-size: var(--ow-font-size-body);
+  color: var(--ow-color-text-primary);
+}
+
+.wallet-dashboard__tx-amount {
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-caption);
   color: var(--ow-color-text-primary);
 }
 
@@ -430,9 +439,13 @@ const {
 .wallet-dashboard__maintenance-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: var(--ow-space-2);
   padding-top: 2px;
+}
+
+.wallet-dashboard__maintenance-actions :deep(.redeem-info-icon) {
+  margin-left: 0;
 }
 
 .wallet-dashboard__redeem {
@@ -523,8 +536,7 @@ const {
     width: 100%;
   }
 
-  .wallet-dashboard__action,
-  .wallet-dashboard__redeem {
+  .wallet-dashboard__action {
     width: 100%;
   }
 }

@@ -4,6 +4,7 @@ import i18n from '../../lang'
 import { ROUTE_NAMES, ROUTE_PATHS } from '../../router/routes'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
+import { formatTransactionHash } from '../../shared/lib/transactionFeedback'
 import {
   notifyError,
   notifySuccess,
@@ -22,7 +23,7 @@ export function useCommonRedeemPage() {
   const currentWalletStore = useCurrentWalletStore()
 
   const password = ref('')
-  const interval = ref(10000)
+  const interval = ref(1000)
   const sending = ref(false)
 
   const type = computed(() => route.params.walletType)
@@ -101,7 +102,7 @@ export function useCommonRedeemPage() {
     setTimeout(() => {
       showSuccessModal({
         title: 'common.transSentSuccess',
-        content: 'Transaction hash: ' + result.txHash,
+        content: formatTransactionHash(result.txHash),
       })
     }, 100)
     return { ok: true, txHash: result.txHash }

@@ -4,10 +4,6 @@
       <section class="json-import__section">
         <div class="json-import__section-copy">
           <span class="json-import__section-title">{{ $t('importJsonWallet.basicInfo') }}</span>
-          <span class="json-import__section-caption">
-            {{ $t('createJsonWallet.priavteKeywif') }} / {{ $t('createJsonWallet.keystoreDat') }} /
-            {{ $t('createJsonWallet.mnemonic') }} / {{ $t('createJsonWallet.privateKey') }}
-          </span>
         </div>
 
         <a-tabs
@@ -15,47 +11,6 @@
           @update:activeKey="emit('updateField', { field: 'tabName', value: $event })"
           class="json-import__tabs"
         >
-          <a-tab-pane key="wif" :tab="$t('createJsonWallet.priavteKeywif')">
-            <div class="json-import__tab-panel">
-              <text-field
-                compact
-                :label="$t('importJsonWallet.label')"
-                :error="validationErrors.wifLabel"
-                :model-value="form.wifLabel"
-                @update:model-value="emit('updateField', { field: 'wifLabel', value: $event })"
-                required
-              />
-
-              <text-field
-                compact
-                :label="$t('createJsonWallet.priavteKeywif')"
-                :placeholder="$t('importJsonWallet.wifTip')"
-                :error="validationErrors.wif"
-                :model-value="form.wif"
-                @update:model-value="emit('updateField', { field: 'wif', value: $event })"
-                required
-              />
-
-              <password-field
-                compact
-                :label="$t('importJsonWallet.setPassword')"
-                :error="validationErrors.wifPassword"
-                :model-value="form.wifPassword"
-                @update:model-value="emit('updateField', { field: 'wifPassword', value: $event })"
-                required
-              />
-
-              <password-field
-                compact
-                :label="$t('importJsonWallet.rePassword')"
-                :error="validationErrors.wifRePassword"
-                :model-value="form.wifRePassword"
-                @update:model-value="emit('updateField', { field: 'wifRePassword', value: $event })"
-                required
-              />
-            </div>
-          </a-tab-pane>
-
           <a-tab-pane key="dat" :tab="$t('createJsonWallet.keystoreDat')">
             <div class="json-import__tab-panel">
               <form-field :label="$t('importJsonWallet.dat')" compact required>
@@ -100,8 +55,10 @@
               <text-field
                 compact
                 :label="$t('importJsonWallet.label')"
+                :error="validationErrors.mnemonicLabel"
                 :model-value="form.mnemonicLabel"
                 @update:model-value="emit('updateField', { field: 'mnemonicLabel', value: $event })"
+                required
               />
 
               <form-field
@@ -111,9 +68,9 @@
                 required
               >
                 <a-textarea
-                  class="json-import__mnemonic ow-field-control"
+                  class="json-import__multiline-secret ow-field-control"
                   id="import-json-mnemonic"
-                  :rows="4"
+                  :rows="3"
                   :status="validationErrors.mnemonic ? 'error' : ''"
                   :placeholder="$t('importJsonWallet.mnemonic')"
                   :value="form.mnemonic"
@@ -145,24 +102,81 @@
             </div>
           </a-tab-pane>
 
+          <a-tab-pane key="wif" :tab="$t('createJsonWallet.priavteKeywif')">
+            <div class="json-import__tab-panel">
+              <text-field
+                compact
+                :label="$t('importJsonWallet.label')"
+                :error="validationErrors.wifLabel"
+                :model-value="form.wifLabel"
+                @update:model-value="emit('updateField', { field: 'wifLabel', value: $event })"
+                required
+              />
+
+              <form-field
+                compact
+                :label="$t('createJsonWallet.priavteKeywif')"
+                :error="validationErrors.wif"
+                required
+              >
+                <a-textarea
+                  class="json-import__multiline-secret ow-field-control"
+                  id="import-json-wif"
+                  :rows="3"
+                  :status="validationErrors.wif ? 'error' : ''"
+                  :placeholder="$t('importJsonWallet.wifTip')"
+                  :value="form.wif"
+                  @update:value="emit('updateField', { field: 'wif', value: $event })"
+                ></a-textarea>
+              </form-field>
+
+              <password-field
+                compact
+                :label="$t('importJsonWallet.setPassword')"
+                :error="validationErrors.wifPassword"
+                :model-value="form.wifPassword"
+                @update:model-value="emit('updateField', { field: 'wifPassword', value: $event })"
+                required
+              />
+
+              <password-field
+                compact
+                :label="$t('importJsonWallet.rePassword')"
+                :error="validationErrors.wifRePassword"
+                :model-value="form.wifRePassword"
+                @update:model-value="emit('updateField', { field: 'wifRePassword', value: $event })"
+                required
+              />
+            </div>
+          </a-tab-pane>
+
           <a-tab-pane key="pk" :tab="$t('createJsonWallet.privateKey64Hex')">
             <div class="json-import__tab-panel">
               <text-field
                 compact
                 :label="$t('importJsonWallet.label')"
+                :error="validationErrors.pkLabel"
                 :model-value="form.pkLabel"
                 @update:model-value="emit('updateField', { field: 'pkLabel', value: $event })"
-              />
-
-              <text-field
-                compact
-                :label="$t('importJsonWallet.privateKey')"
-                :placeholder="$t('importJsonWallet.privateKeyTip')"
-                :error="validationErrors.pk"
-                :model-value="form.pk"
-                @update:model-value="emit('updateField', { field: 'pk', value: $event })"
                 required
               />
+
+              <form-field
+                compact
+                :label="$t('importJsonWallet.privateKey')"
+                :error="validationErrors.pk"
+                required
+              >
+                <a-textarea
+                  class="json-import__multiline-secret ow-field-control"
+                  id="import-json-private-key"
+                  :rows="3"
+                  :status="validationErrors.pk ? 'error' : ''"
+                  :placeholder="$t('importJsonWallet.privateKeyTip')"
+                  :value="form.pk"
+                  @update:value="emit('updateField', { field: 'pk', value: $event })"
+                ></a-textarea>
+              </form-field>
 
               <password-field
                 compact
@@ -282,7 +296,7 @@ function handleDatBeforeUpload(file: File) {
 .json-import {
   width: min(100%, 860px);
   margin: 0 auto;
-  padding-bottom: 64px;
+  padding-bottom: 48px;
   display: grid;
   gap: var(--ow-space-2);
 }
@@ -294,8 +308,8 @@ function handleDatBeforeUpload(file: File) {
 
 .json-import__section {
   display: grid;
-  gap: var(--ow-space-2);
-  padding: 12px;
+  gap: var(--ow-space-1);
+  padding: 10px 12px;
   border: 1px solid var(--ow-color-border-subtle);
   border-radius: var(--ow-radius-panel);
   background: var(--ow-color-surface-card);
@@ -313,18 +327,12 @@ function handleDatBeforeUpload(file: File) {
   color: var(--ow-color-text-primary);
 }
 
-.json-import__section-caption {
-  font-size: var(--ow-font-size-caption);
-  line-height: var(--ow-line-height-caption);
-  color: var(--ow-color-text-secondary);
-}
-
 .json-import__tabs {
   margin-bottom: 0;
 }
 
 .json-import__tabs :deep(.ant-tabs-nav) {
-  margin-bottom: var(--ow-space-2);
+  margin-bottom: var(--ow-space-1);
 }
 
 .json-import__tabs :deep(.ant-tabs-tab) {
@@ -339,7 +347,7 @@ function handleDatBeforeUpload(file: File) {
 }
 
 .json-import__tab-panel :deep(.ow-form-item.ant-form-item) {
-  margin-bottom: var(--ow-space-3);
+  margin-bottom: var(--ow-space-2);
 }
 
 .json-import__dat-list {
@@ -359,16 +367,16 @@ function handleDatBeforeUpload(file: File) {
   color: var(--ow-color-text-secondary);
 }
 
-.json-import__mnemonic {
+.json-import__multiline-secret {
   resize: none;
 }
 
 .json-import__actions {
-  height: 56px;
+  height: 52px;
 }
 
 .json-import__actions :deep(.ow-footer-actions) {
-  margin: 6px auto;
+  margin: 4px auto;
   gap: var(--ow-space-2);
 }
 

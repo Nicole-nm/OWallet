@@ -18,11 +18,9 @@
         >
           <span class="ow-flow-shell__step-index">1</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('sharedWalletHome.send') }}</span>
-            <span class="ow-flow-shell__step-caption"
-              >{{ $t('sharedWalletHome.asset') }} / {{ $t('sharedWalletHome.amount') }} /
-              {{ $t('sharedWalletHome.recipient') }}</span
-            >
+            <span class="ow-flow-shell__step-label">{{
+              $t('sharedWalletHome.transferDetails')
+            }}</span>
           </div>
         </div>
 
@@ -33,10 +31,9 @@
         >
           <span class="ow-flow-shell__step-index">2</span>
           <div class="ow-flow-shell__step-copy">
-            <span class="ow-flow-shell__step-label">{{ $t('sharedWalletHome.confirmation') }}</span>
-            <span class="ow-flow-shell__step-caption"
-              >{{ $t('sharedWalletHome.fee') }} / {{ $t('sharedWalletHome.submit') }}</span
-            >
+            <span class="ow-flow-shell__step-label">{{
+              $t('sharedWalletHome.reviewAndSend')
+            }}</span>
           </div>
         </div>
       </div>

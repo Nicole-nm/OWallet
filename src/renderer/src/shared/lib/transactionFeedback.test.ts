@@ -4,7 +4,9 @@ const mocks = vi.hoisted(() => ({
   notifyError: vi.fn(),
   notifySuccess: vi.fn(),
   showSuccessModal: vi.fn(),
-  translateFeedback: vi.fn((key) => `translated:${key}`),
+  translateFeedback: vi.fn((key) =>
+    key === 'common.transactionHashPrefix' ? 'Transaction hash: ' : `translated:${key}`
+  ),
 }))
 
 vi.mock('../ui/feedback', () => ({

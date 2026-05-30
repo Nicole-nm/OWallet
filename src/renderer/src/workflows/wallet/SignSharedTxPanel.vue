@@ -33,6 +33,7 @@ import {
   sendSerializedSharedTransaction,
 } from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
+import { formatTransactionHash } from '../../shared/lib/transactionFeedback'
 import { notifyError, notifySuccess, showSuccessModal } from '../../shared/ui/feedback'
 import SharedTxEditorShell from './SharedTxEditorShell.vue'
 import { useSharedTxEditor } from './useSharedTxEditor'
@@ -130,7 +131,7 @@ async function handleSend() {
   setTimeout(() => {
     showSuccessModal({
       title: t('common.transSentSuccess'),
-      content: 'Transaction hash: ' + result.txHash,
+      content: formatTransactionHash(result.txHash),
     })
   }, 100)
   return result.txHash

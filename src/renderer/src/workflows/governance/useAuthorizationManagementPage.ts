@@ -1,15 +1,18 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { canOpenNewAuthorization } from '../../modules/governance/application/authorization/authorizationManagementApplicationService'
 import { refreshAuthorizationOverview } from '../../modules/governance/application/authorization/authorizationQueryApplicationService'
 import { ROUTE_NAMES } from '../../router/routes'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import { notifyWarning } from '../../shared/ui/feedback'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useAuthorizationTransactions } from './useAuthorizationTransactions'
+import { getCancelAuthorizationUnitLabel } from './countLabels'
 import type { GovernanceSignablePayload } from './governanceSigningTypes'
 
 function applyAuthorizationOverview(nodeAuthStore: unknown, result: Record<string, unknown>) {
@@ -26,6 +29,7 @@ function applyAuthorizationOverview(nodeAuthStore: unknown, result: Record<strin
 }
 
 export function useAuthorizationManagementPage() {
+  const { t } = useI18n()
   const router = useRouter()
   const nodeAuthStore = useNodeAuthorizationStore()
   const loadingStore = useLoadingModalStore()
@@ -43,6 +47,12 @@ export function useAuthorizationManagementPage() {
   const authorizationInfo = computed(() => nodeAuthStore.authorizationInfo)
   const peerAttrs = computed(() => nodeAuthStore.peerAttributes)
   const unboundOng = computed(() => nodeAuthStore.peerUnboundOng)
+  const cancelAmountDisplay = computed(() => formatNumberForDisplay(cancelAmount.value))
+  const splitFeeAmountDisplay = computed(() => formatNumberForDisplay(splitFee.value.amount))
+  const unboundOngDisplay = computed(() => formatNumberForDisplay(unboundOng.value))
+  const cancelUnitLabel = computed(() =>
+    getCancelAuthorizationUnitLabel(t, Number(cancelAmount.value) || 0)
+  )
 
   function resolveContext() {
     const address = stakeWallet.value?.address || ''
@@ -108,8 +118,14 @@ export function useAuthorizationManagementPage() {
   }
 
   async function initializeAuthorizationManagementPage() {
-    await refreshAuthorizationDetails({ showError: true })
-    startPolling({ immediate: false })
+    loadingStore.showLoadingModals()
+
+    try {
+      await refreshAuthorizationDetails({ showError: true })
+    } finally {
+      loadingStore.hideLoadingModals()
+      startPolling({ immediate: false })
+    }
   }
 
   function disposeAuthorizationManagementPage() {
@@ -229,10 +245,14 @@ export function useAuthorizationManagementPage() {
     authorizationInfo,
     peerAttrs,
     unboundOng,
+    splitFeeAmountDisplay,
+    unboundOngDisplay,
     signVisible,
     tx,
     cancelVisible,
     cancelAmount,
+    cancelAmountDisplay,
+    cancelUnitLabel,
     validCancelAmount,
     handleRouteBack,
     newStakeAuthorization,

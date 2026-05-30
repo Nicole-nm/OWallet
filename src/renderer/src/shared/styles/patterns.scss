@@ -396,8 +396,8 @@
 }
 
 .ow-flow-shell__step--complete {
-  border-color: color-mix(in srgb, var(--ow-color-brand) 40%, white);
-  background: color-mix(in srgb, var(--ow-color-brand) 6%, white);
+  border-color: color-mix(in srgb, var(--ow-color-brand) 45%, var(--ow-color-border-default));
+  background: color-mix(in srgb, var(--ow-color-brand) 12%, var(--ow-color-surface));
 }
 
 .ow-flow-shell__step-index {
@@ -431,12 +431,6 @@
   font-size: var(--ow-font-size-body);
   line-height: 1.2;
   color: var(--ow-color-text-primary);
-}
-
-.ow-flow-shell__step-caption {
-  font-size: var(--ow-font-size-caption);
-  line-height: 1.2;
-  color: var(--ow-color-text-secondary);
 }
 
 .ow-flow-shell__body {
@@ -2089,7 +2083,7 @@
 .ow-tx-row :last-child {
   flex: 0.4;
   text-align: right;
-  font-family: var(--ow-font-medium);
+  font-family: var(--ow-font-regular);
   font-size: var(--ow-font-size-caption);
   color: var(--ow-color-text-primary);
 }

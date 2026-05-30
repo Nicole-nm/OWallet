@@ -7,10 +7,10 @@
     ></breadcrumb>
     <div class="ow-send-flow ow-send-flow--scroll">
       <div class="ow-flow-steps">
-        <a-steps :current="current">
-          <a-step v-if="!isRedeem" />
-          <a-step />
-          <a-step />
+        <a-steps :current="displayedStep">
+          <a-step v-if="!isRedeem" :title="$t('sharedWalletHome.transferDetails')" />
+          <a-step :title="$t('sharedWalletHome.reviewTransaction')" />
+          <a-step :title="$t('sharedWalletHome.signTransaction')" />
         </a-steps>
       </div>
 
@@ -50,6 +50,7 @@ const {
   routes,
   handleRouteBack,
   current,
+  displayedStep,
   isRedeem,
   handleCancel,
   handleSendAssetNext,

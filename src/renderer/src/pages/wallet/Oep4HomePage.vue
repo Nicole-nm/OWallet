@@ -16,13 +16,13 @@
 
           <div
             class="oep4-item"
-            v-for="(token, index) of oep4s.filter((t: { net?: string }) => t.net === net)"
+            v-for="(token, index) of oep4sDisplay.filter((t: { net?: string }) => t.net === net)"
             :key="index"
           >
             <div class="oep4-item__title">{{ token.symbol }} - {{ token.name }}</div>
             <div class="oep4-balance">
               <span class="ow-asset-label">{{ $t('commonWalletHome.balance') }}: </span>
-              <span class="ow-asset-amount">{{ token.balance }}</span>
+              <span class="ow-asset-amount">{{ token.balanceDisplay }}</span>
             </div>
             <div class="">
               <span class="ow-asset-label">{{ $t('commonWalletHome.scriptHash') }}: </span>
@@ -92,7 +92,7 @@ defineOptions({
 
 const {
   routes,
-  oep4s,
+  oep4sDisplay,
   net,
   refresh,
   handleAdd,

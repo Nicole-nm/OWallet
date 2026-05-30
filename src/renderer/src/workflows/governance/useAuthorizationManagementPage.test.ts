@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   },
   nodeAuthStore: {
     currentNode: { publicKey: 'pk-1' },
-    splitFee: { address: '', amount: 0 },
+    splitFee: { address: '', amount: 0 } as { address: string; amount: number | string },
     authorizationInfo: {} as Record<string, unknown>,
     peerAttributes: {} as Record<string, unknown>,
     peerUnboundOng: 0,
@@ -51,6 +51,12 @@ vi.mock('vue', async () => {
 
 vi.mock('vue-router', () => ({
   useRouter: () => mocks.router,
+}))
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
 }))
 
 vi.mock('../../shared/composables/usePollingTask', () => ({
@@ -120,6 +126,7 @@ describe('useAuthorizationManagementPage', () => {
 
     await expect(page.initializeAuthorizationManagementPage()).resolves.toEqual(undefined)
 
+    expect(mocks.loadingStore.showLoadingModals).toHaveBeenCalled()
     expect(mocks.authorizationService.refreshAuthorizationOverview).toHaveBeenCalledWith({
       address: 'AQ123',
       pk: 'pk-1',
@@ -136,6 +143,7 @@ describe('useAuthorizationManagementPage', () => {
     expect(mocks.nodeAuthStore.setPeerUnboundOng).toHaveBeenCalledWith({
       peerUnboundOng: 3,
     })
+    expect(mocks.loadingStore.hideLoadingModals).toHaveBeenCalled()
     expect(mocks.polling.startPolling).toHaveBeenCalledWith({ immediate: false })
   })
 
@@ -167,5 +175,23 @@ describe('useAuthorizationManagementPage', () => {
     expect(mocks.router.push).toHaveBeenCalledWith({
       name: 'NewAuthorization',
     })
+  })
+
+  it('formats the displayed cancellation amount with thin-space grouping', () => {
+    const page = useAuthorizationManagementPage()
+
+    page.cancelAmount.value = 1000
+
+    expect(page.cancelAmountDisplay.value).toBe('1\u2009000')
+  })
+
+  it('formats rewards and unbound ONG display values with thin-space grouping', () => {
+    mocks.nodeAuthStore.splitFee = { address: 'AQ123', amount: '1234567.89' }
+    mocks.nodeAuthStore.peerUnboundOng = 2000
+
+    const page = useAuthorizationManagementPage()
+
+    expect(page.splitFeeAmountDisplay.value).toBe('1\u2009234\u2009567.89')
+    expect(page.unboundOngDisplay.value).toBe('2\u2009000')
   })
 })
