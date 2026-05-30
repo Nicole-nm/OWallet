@@ -7,6 +7,8 @@ import { isDevelopment, shouldOpenDevtools } from './config'
 import { attachWindowIpc } from './ipc'
 import { attachNavigationGuards } from './navigationGuards'
 
+const STARTUP_BACKGROUND_COLOR = '#0f141a'
+
 function attachDevelopmentLogging(window: BrowserWindow): void {
   window.webContents.on(
     'console-message',
@@ -52,9 +54,40 @@ function attachDevelopmentLogging(window: BrowserWindow): void {
   )
 }
 
+function attachStartupShowBehavior(window: BrowserWindow): void {
+  let hasShownWindow = false
+
+  const showWindow = () => {
+    if (hasShownWindow || window.isDestroyed()) {
+      return
+    }
+
+    hasShownWindow = true
+    window.show()
+  }
+
+  window.once('ready-to-show', showWindow)
+  window.webContents.on(
+    'did-fail-load',
+    (
+      _event: Electron.Event,
+      _errorCode: number,
+      _errorDescription: string,
+      _validatedURL: string,
+      isMainFrame: boolean
+    ) => {
+      if (isMainFrame) {
+        showWindow()
+      }
+    }
+  )
+}
+
 export function createMainWindow() {
   const window = new BrowserWindow({
     title: 'OWallet',
+    show: false,
+    backgroundColor: STARTUP_BACKGROUND_COLOR,
     useContentSize: true,
     width: 1140,
     minWidth: 1140,
@@ -75,6 +108,7 @@ export function createMainWindow() {
 
   attachWindowIpc(window)
   attachNavigationGuards(window)
+  attachStartupShowBehavior(window)
 
   const menu = Menu.buildFromTemplate(
     getApplicationMenuTemplate({ isDevelopment }) as MenuItemConstructorOptions[]

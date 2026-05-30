@@ -71,6 +71,7 @@ const DEVELOPMENT_CONNECT_SOURCES = [
   'http://127.0.0.1:*',
   'ws://127.0.0.1:*',
 ]
+const STARTUP_THEME_SCRIPT_TAG = '<script src="./startup-theme.js"></script>'
 
 function createRendererContentSecurityPolicy() {
   const connectSources = isDevelopment ? DEVELOPMENT_CONNECT_SOURCES : PRODUCTION_CONNECT_SOURCES
@@ -97,8 +98,13 @@ function createRendererHtmlPlugin() {
 
   return {
     name: 'owallet-renderer-html',
-    transformIndexHtml(html: string) {
-      return html.replace('%OWALLET_CSP%', csp)
+    transformIndexHtml: {
+      order: 'post' as const,
+      handler(html: string) {
+        return html
+          .replace('%OWALLET_CSP%', csp)
+          .replace('%OWALLET_STARTUP_THEME_TAG%', STARTUP_THEME_SCRIPT_TAG)
+      },
     },
   }
 }

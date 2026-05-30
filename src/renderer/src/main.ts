@@ -82,10 +82,15 @@ for (const component of antdComponents) {
 app.component('AButton', AppButton)
 app.component('AppButton', AppButton)
 
+function removeStartupOverlay() {
+  document.getElementById('owallet-startup')?.remove()
+}
+
 async function bootstrap() {
   await migrateLegacySavePathPreference()
   await router.isReady()
   app.mount('#app')
+  removeStartupOverlay()
 }
 
 void bootstrap()

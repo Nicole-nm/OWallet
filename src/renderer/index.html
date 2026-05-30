@@ -1,13 +1,79 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="%OWALLET_CSP%">
-    <link rel="icon" href="./src/assets/icons/icon.ico">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="%OWALLET_CSP%" />
+    %OWALLET_STARTUP_THEME_TAG%
+    <style>
+      :root {
+        color-scheme: light;
+        --ow-startup-background: #ffffff;
+        --ow-startup-ring: #dfe2e9;
+        --ow-startup-accent: #196bd8;
+      }
+
+      :root[data-theme='dark'] {
+        color-scheme: dark;
+        --ow-startup-background: #0f141a;
+        --ow-startup-ring: #242c36;
+        --ow-startup-accent: #4f95ff;
+      }
+
+      html,
+      body,
+      #app {
+        min-height: 100%;
+        margin: 0;
+        background: var(--ow-startup-background);
+      }
+
+      #owallet-startup {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--ow-startup-background);
+      }
+
+      .owallet-startup__logo {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+      }
+
+      .owallet-startup__spinner {
+        position: absolute;
+        width: 96px;
+        height: 96px;
+        border: 1px solid var(--ow-startup-ring);
+        border-top-color: var(--ow-startup-accent);
+        border-radius: 50%;
+        animation: owallet-startup-spin 0.9s linear infinite;
+      }
+
+      @keyframes owallet-startup-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .owallet-startup__spinner {
+          animation: none;
+        }
+      }
+    </style>
+    <link rel="icon" href="./src/assets/icons/icon.ico" />
     <title>OWallet</title>
   </head>
   <body>
+    <div id="owallet-startup" aria-hidden="true">
+      <div class="owallet-startup__spinner"></div>
+      <img class="owallet-startup__logo" src="./src/assets/icons/512x512.png" alt="" />
+    </div>
     <div id="app"></div>
     <script type="module" src="./src/main.js"></script>
   </body>
