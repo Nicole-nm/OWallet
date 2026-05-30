@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, PropType } from 'vue'
-import { signSerializedSharedTransaction } from '../../modules/wallet/application/sharedWalletTransactionApplicationService'
+import { signSerializedSharedTransaction } from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
@@ -86,13 +86,14 @@ async function signSharedTx(isFirstSign: unknown, tx: unknown) {
   })
 
   if (!result.ok) {
-    if (!result.cancelled) {
+    const cancelled = 'cancelled' in result && result.cancelled
+    if (!cancelled) {
       loadingStore.hideLoadingModals()
       notifyError('ledgerWallet.signFailed')
     }
     return
   }
 
-  emit('sharedTxSigned', result.serializedTx)
+  emit('sharedTxSigned', 'serializedTx' in result ? result.serializedTx : '')
 }
 </script>

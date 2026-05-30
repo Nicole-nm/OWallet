@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({
   fetchIdentityCollection: vi.fn(),
 }))
 
-vi.mock('../../../domains/wallet/applicationService', () => ({
+vi.mock('../../../domains/wallet/walletDomainService', () => ({
   fetchIdentityCollection: (...args: any[]) => mocks.fetchIdentityCollection(...args),
 }))
 

@@ -33,18 +33,10 @@ vi.mock('../../shared/chain/ledgerSigner', () => ({
 }))
 
 import { handleSignTx } from './voteTransactionBuilder'
+import { createFakeTransaction } from '../../shared/chain/__fixtures__/fakeSdk'
 
-function makeTx() {
-  return {
-    gasPrice: {
-      constructor: class {
-        constructor(public val: string) {}
-      },
-    },
-    sigs: [] as unknown[],
-    serializeUnsignedData: vi.fn(() => 'vote-unsigned-data'),
-  }
-}
+const makeTx = () =>
+  createFakeTransaction({ serializeUnsignedData: vi.fn(() => 'vote-unsigned-data') })
 
 describe('voteTransactionBuilder.handleSignTx()', () => {
   beforeEach(() => {
@@ -94,7 +86,7 @@ describe('voteTransactionBuilder.handleSignTx()', () => {
     expect(result).toBe(tx)
     expect((tx.gasPrice as unknown as { val: string }).val).toBe('2500')
     expect(tx.sigs).toHaveLength(1)
-    expect(tx.sigs[0]).toMatchObject({ M: 1, sigData: ['01ledger-vote-signature'] })
+    expect(tx.sigs?.[0]).toMatchObject({ M: 1, sigData: ['01ledger-vote-signature'] })
     expect(mocks.checkPublicKeyIsInTheConnectedLedger).toHaveBeenCalledWith(
       4,
       true,

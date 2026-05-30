@@ -137,7 +137,7 @@ export interface SendResult {
   ok: boolean
   response?: unknown
   txHash?: string
-  messageKey?: string
+  errorKey?: string
   detail?: string
   message?: string | null
   sentToChain?: boolean
@@ -145,7 +145,7 @@ export interface SendResult {
 
 export interface SignResult {
   ok: boolean
-  messageKey?: string
+  errorKey?: string
   cancelled?: boolean
   message?: string | null
 }

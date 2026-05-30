@@ -1,4 +1,4 @@
-import { fetchLatestRelease } from '../../../domains/app/applicationService'
+import { fetchLatestRelease } from '../../../domains/app/appDomainService'
 import type { AppUpdateStatus } from '../../../shared/types/appUpdate'
 
 const RELEASES_PAGE_URL = 'https://github.com/ontio/OWallet/releases'

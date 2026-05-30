@@ -7,7 +7,7 @@ import { openExternalUrl } from '../../modules/app/application/externalNavigatio
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useWalletsStore } from '../../stores/modules/Wallets'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
-import { importLedgerWalletSelections } from '../../modules/wallet/application/ledgerWalletImportService'
+import { importLedgerWalletSelections } from '../../modules/wallet/application/ledger/ledgerWalletImportService'
 import { applyWalletCollectionsResult } from '../support/walletCollectionsStoreSync'
 import { useLedgerAccountPagination, LEDGER_ACCOUNT_PAGE_SIZE } from './useLedgerAccountPagination'
 import type { LedgerAccountSelection } from './useLedgerAccountPagination'

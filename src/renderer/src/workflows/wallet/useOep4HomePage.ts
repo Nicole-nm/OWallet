@@ -14,7 +14,7 @@ import {
   createTrackedOep4Token,
   loadTrackedOep4Balances,
   loadTrackedOep4Transactions,
-} from '../../modules/wallet/application/oep4PortfolioApplicationService'
+} from '../../modules/wallet/application/dashboard/oep4PortfolioApplicationService'
 import { logger } from '../../shared/lib/logger'
 
 export function useOep4HomePage() {

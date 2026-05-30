@@ -1,4 +1,4 @@
-import { fetchIdentityCollection } from '../../../domains/wallet/applicationService'
+import { fetchIdentityCollection } from '../../../domains/wallet/walletDomainService'
 import type { Identity } from '../../../shared/lib/types'
 
 interface LoadIdentityCollectionResult {

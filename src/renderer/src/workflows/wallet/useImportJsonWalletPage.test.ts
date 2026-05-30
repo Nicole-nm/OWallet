@@ -66,12 +66,12 @@ vi.mock('../../shared/persistence/fileHelper', () => ({
   },
 }))
 
-vi.mock('../../modules/wallet/application/walletImportFileApplicationService', () => ({
+vi.mock('../../modules/wallet/application/json/walletImportFileApplicationService', () => ({
   readImportedWalletFile: (...args: unknown[]) =>
     mocks.walletImportFile.readImportedWalletFile(...args),
 }))
 
-vi.mock('../../modules/wallet/application/importJsonWalletApplicationService', () => ({
+vi.mock('../../modules/wallet/application/json/importJsonWalletApplicationService', () => ({
   buildImportedJsonWalletDraftFromMnemonic: (...args: unknown[]) =>
     mocks.application.buildImportedJsonWalletDraftFromMnemonic(...args),
   buildImportedJsonWalletDraftFromPrivateKeyHex: (...args: unknown[]) =>

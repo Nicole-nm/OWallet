@@ -4,13 +4,15 @@ import { POLLING_INTERVAL_MS, TRANSFER_GAS_MIN } from '../../shared/lib/constant
 import { ROUTE_NAMES, ROUTE_PATHS } from '../../router/routes'
 import { useClipboardNotice } from '../../shared/composables/useClipboardNotice'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
+import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useWalletDashboard } from './useWalletDashboard'
 import { notifyWarning } from '../../shared/ui/feedback'
 
 export function useWalletDashboardPage() {
   const router = useRouter()
   const { copyText } = useClipboardNotice()
-  const address = computed(() => dashboard.currentWalletStore.wallet.address)
+  const currentWalletStore = useCurrentWalletStore()
+  const address = computed(() => currentWalletStore.wallet.address)
   const dashboard = useWalletDashboard(address)
 
   const currentWallet = computed(() => dashboard.currentWalletStore.wallet)

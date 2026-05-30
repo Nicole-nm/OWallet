@@ -1,13 +1,14 @@
 import { computed, type Ref } from 'vue'
 import { notifyError } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useTokensStore } from '../../stores/modules/Tokens'
 import { useSettingStore } from '../../stores/modules/Setting'
 import {
   loadWalletExchangeValue,
   loadWalletNativeBalance,
-} from '../../modules/wallet/application/walletDashboardApplicationService'
-import { loadSelectedOep4TokenBalances } from '../../modules/wallet/application/tokenSelectionApplicationService'
+} from '../../modules/wallet/application/dashboard/walletDashboardApplicationService'
+import { loadSelectedOep4TokenBalances } from '../../modules/wallet/application/transfer/tokenSelectionApplicationService'
 
 export function useWalletBalances({
   address,
@@ -26,6 +27,7 @@ export function useWalletBalances({
   const oep4s = computed(() => tokensStore.oep4WithBalances)
 
   async function getBalance() {
+    if (!address.value) return null
     const result = await loadWalletNativeBalance(address.value)
     if (!result.ok) {
       notifyError(t('dashboard.getBalanceErr'), { literal: true })
@@ -39,14 +41,12 @@ export function useWalletBalances({
   }
 
   async function getOep4Balances() {
+    if (!address.value) return []
     const result = await loadSelectedOep4TokenBalances({
       address: address.value,
       selectedTokensByNetwork: tokensStore.oep4Tokens[settingStore.network],
     })
-    if (!result.ok) {
-      notifyError(result.errorKey || 'common.networkErr')
-      return []
-    }
+    if (notifyFailure(result, 'common.networkErr')) return []
 
     tokensStore.setOep4Balances(result.balances)
     return result.balances

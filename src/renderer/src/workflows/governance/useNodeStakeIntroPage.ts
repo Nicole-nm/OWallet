@@ -3,17 +3,18 @@ import { useRouter } from 'vue-router'
 import {
   ensureNodeStakeQualification,
   loadNodeStakeRegistrationDetail,
-} from '../../modules/governance/application/nodeStakeOnboardingApplicationService'
+} from '../../modules/governance/application/nodeStake/nodeStakeOnboardingApplicationService'
 import { useWalletsStore } from '../../stores/modules/Wallets'
 import { useIdentitiesStore } from '../../stores/modules/Identities'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useNodeSessionStore } from '../../modules/governance/store/nodeSessionStore'
-import { openNodeManagement } from '../../modules/governance/application/managementContextService'
+import { openNodeManagement } from '../../modules/governance/application/nodeStake/managementContextService'
 import { ROUTE_NAMES } from '../../router/routes'
 import { createLogger } from '../../shared/lib/logger'
 import { notifyError } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 import { applyManagementContext } from '../support/governanceContextStoreSync'
 import { loadIdentityCollectionIntoStore } from '../support/identityCollectionStoreSync'
@@ -147,10 +148,7 @@ export function useNodeStakeIntroPage() {
         ontid: stakeIdentity.value.ontid,
         stakeWalletAddress: stakeWallet.address,
       })
-      if (!qualificationResult.ok) {
-        notifyError(qualificationResult.errorKey)
-        return
-      }
+      if (notifyFailure(qualificationResult)) return
 
       nodeStakeStore.setStakeIdentity({ stakeIdentity: stakeIdentity.value })
       nodeStakeStore.setStakeWallet({ stakeWallet })
@@ -159,10 +157,7 @@ export function useNodeStakeIntroPage() {
         network,
         ontid: stakeIdentity.value.ontid,
       })
-      if (!stakeDetailResult.ok) {
-        notifyError(stakeDetailResult.errorKey)
-        return
-      }
+      if (notifyFailure(stakeDetailResult)) return
 
       applyStakeDetail(nodeStakeStore, { detail: stakeDetailResult.detail as StakeDetail })
       const stakeDetail = stakeDetailResult.detail as StakeDetail

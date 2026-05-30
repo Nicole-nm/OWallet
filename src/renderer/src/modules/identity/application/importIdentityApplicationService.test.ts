@@ -10,14 +10,14 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../../domains/identity/applicationService', () => ({
+vi.mock('../../../domains/identity/identityDomainService', () => ({
   importIdentityFromSerializedKeystore: (...args: unknown[]) =>
     mocks.identityService.importIdentityFromSerializedKeystore(...args),
   verifyIdentityExistsOnChain: (...args: unknown[]) =>
     mocks.identityService.verifyIdentityExistsOnChain(...args),
 }))
 
-vi.mock('../../../domains/wallet/applicationService', () => ({
+vi.mock('../../../domains/wallet/walletDomainService', () => ({
   insertIdentity: (...args: unknown[]) => mocks.walletService.insertIdentity(...args),
 }))
 

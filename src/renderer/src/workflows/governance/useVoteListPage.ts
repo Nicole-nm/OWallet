@@ -4,11 +4,12 @@ import { useRouter } from 'vue-router'
 import {
   loadVoteList,
   loadVoteRole,
-} from '../../modules/governance/application/voteTopicApplicationService'
+} from '../../modules/governance/application/vote/voteTopicApplicationService'
 import { VOTE_ROLE } from '../../shared/lib/constants'
 import { ROUTE_NAMES } from '../../router/routes'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
-import { notifyError, notifyWarning } from '../../shared/ui/feedback'
+import { notifyWarning } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { VOTE_STATUS_TEXT, useVoteStore } from '../../stores/modules/Vote'
@@ -229,9 +230,7 @@ export function useVoteListPage() {
           address: voteWallet.value.address,
         })
         applyVoteRoleResult(roleResult)
-        if (!roleResult.ok) {
-          notifyError(roleResult.errorKey)
-        }
+        notifyFailure(roleResult)
       }
 
       await refreshVoteList({ showLoading: false, showError: true })
@@ -259,8 +258,8 @@ export function useVoteListPage() {
         syncAdminVotesInStore()
       }
 
-      if (!result.ok && showError) {
-        notifyError(result.errorKey)
+      if (showError) {
+        notifyFailure(result)
       }
 
       return result

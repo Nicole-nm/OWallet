@@ -10,7 +10,7 @@ import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSe
 import {
   checkSharedWalletHasLocalCopayer,
   loadPendingSharedTransfers,
-} from '../../modules/wallet/application/sharedWalletOverviewApplicationService'
+} from '../../modules/wallet/application/sharedWallet/sharedWalletOverviewApplicationService'
 import type { PendingSharedTransfer } from '../../shared/types'
 
 export function useSharedWalletHomePage() {

@@ -2,7 +2,7 @@ import type { Ref } from 'vue'
 import {
   createVoteStopTransaction,
   syncAdminVotes,
-} from '../../modules/governance/application/voteTopicApplicationService'
+} from '../../modules/governance/application/vote/voteTopicApplicationService'
 import { VOTE_STATUS_TEXT } from '../../stores/modules/Vote'
 import type { NetworkId, WalletSigner } from '../../shared/lib/types'
 import type { GovernanceSignablePayload } from './governanceSigningTypes'

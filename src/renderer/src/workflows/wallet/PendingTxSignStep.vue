@@ -45,12 +45,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { submitPendingSharedTransferSignature } from '../../modules/wallet/application/sharedWalletTransactionApplicationService'
+import { submitPendingSharedTransferSignature } from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import { notifyError, notifySuccess, showSuccessModal } from '../../shared/ui/feedback'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
+import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 
 defineOptions({
@@ -61,9 +62,11 @@ const emit = defineEmits(['backEvent', 'submitEvent'])
 const settingStore = useSettingStore()
 const loadingStore = useLoadingModalStore()
 const currentWalletStore = useCurrentWalletStore()
+const sharedWalletSessionStore = useSharedWalletSessionStore()
 
 const pendingTx = computed(() => currentWalletStore.pendingTx)
 const currentSigner = computed(() => currentWalletStore.currentSigner)
+const sharedWallet = computed(() => sharedWalletSessionStore.wallet)
 const password = ref('')
 const checked = ref(false)
 const sending = ref(false)
@@ -89,6 +92,7 @@ async function submit() {
   const result = await submitPendingSharedTransferSignature({
     network: settingStore.network,
     pendingTx: pendingTx.value,
+    sharedWallet: sharedWallet.value,
     currentSigner: currentSigner.value,
     password: currentSigner.value.type === 'CommonWallet' ? password.value : undefined,
   })
@@ -99,8 +103,8 @@ async function submit() {
     if (result.cancelled) {
       return
     }
-    if (result.messageKey) {
-      notifyError(result.messageKey)
+    if (result.errorKey) {
+      notifyError(result.errorKey)
     } else if (result.message) {
       notifyError(result.message, { literal: true })
     } else {

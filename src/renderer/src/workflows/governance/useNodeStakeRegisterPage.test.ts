@@ -67,16 +67,19 @@ vi.mock('../../modules/wallet/composables/useLedgerStatusMonitor', () => ({
   useLedgerStatusMonitor: () => mocks.ledgerMonitor,
 }))
 
-vi.mock('../../modules/governance/application/nodeStakeOnboardingApplicationService', () => ({
-  createNodeStakeRegistrationDraft: (...args: unknown[]) =>
-    mocks.stakeService.createNodeStakeRegistrationDraft(...args),
-  loadNodeStakeRegistrationDetail: (...args: unknown[]) =>
-    mocks.stakeService.loadNodeStakeRegistrationDetail(...args),
-  signNodeStakeRegistrationOntid: (...args: unknown[]) =>
-    mocks.stakeService.signNodeStakeRegistrationOntid(...args),
-  submitNodeStakeRegistration: (...args: unknown[]) =>
-    mocks.stakeService.submitNodeStakeRegistration(...args),
-}))
+vi.mock(
+  '../../modules/governance/application/nodeStake/nodeStakeOnboardingApplicationService',
+  () => ({
+    createNodeStakeRegistrationDraft: (...args: unknown[]) =>
+      mocks.stakeService.createNodeStakeRegistrationDraft(...args),
+    loadNodeStakeRegistrationDetail: (...args: unknown[]) =>
+      mocks.stakeService.loadNodeStakeRegistrationDetail(...args),
+    signNodeStakeRegistrationOntid: (...args: unknown[]) =>
+      mocks.stakeService.signNodeStakeRegistrationOntid(...args),
+    submitNodeStakeRegistration: (...args: unknown[]) =>
+      mocks.stakeService.submitNodeStakeRegistration(...args),
+  })
+)
 
 import { useNodeStakeRegisterPage } from './useNodeStakeRegisterPage'
 

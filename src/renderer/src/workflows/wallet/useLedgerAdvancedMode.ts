@@ -1,5 +1,5 @@
-import _ from 'lodash'
-import { loadLedgerAccountSelection } from '../../modules/wallet/application/ledgerWalletConnectionService'
+import { debounce } from 'lodash-es'
+import { loadLedgerAccountSelection } from '../../modules/wallet/application/ledger/ledgerWalletConnectionService'
 import type { LedgerAccountSelection } from './useLedgerAccountPagination'
 
 interface AdvancedModeForm {
@@ -32,7 +32,7 @@ export function useLedgerAdvancedMode(
     }
   }
 
-  const debouncedGetPkForAdvancedMode = _.debounce(getPkForAdvancedMode, 500)
+  const debouncedGetPkForAdvancedMode = debounce(getPkForAdvancedMode, 500)
 
   function toggleImportLedgerMode() {
     stopInitialLedgerPageLoading()

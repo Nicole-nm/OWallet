@@ -1,4 +1,4 @@
-import { loadWalletCollections } from '../../modules/wallet/application/walletCollectionApplicationService'
+import { loadWalletCollections } from '../../modules/wallet/application/dashboard/walletCollectionApplicationService'
 import type { WalletCollections } from '../../shared/lib/types'
 
 interface WalletCollectionsStoreLike extends WalletCollections {

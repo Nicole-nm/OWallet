@@ -5,14 +5,16 @@ import {
   loadNodeStakeRegistrationDetail,
   signNodeStakeRegistrationOntid,
   submitNodeStakeRegistration,
-} from '../../modules/governance/application/nodeStakeOnboardingApplicationService'
+} from '../../modules/governance/application/nodeStake/nodeStakeOnboardingApplicationService'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 import { ROUTE_NAMES } from '../../router/routes'
-import { notifyError, notifyWarning } from '../../shared/ui/feedback'
+import { notifyError } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { isCommonWallet } from '../../shared/lib/types'
+import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 
 function applyStakeDetail(nodeStakeStore: unknown, result: Record<string, unknown>) {
   const store = nodeStakeStore as { setStakeDetail(payload: { detail: unknown }): void }
@@ -79,10 +81,7 @@ export function useNodeStakeRegisterPage() {
       ontid: stakeIdentity.value.ontid,
     })
 
-    if (!result.ok) {
-      notifyError(result.errorKey || 'common.networkErr')
-      return result
-    }
+    if (notifyFailure(result, 'common.networkErr')) return result
 
     applyStakeDetail(nodeStakeStore, result)
     return result
@@ -94,10 +93,7 @@ export function useNodeStakeRegisterPage() {
       stakeDetail: stakeDetail.value,
     })
 
-    if (!result.ok) {
-      notifyError(result.errorKey)
-      return result
-    }
+    if (notifyFailure(result)) return result
 
     tx.value = 'tx' in result ? result.tx : null
     ontidPassModal.value = true
@@ -115,10 +111,7 @@ export function useNodeStakeRegisterPage() {
       password: ontidPassword.value,
     })
 
-    if (!result.ok) {
-      notifyError(result.errorKey || 'common.networkErr')
-      return
-    }
+    if (notifyFailure(result, 'common.networkErr')) return
 
     resetOntidSigningState()
     walletPassModal.value = true
@@ -154,10 +147,16 @@ export function useNodeStakeRegisterPage() {
     loadingStore.showLoadingModals()
 
     try {
+      const signerWallet = isCommonWallet(wallet) ? wallet : ledgerWallet.value
+      const adapter = WalletAdapterFactory.fromWalletSigner(signerWallet)
+      if (!adapter) {
+        notifyError('nodeStake.selectIndividualWallet')
+        walletModalHandled.value = false
+        return
+      }
       const result = await submitNodeStakeRegistration({
         tx: tx.value,
-        stakeWallet: wallet,
-        ledgerWallet: ledgerWallet.value,
+        adapter,
         password: walletPassword.value,
         network: settingStore.network,
         ontid: stakeIdentity.value.ontid,
@@ -173,11 +172,7 @@ export function useNodeStakeRegisterPage() {
       }
 
       if (!result.ok) {
-        if (result.level === 'warning') {
-          notifyWarning(result.errorKey || 'common.networkErr')
-        } else {
-          notifyError(result.errorKey || 'common.networkErr')
-        }
+        notifyFailure(result, 'common.networkErr')
 
         if ('stage' in result && result.stage === 'submit') {
           walletPassModal.value = false

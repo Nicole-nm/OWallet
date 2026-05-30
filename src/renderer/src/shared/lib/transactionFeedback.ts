@@ -3,7 +3,7 @@ import { notifyError, notifySuccess, showSuccessModal, translateFeedback } from 
 interface TransactionFeedbackInput {
   ok: boolean
   txHash?: string
-  messageKey?: string
+  errorKey?: string
   message?: string | null
 }
 
@@ -32,9 +32,9 @@ export function handleTransactionFeedback(
   } = options
 
   if (!result?.ok) {
-    if (result?.messageKey) {
-      notifyError(result.messageKey)
-      return { ok: false, errorKey: result.messageKey }
+    if (result?.errorKey) {
+      notifyError(result.errorKey)
+      return { ok: false, errorKey: result.errorKey }
     }
 
     if (result?.message) {

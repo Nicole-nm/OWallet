@@ -3,7 +3,7 @@ import { notifyError } from '../../shared/ui/feedback'
 import { useTokensStore } from '../../stores/modules/Tokens'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useAsyncAction } from '../../shared/composables/useAsyncAction'
-import { loadSelectableOep4Tokens } from '../../modules/wallet/application/tokenSelectionApplicationService'
+import { loadSelectableOep4Tokens } from '../../modules/wallet/application/transfer/tokenSelectionApplicationService'
 
 interface Oep4SelectionItem {
   contract_hash: string

@@ -4,15 +4,14 @@ import {
   downloadStoredWalletFile,
   exportStoredWalletWif,
   validateStoredWalletPassword,
-} from '../../modules/wallet/application/walletDetailApplicationService'
+} from '../../modules/wallet/application/dashboard/walletDetailApplicationService'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { notifyError, showSuccessModal } from '../../shared/ui/feedback'
 
 export type WalletAction = 'TO_DELETE' | 'TO_EXPORT' | 'EXPORT_WIF' | ''
 
 export function useWalletExport(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  wallet: () => Record<string, any>,
+  wallet: () => Record<string, unknown>,
   isCommonWallet: () => boolean,
   onDeleteRequested: () => void,
   closeChangePassTip: () => void = () => {}
@@ -38,8 +37,7 @@ export function useWalletExport(
     openModal('EXPORT_WIF')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async function exportWallet(commonWallet: Record<string, any>) {
+  async function exportWallet(commonWallet: Record<string, unknown>) {
     loadingStore.hideLoadingModals()
     const result = await downloadStoredWalletFile(commonWallet)
     if (!result.ok) {

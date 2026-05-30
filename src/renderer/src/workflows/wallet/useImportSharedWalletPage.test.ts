@@ -62,12 +62,15 @@ vi.mock('../../shared/ui/feedback', () => ({
   notifyWarning: (...args: any[]) => mocks.feedback.notifyWarning(...args),
 }))
 
-vi.mock('../../modules/wallet/application/importSharedWalletApplicationService', () => ({
-  queryImportableSharedWallet: (...args: any[]) =>
-    mocks.application.queryImportableSharedWallet(...args),
-  persistImportedSharedWallet: (...args: any[]) =>
-    mocks.application.persistImportedSharedWallet(...args),
-}))
+vi.mock(
+  '../../modules/wallet/application/sharedWallet/importSharedWalletApplicationService',
+  () => ({
+    queryImportableSharedWallet: (...args: any[]) =>
+      mocks.application.queryImportableSharedWallet(...args),
+    persistImportedSharedWallet: (...args: any[]) =>
+      mocks.application.persistImportedSharedWallet(...args),
+  })
+)
 
 import { useImportSharedWalletPage } from './useImportSharedWalletPage'
 

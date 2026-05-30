@@ -88,7 +88,7 @@ vi.mock('../../shared/ui/feedback', () => ({
   notifyWarning: vi.fn(),
 }))
 
-vi.mock('../../modules/governance/application/voteTopicApplicationService', () => ({
+vi.mock('../../modules/governance/application/vote/voteTopicApplicationService', () => ({
   loadVoteRole: (...args: any[]) => mocks.voteService.loadVoteRole(...args),
   loadVoteList: (...args: any[]) => mocks.voteService.loadVoteList(...args),
   syncAdminVotes: (...args: any[]) => mocks.voteService.syncAdminVotes(...args),

@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
 import { notifyError, notifyWarning } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import {
@@ -10,7 +11,7 @@ import {
   createStakeUnboundOngRedeemTransaction,
   refreshNodeStakeAuthorizationDetails,
   validateStakeAuthorizationUnit,
-} from '../../modules/governance/application/nodeStakeManagementApplicationService'
+} from '../../modules/governance/application/nodeStake/nodeStakeManagementApplicationService'
 import type { GovernanceSignablePayload } from './governanceSigningTypes'
 
 function applyNodeStakeAuthorizationDetails(
@@ -118,14 +119,7 @@ export function useNodeStakeAuthorizationPanel() {
       unitVal: unitVal.value,
       currentMaxAuthorize: peerAttributes.value.maxAuthorize,
     })
-    if (!result.ok) {
-      if (result.level === 'warning') {
-        notifyWarning(result.errorKey)
-      } else {
-        notifyError(result.errorKey)
-      }
-      return
-    }
+    if (notifyFailure(result)) return
 
     tx.value = result.tx
     signVisible.value = true
@@ -144,10 +138,7 @@ export function useNodeStakeAuthorizationPanel() {
       peerCost: peerCost.value,
       stakeCost: stakeCost.value,
     })
-    if (!result.ok) {
-      notifyError(result.errorKey)
-      return
-    }
+    if (notifyFailure(result)) return
 
     tx.value = result.tx
     signVisible.value = true
@@ -166,7 +157,7 @@ export function useNodeStakeAuthorizationPanel() {
 
     validUnit.value = result.ok
     if (!result.ok && result.errorKey !== 'nodeMgmt.invalidInput') {
-      notifyError(result.errorKey || 'common.networkErr')
+      notifyFailure(result, 'common.networkErr')
     }
   }
 

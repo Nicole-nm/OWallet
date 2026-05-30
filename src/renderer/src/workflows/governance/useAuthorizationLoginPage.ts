@@ -3,8 +3,8 @@ import { useRouter } from 'vue-router'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useNodeSessionStore } from '../../modules/governance/store/nodeSessionStore'
-import { openAuthorizationManagement } from '../../modules/governance/application/authorizationContextService'
-import { notifyError } from '../../shared/ui/feedback'
+import { openAuthorizationManagement } from '../../modules/governance/application/authorization/authorizationContextService'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import {
   applyAuthorizationContext,
   applyManagementContext,
@@ -50,9 +50,7 @@ export function useAuthorizationLoginPage() {
 
   function next() {
     const result = submit()
-    if (!result.ok) {
-      notifyError(result.errorKey || 'common.networkErr')
-    }
+    notifyFailure(result, 'common.networkErr')
     return result
   }
 

@@ -77,6 +77,7 @@ function createRendererContentSecurityPolicy() {
   // ontology-ts-sdk currently bundles a vm-browserify runtime that evaluates generated
   // code at execution time. Packaged identity and ledger routes crash under a strict
   // production CSP unless unsafe-eval stays enabled for local renderer scripts.
+  // Rationale, risk, and removal plan are documented in docs/SECURITY.md.
   const scriptSources = ["'self'", "'unsafe-eval'"]
 
   return [

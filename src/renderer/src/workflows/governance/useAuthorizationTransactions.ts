@@ -5,7 +5,7 @@ import {
   createAuthorizationUnboundOngRedeemTransaction,
   createCancelAuthorizationTransaction,
   validateCancelAuthorizationAmount,
-} from '../../modules/governance/application/authorizationManagementApplicationService'
+} from '../../modules/governance/application/authorization/authorizationManagementApplicationService'
 import type { WalletSigner } from '../../shared/lib/types'
 import type { AuthorizationInfo, GovernanceNode, SplitFee } from '../../shared/types'
 import type { GovernanceSignablePayload } from './governanceSigningTypes'

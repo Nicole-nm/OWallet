@@ -6,7 +6,7 @@ import {
   downloadCreatedJsonWallet,
   persistCreatedJsonWallet,
   type JsonWalletDraft,
-} from '../../modules/wallet/application/createJsonWalletApplicationService'
+} from '../../modules/wallet/application/json/createJsonWalletApplicationService'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { createValidationErrors } from '../../shared/lib/formValidation'
 import { notifyError, notifySuccess, notifyWarning } from '../../shared/ui/feedback'

@@ -6,7 +6,7 @@ import {
   getWalletAddressExplorerUrl,
   getWalletTransactionExplorerUrl,
   loadWalletTransactions,
-} from '../../modules/wallet/application/walletDashboardApplicationService'
+} from '../../modules/wallet/application/dashboard/walletDashboardApplicationService'
 
 interface DashboardTransaction {
   txHash: string
@@ -40,6 +40,7 @@ export function useWalletTransactions({
   }
 
   async function getTransactions() {
+    if (!address.value) return false
     const result = await loadWalletTransactions({
       address: address.value,
       network: settingStore.network,

@@ -5,7 +5,6 @@ const mocks = vi.hoisted(() => ({
     buildIdentityRegistration: vi.fn(),
   },
   transactionService: {
-    addSignerSignature: vi.fn(),
     sendTransaction: vi.fn(),
   },
   accountService: {
@@ -18,13 +17,12 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../../domains/identity/applicationService', () => ({
+vi.mock('../../../domains/identity/identityDomainService', () => ({
   buildIdentityRegistration: (...args: any[]) =>
     mocks.identityService.buildIdentityRegistration(...args),
 }))
 
-vi.mock('../../../domains/transaction/applicationService', () => ({
-  addSignerSignature: (...args: any[]) => mocks.transactionService.addSignerSignature(...args),
+vi.mock('../../../domains/transaction/transactionDomainService', () => ({
   sendTransaction: (...args: any[]) => mocks.transactionService.sendTransaction(...args),
 }))
 
@@ -33,7 +31,7 @@ vi.mock('../../../domains/wallet/accountService', () => ({
   generateWalletKeyPair: (...args: any[]) => mocks.accountService.generateWalletKeyPair(...args),
 }))
 
-vi.mock('../../../domains/wallet/applicationService', () => ({
+vi.mock('../../../domains/wallet/walletDomainService', () => ({
   fetchCommonWalletDocs: (...args: any[]) => mocks.walletService.fetchCommonWalletDocs(...args),
   insertIdentity: (...args: any[]) => mocks.walletService.insertIdentity(...args),
 }))
@@ -44,10 +42,48 @@ import {
   persistCreatedIdentity,
   submitIdentityRegistration,
 } from './createIdentityApplicationService'
-import type { CommonWallet, HardwareWallet, IdentityControl } from '../../../shared/lib/types'
+import type { CommonWallet, IdentityControl } from '../../../shared/lib/types'
+import type { WalletAdapter, WalletCapabilities } from '../../../domains/wallet/adapter'
+
+const commonCapabilities: WalletCapabilities = {
+  requiresPassword: true,
+  requiresHardwareDevice: false,
+  singleSignature: true,
+  multiSignature: false,
+  canSignMessage: true,
+}
+
+const ledgerCapabilities: WalletCapabilities = {
+  requiresPassword: false,
+  requiresHardwareDevice: true,
+  singleSignature: true,
+  multiSignature: false,
+  canSignMessage: true,
+}
+
+function makeAdapter(
+  capabilities: WalletCapabilities,
+  addSignatureResult: unknown = 'signed-tx',
+  address = 'AQ123'
+): WalletAdapter {
+  return {
+    identity: {
+      type: capabilities.requiresPassword ? 'common' : 'ledger',
+      address,
+      publicKey: 'pk',
+      label: 'L',
+    },
+    capabilities,
+    signTransaction: vi.fn(),
+    signMessage: vi.fn(),
+    addSignature: vi.fn().mockResolvedValue(addSignatureResult),
+  } as WalletAdapter
+}
+
+import { createFakeCommonWallet } from '../../../shared/chain/__fixtures__/fakeWallet'
 
 function makeCommonWallet(overrides: Partial<CommonWallet> = {}): CommonWallet {
-  return {
+  return createFakeCommonWallet({
     address: 'AQ123',
     key: 'wallet-key',
     label: 'Payer Wallet',
@@ -57,18 +93,7 @@ function makeCommonWallet(overrides: Partial<CommonWallet> = {}): CommonWallet {
     parameters: { curve: 'p256' },
     scrypt: {},
     ...overrides,
-  }
-}
-
-function makeHardwareWallet(overrides: Partial<HardwareWallet> = {}): HardwareWallet {
-  return {
-    address: 'AQLEDGER',
-    label: 'Ledger Wallet',
-    publicKey: 'ledger-pk',
-    neo: 0,
-    acct: 0,
-    ...overrides,
-  }
+  })
 }
 
 describe('createIdentityApplicationService', () => {
@@ -153,10 +178,8 @@ describe('createIdentityApplicationService', () => {
     await expect(
       submitIdentityRegistration({
         tx: { id: 'tx-1' },
-        payerWalletType: 'ledgerWallet',
-        payerWallet: undefined,
+        adapter: makeAdapter(ledgerCapabilities, 'signed-tx', ''),
         payerPassword: '',
-        ledgerWallet: makeHardwareWallet({ address: '', label: '', publicKey: '' }),
         ledgerConnected: false,
       })
     ).resolves.toEqual({
@@ -170,46 +193,27 @@ describe('createIdentityApplicationService', () => {
     const tx = { id: 'tx-1' }
     const signedTx = { id: 'signed-tx' }
 
-    mocks.transactionService.addSignerSignature.mockResolvedValue(signedTx)
     mocks.transactionService.sendTransaction.mockResolvedValue({ ok: true, txHash: 'hash-1' })
 
+    const adapter = makeAdapter(commonCapabilities, signedTx)
     await expect(
       submitIdentityRegistration({
         tx,
-        payerWalletType: 'commonWallet',
-        payerWallet: makeCommonWallet(),
+        adapter,
         payerPassword: 'secret123',
-        ledgerWallet: undefined,
       })
     ).resolves.toEqual({ ok: true, txHash: 'hash-1' })
 
-    expect(mocks.transactionService.addSignerSignature).toHaveBeenCalledWith({
-      tx,
-      wallet: {
-        address: 'AQ123',
-        key: 'wallet-key',
-        label: 'Payer Wallet',
-        publicKey: 'pk',
-        salt: 'salt',
-        algorithm: 'aes-256-gcm',
-        parameters: { curve: 'p256' },
-        scrypt: {},
-      },
-      password: 'secret123',
-    })
+    expect(adapter.addSignature).toHaveBeenCalledWith(tx, { password: 'secret123' })
     expect(mocks.transactionService.sendTransaction).toHaveBeenCalledWith(signedTx)
   })
 
   it('maps missing common-wallet signatures to a password error', async () => {
-    mocks.transactionService.addSignerSignature.mockResolvedValue(null)
-
     await expect(
       submitIdentityRegistration({
         tx: { id: 'tx-1' },
-        payerWalletType: 'commonWallet',
-        payerWallet: makeCommonWallet(),
+        adapter: makeAdapter(commonCapabilities, null),
         payerPassword: 'wrong-password',
-        ledgerWallet: undefined,
       })
     ).resolves.toEqual({
       ok: false,

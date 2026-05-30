@@ -1,193 +1,60 @@
-import { defineStore } from 'pinia'
-import { TRANSFER_GAS_MIN } from '../../shared/lib/constants'
-import {
-  loadCurrentWalletSession,
-  saveCurrentWalletSession,
-} from '../../shared/persistence/appStateService'
-import type {
-  CurrentWalletRecord,
-  PendingSharedTransfer,
-  SharedCopayer,
-  SharedWalletSigner,
-  TrackedOep4Token,
-  TransferState,
-  WalletBalance,
-} from '../../shared/types'
+import { defineStore, storeToRefs } from 'pinia'
+import { useCurrentWalletIdentityStore } from './currentWallet/identity'
+import { useCurrentWalletBalanceStore } from './currentWallet/balance'
+import { useCurrentWalletSessionStore } from './currentWallet/session'
 
-interface RedeemState {
-  claimableOng: number
-  balanceOng: number
-}
+/**
+ * Facade store that composes the three single-responsibility slices:
+ *   - identity (wallet record)
+ *   - balance  (ONT/ONG/OEP4 + redeem + NEP5 ONT)
+ *   - session  (transfer, pendingTx, currentSigner, localCopayers)
+ *
+ * Existing callers continue to use `useCurrentWalletStore()` unchanged.
+ * New code should prefer the focused sub-stores when it only touches one
+ * concern, to make tests and reactivity scopes smaller.
+ *
+ * IMPORTANT: state must be re-exported via `storeToRefs()` to preserve
+ * reactivity across ref reassignment in the sub-stores (e.g. when
+ * `setCurrentWallet` replaces `wallet.value` with a fresh object).
+ * Returning `identity.wallet` directly captures a snapshot of the unwrapped
+ * value at compose time and goes stale on reassignment.
+ */
+export const useCurrentWalletStore = defineStore('CurrentWallet', () => {
+  const identity = useCurrentWalletIdentityStore()
+  const balance = useCurrentWalletBalanceStore()
+  const session = useCurrentWalletSessionStore()
 
-interface WalletBalanceExtended extends WalletBalance {
-  ontValue?: number
-}
+  const { wallet } = storeToRefs(identity)
+  const { balance: balanceState, redeem, nep5Ont } = storeToRefs(balance)
+  const { transfer, pendingTx, currentSigner, localCopayers } = storeToRefs(session)
 
-interface CurrentWalletState {
-  wallet: CurrentWalletRecord
-  balance: WalletBalanceExtended
-  transfer: TransferState & { oep4s: TrackedOep4Token[] }
-  pendingTx: PendingSharedTransfer
-  currentSigner: SharedWalletSigner
-  localCopayers: SharedCopayer[]
-  redeem: RedeemState
-  nep5Ont: number
-}
-
-interface WalletPayload {
-  wallet?: Partial<CurrentWalletRecord>
-}
-
-interface TransferPayload {
-  transfer?: Partial<CurrentWalletState['transfer']>
-}
-
-interface CopayersPayload {
-  localCopayers?: SharedCopayer[]
-}
-
-interface PendingTransactionPayload {
-  pendingTx?: Partial<PendingSharedTransfer>
-}
-
-interface CurrentSignerPayload {
-  account?: Partial<SharedWalletSigner>
-}
-
-interface BalancePayload {
-  balance?: WalletBalanceExtended
-}
-
-interface RedeemPayload {
-  redeem?: RedeemState
-}
-
-interface Nep5OntPayload {
-  nep5Ont?: number
-}
-
-interface TransferRedeemTypePayload {
-  type?: boolean
-}
-
-function createDefaultWallet(): CurrentWalletRecord {
   return {
-    publicKey: '',
-    address: '',
-    name: '',
-    label: '',
-    coPayers: [],
-    requiredNumber: '',
-    totalNumber: '',
-  }
-}
+    // identity slice
+    wallet,
+    setCurrentWallet: identity.setCurrentWallet,
+    mergeCurrentWallet: identity.mergeCurrentWallet,
+    resetCurrentWallet: identity.resetCurrentWallet,
 
-function createDefaultBalance(): WalletBalanceExtended {
-  return {
-    ont: 0,
-    ong: 0,
-    waitBoundOng: 0,
-    unboundOng: 0,
-  }
-}
+    // balance slice
+    balance: balanceState,
+    redeem,
+    nep5Ont,
+    setNativeBalance: balance.setNativeBalance,
+    resetNativeBalance: balance.resetNativeBalance,
+    setCurrentRedeem: balance.setCurrentRedeem,
+    setNep5Ont: balance.setNep5Ont,
 
-function createDefaultTransfer(): CurrentWalletState['transfer'] {
-  return {
-    balance: { ont: 0, ong: 0 },
-    oep4s: [],
-    from: '',
-    to: '',
-    amount: 0,
-    asset: 'ONT',
-    gas: TRANSFER_GAS_MIN,
-    coPayers: [],
-    sponsorPayer: '',
-    isRedeem: false,
+    // session slice
+    transfer,
+    pendingTx,
+    currentSigner,
+    localCopayers,
+    setTransfer: session.setTransfer,
+    setLocalCopayers: session.setLocalCopayers,
+    setPendingTx: session.setPendingTx,
+    setCurrentSigner: session.setCurrentSigner,
+    resetCurrentTransfer: session.resetCurrentTransfer,
+    setTransferRedeemType: session.setTransferRedeemType,
+    resetTransferBalance: session.resetTransferBalance,
   }
-}
-
-function createDefaultPendingTx(): PendingSharedTransfer {
-  return {
-    amount: 0,
-    assetName: '',
-    receiveaddress: '',
-    sendaddress: '',
-    gasprice: 0,
-    gaslimit: 0,
-    coPayerSignDtos: [],
-    transactionbodyhash: '',
-    transactionidhash: '',
-  }
-}
-
-function createDefaultCurrentSigner(): SharedWalletSigner {
-  return {
-    type: '',
-    address: '',
-    publicKey: '',
-  }
-}
-
-export const useCurrentWalletStore = defineStore('CurrentWallet', {
-  state: (): CurrentWalletState => ({
-    wallet: Object.assign(createDefaultWallet(), loadCurrentWalletSession() || {}),
-    balance: createDefaultBalance(),
-    transfer: createDefaultTransfer(),
-    pendingTx: createDefaultPendingTx(),
-    currentSigner: createDefaultCurrentSigner(),
-    localCopayers: [],
-    redeem: {
-      claimableOng: 0,
-      balanceOng: 0,
-    },
-    nep5Ont: 0,
-  }),
-  actions: {
-    setCurrentWallet(payload: WalletPayload = {}) {
-      this.wallet = Object.assign(createDefaultWallet(), payload.wallet || {})
-      saveCurrentWalletSession(this.wallet)
-    },
-    mergeCurrentWallet(payload: WalletPayload = {}) {
-      this.wallet = Object.assign({}, this.wallet, payload.wallet)
-      saveCurrentWalletSession(this.wallet)
-    },
-    setTransfer(payload: TransferPayload = {}) {
-      this.transfer = Object.assign({}, this.transfer, payload.transfer)
-    },
-    setLocalCopayers(payload: CopayersPayload = {}) {
-      this.localCopayers = payload.localCopayers ?? []
-    },
-    setPendingTx(payload: PendingTransactionPayload = {}) {
-      this.pendingTx = Object.assign(createDefaultPendingTx(), payload.pendingTx)
-    },
-    setCurrentSigner(payload: CurrentSignerPayload = {}) {
-      this.currentSigner = Object.assign(createDefaultCurrentSigner(), payload.account)
-    },
-    setNativeBalance(payload: BalancePayload = {}) {
-      this.balance = payload.balance ?? createDefaultBalance()
-    },
-    resetNativeBalance() {
-      this.balance = createDefaultBalance()
-    },
-    resetCurrentTransfer() {
-      this.transfer = createDefaultTransfer()
-    },
-    setCurrentRedeem(payload: RedeemPayload = {}) {
-      this.redeem = payload.redeem ?? { claimableOng: 0, balanceOng: 0 }
-    },
-    setNep5Ont(payload: Nep5OntPayload = {}) {
-      this.nep5Ont = payload.nep5Ont ?? 0
-    },
-    resetCurrentWallet() {
-      this.wallet = createDefaultWallet()
-      saveCurrentWalletSession(this.wallet)
-    },
-    setTransferRedeemType(payload: TransferRedeemTypePayload = {}) {
-      this.transfer.isRedeem = Boolean(payload.type)
-      this.transfer.asset = payload.type ? 'ONG' : 'ONT'
-    },
-    resetTransferBalance() {
-      this.resetCurrentTransfer()
-    },
-  },
 })

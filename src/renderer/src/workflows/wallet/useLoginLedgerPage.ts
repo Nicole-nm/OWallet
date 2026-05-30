@@ -7,8 +7,8 @@ import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import {
   loadLedgerAccountSelection,
   readLedgerDeviceInfo,
-} from '../../modules/wallet/application/ledgerWalletConnectionService'
-import { verifyLedgerLogin } from '../../modules/wallet/application/ledgerWalletSessionService'
+} from '../../modules/wallet/application/ledger/ledgerWalletConnectionService'
+import { verifyLedgerLogin } from '../../modules/wallet/application/ledger/ledgerWalletSessionService'
 import { ROUTE_NAMES } from '../../router/routes'
 
 const interval = 3000

@@ -42,21 +42,10 @@ vi.mock('../../shared/lib/constants', () => ({
 import { addLedgerSignature } from './walletSigningOrchestrator'
 import type { SdkTransactionLike } from '../../shared/chain/types'
 import type { HardwareWalletSigner } from '../../shared/lib/types'
+import { createFakeTransaction } from '../../shared/chain/__fixtures__/fakeSdk'
 
-function makeTx(): SdkTransactionLike {
-  return {
-    payer: undefined as unknown,
-    gasPrice: {
-      constructor: class {
-        constructor(public val: string | number) {}
-      },
-    },
-    sigs: [],
-    serializeUnsignedData: vi.fn(() => 'unsigned-data'),
-    serialize: vi.fn(() => 'serialized'),
-    getHash: vi.fn(() => 'hash'),
-  }
-}
+const makeTx = (): SdkTransactionLike =>
+  createFakeTransaction({ serializeUnsignedData: vi.fn(() => 'unsigned-data') })
 
 describe('walletSigningOrchestrator.addLedgerSignature()', () => {
   beforeEach(() => {

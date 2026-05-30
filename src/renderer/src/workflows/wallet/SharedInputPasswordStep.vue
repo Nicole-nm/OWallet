@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { createAndSubmitSharedTransfer } from '../../modules/wallet/application/sharedWalletTransactionApplicationService'
+import { createAndSubmitSharedTransfer } from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import { notifyError, notifySuccess } from '../../shared/ui/feedback'
 import { useSettingStore } from '../../stores/modules/Setting'
@@ -126,7 +126,7 @@ async function submit() {
       return
     }
 
-    notifyError(result.messageKey || 'common.networkErr')
+    notifyError(result.errorKey || 'common.networkErr')
     loadingStore.hideLoadingModals()
     sending.value = false
     return

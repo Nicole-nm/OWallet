@@ -14,6 +14,7 @@ import { notifyError, notifySuccess, notifyWarning } from '../../shared/ui/feedb
 import { useWizardPage } from '../../shared/composables/useWizardPage'
 import { ROUTE_NAMES } from '../../router/routes'
 import { Identity, CommonWallet, WalletOption } from '../../shared/lib/types'
+import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 
 const CREATE_IDENTITY_VALIDATION_FIELDS = ['label', 'password', 'rePassword'] as const
 
@@ -21,7 +22,6 @@ type CreateIdentityErrorResult = {
   cancelled?: boolean
   level?: string
   errorKey?: string
-  messageKey?: string
   message?: string
   error?: unknown
 }
@@ -117,8 +117,8 @@ export function useCreateIdentityPage() {
       return
     }
 
-    if (result.messageKey) {
-      notifyError(result.messageKey)
+    if (result.errorKey) {
+      notifyError(result.errorKey)
       return
     }
 
@@ -176,12 +176,17 @@ export function useCreateIdentityPage() {
         return
       }
 
+      const signerWallet =
+        payerWalletType.value === 'commonWallet' ? payerWallet.value : ledgerWallet.value
+      const adapter = WalletAdapterFactory.fromWalletSigner(signerWallet || null)
+      if (!adapter) {
+        notifyError('createIdentity.selectOneWallet')
+        return
+      }
       const submitResult = await submitIdentityRegistration({
         tx: draftResult.tx,
-        payerWalletType: payerWalletType.value,
-        payerWallet: payerWallet.value || undefined,
+        adapter,
         payerPassword: payerPassword.value,
-        ledgerWallet: ledgerWallet.value || undefined,
         ledgerConnected: Boolean(ledgerPk.value),
       })
 

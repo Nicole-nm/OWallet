@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { createVoteTopicTransaction } from '../../modules/governance/application/voteTopicApplicationService'
+import { createVoteTopicTransaction } from '../../modules/governance/application/vote/voteTopicApplicationService'
 import { notifyWarning } from '../../shared/ui/feedback'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useVoteStore } from '../../stores/modules/Vote'

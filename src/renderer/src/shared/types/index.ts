@@ -5,6 +5,8 @@ export type {
   ServiceFailure,
   ServiceResult,
   TransactionDraftResult,
+  TransactionFailureResult,
+  SigningFailureResult,
 } from './result'
 export type {
   WalletRecord,

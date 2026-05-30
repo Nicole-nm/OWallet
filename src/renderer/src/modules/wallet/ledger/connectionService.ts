@@ -3,4 +3,4 @@ export {
   loadLedgerAccountSelection,
   readLedgerDeviceInfo,
   readLedgerPublicKey,
-} from '../application/ledgerWalletConnectionService'
+} from '../application/ledger/ledgerWalletConnectionService'

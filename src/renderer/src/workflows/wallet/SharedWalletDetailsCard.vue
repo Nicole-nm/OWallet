@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { ref, watch, PropType } from 'vue'
 import { useRouter } from 'vue-router'
-import { deleteStoredSharedWallet } from '../../modules/wallet/application/walletDetailApplicationService'
+import { deleteStoredSharedWallet } from '../../modules/wallet/application/dashboard/walletDetailApplicationService'
 import { useCopyFeedback } from '../../shared/composables/useCopyFeedback'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'

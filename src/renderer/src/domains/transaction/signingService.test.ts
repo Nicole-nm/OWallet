@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('../../shared/chain/transactionSdk', () => ({
-  tryDecryptWallet: (...args: any[]) => mocks.tryDecryptWallet(...args),
+  tryDecryptWallet: (...args: unknown[]) => mocks.tryDecryptWallet(...args),
 }))
 
 vi.mock('../../shared/chain/loadOntologySdk', () => ({
@@ -20,13 +20,13 @@ vi.mock('../../shared/chain/loadOntologySdk', () => ({
 }))
 
 vi.mock('../../shared/chain/ledgerSigner', () => ({
-  checkPublicKeyIsInTheConnectedLedger: (...args: any[]) =>
+  checkPublicKeyIsInTheConnectedLedger: (...args: unknown[]) =>
     mocks.checkPublicKeyIsInTheConnectedLedger(...args),
-  legacySignWithLedger: (...args: any[]) => mocks.legacySignWithLedger(...args),
+  legacySignWithLedger: (...args: unknown[]) => mocks.legacySignWithLedger(...args),
 }))
 
 vi.mock('./serializationService', () => ({
-  serializeTx: (...args: any[]) => mocks.serializeTx(...args),
+  serializeTx: (...args: unknown[]) => mocks.serializeTx(...args),
 }))
 
 vi.mock('../../shared/chain/restClient', () => ({
@@ -44,42 +44,16 @@ import {
   signWithLedger,
   signSharedTxWithLedger,
 } from './signingService'
-import type { SdkTransactionLike } from '../../shared/chain/types'
-import type { WalletSigner } from '../../shared/lib/types'
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function makeTx(): SdkTransactionLike {
-  return {
-    payer: undefined as unknown,
-    gasPrice: {
-      constructor: class {
-        constructor(public val: string | number) {}
-      },
-    },
-    sigs: [],
-    payload: {},
-    serializeUnsignedData: vi.fn(() => new Uint8Array([1, 2, 3])),
-    serialize: vi.fn(() => 'serialized'),
-    getHash: vi.fn(() => 'deadbeef'),
-  }
-}
-
-function makeWallet(overrides: Record<string, any> = {}): WalletSigner & Record<string, any> {
-  return {
-    address: 'AQ1234567890',
-    label: 'Wallet',
-    publicKey: 'pubkey-hex',
-    key: 'encrypted-key',
-    salt: 'salt-hex',
-    algorithm: 'ECDSA',
-    parameters: { curve: 'P-256' },
-    scrypt: {},
-    ...overrides,
-  } as WalletSigner & Record<string, any>
-}
+import {
+  createFakeEncryptedWallet,
+  createFakeOntologySdk,
+  createFakePrivateKey,
+  createFakeTransaction,
+} from '../../shared/chain/__fixtures__/fakeSdk'
+import {
+  createFakeLedgerWallet,
+  createFakeSharedLedgerWallet,
+} from '../../shared/chain/__fixtures__/fakeLedgerTransport'
 
 // ---------------------------------------------------------------------------
 // signWithWallet
@@ -91,32 +65,11 @@ describe('signWithWallet()', () => {
   })
 
   it('returns the signed transaction on the success path', async () => {
-    const tx = makeTx()
-    const wallet = makeWallet()
+    const tx = createFakeTransaction()
+    const wallet = createFakeEncryptedWallet()
 
-    const fakePrivateKey = {
-      sign: vi.fn(() => ({ serializeHex: () => 'sig-hex-data' })),
-      algorithm: { defaultSchema: 'SHA256withECDSA' },
-      getPublicKey: vi.fn(() => ({ serializeHex: () => 'pubkey-hex' })),
-    }
-
-    mocks.tryDecryptWallet.mockResolvedValue(fakePrivateKey)
-
-    class FakePublicKey {
-      constructor(public hex: string) {}
-      serializeHex() {
-        return this.hex
-      }
-    }
-    class FakeTxSignature {
-      M = 0
-      pubKeys: any[] = []
-      sigData: string[] = []
-    }
-    mocks.loadOntologySdk.mockResolvedValue({
-      Crypto: { PublicKey: FakePublicKey },
-      TxSignature: FakeTxSignature,
-    })
+    mocks.tryDecryptWallet.mockResolvedValue(createFakePrivateKey())
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
 
     const result = await signWithWallet(tx, wallet, 'correct-password')
 
@@ -129,11 +82,10 @@ describe('signWithWallet()', () => {
   })
 
   it('returns undefined when password decryption fails (wrong password)', async () => {
-    const tx = makeTx()
-    const wallet = makeWallet()
+    const tx = createFakeTransaction()
+    const wallet = createFakeEncryptedWallet()
 
     mocks.tryDecryptWallet.mockResolvedValue(null)
-    // loadOntologySdk won't matter since tryDecryptWallet returns null early
 
     const result = await signWithWallet(tx, wallet, 'wrong-password')
 
@@ -142,28 +94,11 @@ describe('signWithWallet()', () => {
   })
 
   it('throws when the private key produces an empty signature hex', async () => {
-    const tx = makeTx()
-    const wallet = makeWallet()
+    const tx = createFakeTransaction()
+    const wallet = createFakeEncryptedWallet()
 
-    const fakePrivateKey = {
-      sign: vi.fn(() => ({ serializeHex: () => '' })), // empty signature
-      algorithm: { defaultSchema: 'SHA256withECDSA' },
-      getPublicKey: vi.fn(() => ({ serializeHex: () => 'pubkey-hex' })),
-    }
-
-    mocks.tryDecryptWallet.mockResolvedValue(fakePrivateKey)
-    class FakePublicKey2 {
-      constructor(public hex: string) {}
-    }
-    class FakeTxSignature2 {
-      M = 0
-      pubKeys: any[] = []
-      sigData: string[] = []
-    }
-    mocks.loadOntologySdk.mockResolvedValue({
-      Crypto: { PublicKey: FakePublicKey2 },
-      TxSignature: FakeTxSignature2,
-    })
+    mocks.tryDecryptWallet.mockResolvedValue(createFakePrivateKey({ signatureHex: '' }))
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
 
     await expect(signWithWallet(tx, wallet, 'correct-password')).rejects.toThrow(
       'Transaction signature is empty'
@@ -171,30 +106,11 @@ describe('signWithWallet()', () => {
   })
 
   it('handles ledger-cancelled path: signWithLedger rejects when ledger check throws', async () => {
-    // When checkPublicKeyIsInTheConnectedLedger throws, signWithLedger propagates the error.
-    // This simulates the ledger being cancelled / wrong device.
     mocks.checkPublicKeyIsInTheConnectedLedger.mockRejectedValue(new Error('Ledger cancelled'))
-    class FakeLedgerPublicKey {
-      constructor(public hex: string) {}
-    }
-    class FakeLedgerAddress {
-      constructor(public addr: string) {}
-    }
-    class FakeLedgerTxSignature {
-      M = 0
-      pubKeys: any[] = []
-      sigData: string[] = []
-    }
-    mocks.loadOntologySdk.mockResolvedValue({
-      Crypto: {
-        PublicKey: FakeLedgerPublicKey,
-        Address: FakeLedgerAddress,
-      },
-      TxSignature: FakeLedgerTxSignature,
-    })
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
 
-    const tx = makeTx()
-    const wallet = makeWallet({ key: undefined, publicKey: 'ledger-pk', acct: 0, neo: undefined })
+    const tx = createFakeTransaction()
+    const wallet = createFakeLedgerWallet({ publicKey: 'ledger-pk', acct: 0, neo: undefined })
 
     await expect(signWithLedger(tx, wallet)).rejects.toThrow('Ledger cancelled')
   })
@@ -202,28 +118,10 @@ describe('signWithWallet()', () => {
   it('overrides gas price for ledger-signed transactions', async () => {
     mocks.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
     mocks.legacySignWithLedger.mockResolvedValue('ledger-signature')
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
 
-    class FakeLedgerPublicKey {
-      constructor(public hex: string) {}
-    }
-    class FakeLedgerAddress {
-      constructor(public addr: string) {}
-    }
-    class FakeLedgerTxSignature {
-      M = 0
-      pubKeys: any[] = []
-      sigData: string[] = []
-    }
-    mocks.loadOntologySdk.mockResolvedValue({
-      Crypto: {
-        PublicKey: FakeLedgerPublicKey,
-        Address: FakeLedgerAddress,
-      },
-      TxSignature: FakeLedgerTxSignature,
-    })
-
-    const tx = makeTx()
-    const wallet = makeWallet({ key: undefined, publicKey: 'ledger-pk', acct: 0, neo: false })
+    const tx = createFakeTransaction()
+    const wallet = createFakeLedgerWallet({ publicKey: 'ledger-pk', acct: 0, neo: false })
 
     const result = await signWithLedger(tx, wallet)
 
@@ -242,30 +140,10 @@ describe('signSharedTxWithLedger()', () => {
   it('validates the ledger and overrides gas price for shared transactions', async () => {
     mocks.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
     mocks.legacySignWithLedger.mockResolvedValue('shared-ledger-signature')
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
 
-    class FakeLedgerPublicKey {
-      constructor(public hex: string) {}
-    }
-    class FakeLedgerAddress {
-      constructor(public addr: string) {}
-    }
-    class FakeLedgerTxSignature {
-      M = 0
-      pubKeys: any[] = []
-      sigData: string[] = []
-    }
-    mocks.loadOntologySdk.mockResolvedValue({
-      Crypto: {
-        PublicKey: FakeLedgerPublicKey,
-        Address: FakeLedgerAddress,
-      },
-      TxSignature: FakeLedgerTxSignature,
-    })
-
-    const tx = makeTx()
-    const wallet = makeWallet({
-      key: undefined,
-      sharedWalletAddress: 'ASharedWalletAddress',
+    const tx = createFakeTransaction()
+    const wallet = createFakeSharedLedgerWallet({
       publicKey: 'ledger-pk',
       acct: 3,
       neo: true,
@@ -283,28 +161,10 @@ describe('signSharedTxWithLedger()', () => {
 
   it('does not append a shared ledger signature when device validation fails', async () => {
     mocks.checkPublicKeyIsInTheConnectedLedger.mockRejectedValue(new Error('wrong ledger'))
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
 
-    class FakeLedgerPublicKey {
-      constructor(public hex: string) {}
-    }
-    class FakeLedgerAddress {
-      constructor(public addr: string) {}
-    }
-    class FakeLedgerTxSignature {
-      M = 0
-      pubKeys: any[] = []
-      sigData: string[] = []
-    }
-    mocks.loadOntologySdk.mockResolvedValue({
-      Crypto: {
-        PublicKey: FakeLedgerPublicKey,
-        Address: FakeLedgerAddress,
-      },
-      TxSignature: FakeLedgerTxSignature,
-    })
-
-    const tx = makeTx()
-    const wallet = makeWallet({ key: undefined, publicKey: 'ledger-pk', acct: 1, neo: false })
+    const tx = createFakeTransaction()
+    const wallet = createFakeLedgerWallet({ publicKey: 'ledger-pk', acct: 1, neo: false })
 
     await expect(signSharedTxWithLedger(tx, 2, ['pk-1', 'pk-2'], wallet, true)).rejects.toThrow(
       'wrong ledger'
@@ -325,13 +185,12 @@ describe('signMessageWithWallet()', () => {
 
   it('returns a signature object for valid credentials', async () => {
     const fakeSignResult = { serializeHex: () => 'message-sig-hex' }
-    const fakePrivateKey = {
-      sign: vi.fn(() => fakeSignResult),
-    }
+    const fakePrivateKey = createFakePrivateKey()
+    fakePrivateKey.sign.mockReturnValue(fakeSignResult)
 
     mocks.tryDecryptWallet.mockResolvedValue(fakePrivateKey)
 
-    const wallet = makeWallet()
+    const wallet = createFakeEncryptedWallet()
     const result = await signMessageWithWallet('hello world', wallet, 'correct-password')
 
     expect(result).toBe(fakeSignResult)
@@ -341,7 +200,7 @@ describe('signMessageWithWallet()', () => {
   it('returns undefined when the password is wrong', async () => {
     mocks.tryDecryptWallet.mockResolvedValue(null)
 
-    const wallet = makeWallet()
+    const wallet = createFakeEncryptedWallet()
     const result = await signMessageWithWallet('hello world', wallet, 'bad-password')
 
     expect(result).toBeUndefined()

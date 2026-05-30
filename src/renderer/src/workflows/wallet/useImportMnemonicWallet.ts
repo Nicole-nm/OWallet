@@ -5,7 +5,7 @@ import {
   validateRequired,
 } from '../../shared/lib/formValidation'
 import { createValidationErrors } from '../../shared/lib/formValidation'
-import { buildImportedJsonWalletDraftFromMnemonic } from '../../modules/wallet/application/importJsonWalletApplicationService'
+import { buildImportedJsonWalletDraftFromMnemonic } from '../../modules/wallet/application/json/importJsonWalletApplicationService'
 import type { ImportJsonWalletAccount, WalletImportTabDependencies } from './importJsonWallet.types'
 
 const MNEMONIC_VALIDATION_FIELDS = ['mnemonic', 'mnemonicPassword', 'mnemonicRePassword'] as const

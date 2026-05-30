@@ -120,8 +120,9 @@ import {
   loadNodeStakeProfile,
   saveLedgerNodeStakeProfile,
   saveNodeStakeProfile,
-} from '../../modules/governance/application/nodeStakeApplicationService'
+} from '../../modules/governance/application/nodeStake/nodeStakeApplicationService'
 import { notifyError, notifySuccess } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import FormField from '../../shared/ui/forms/FormField.vue'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
 import { useSettingStore } from '../../stores/modules/Setting'
@@ -153,10 +154,7 @@ async function fetchNodeInfo() {
     network: settingStore.network,
     publicKey: nodePublicKey.value,
   })
-  if (!result.ok) {
-    notifyError(result.errorKey)
-    return
-  }
+  if (notifyFailure(result)) return
 
   info.value = Object.assign({}, info.value, result.info)
 }
@@ -210,10 +208,8 @@ async function handleAfterSign(signed: SignedNodeInfoPayload) {
   signVisible.value = false
   tx.value = null
 
-  if (result.ok) {
+  if (!notifyFailure(result, 'nodeInfo.updateFailed')) {
     notifySuccess('nodeInfo.updateSuccess')
-  } else {
-    notifyError(result.errorKey || 'nodeInfo.updateFailed')
   }
 }
 </script>

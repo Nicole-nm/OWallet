@@ -6,7 +6,7 @@ import {
   validateRequired,
 } from '../../shared/lib/formValidation'
 import { createValidationErrors } from '../../shared/lib/formValidation'
-import { buildImportedJsonWalletDraftFromPrivateKeyHex } from '../../modules/wallet/application/importJsonWalletApplicationService'
+import { buildImportedJsonWalletDraftFromPrivateKeyHex } from '../../modules/wallet/application/json/importJsonWalletApplicationService'
 import type { WalletImportTabDependencies } from './importJsonWallet.types'
 
 const PK_VALIDATION_FIELDS = ['pk', 'pkPassword', 'pkRePassword'] as const

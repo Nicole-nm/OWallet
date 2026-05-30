@@ -27,15 +27,16 @@ import { computed, ref, toRaw, type PropType } from 'vue'
 import {
   signGovernancePayload,
   submitGovernanceSignedTransaction,
-} from '../../modules/governance/application/governanceSigningApplicationService'
+} from '../../modules/governance/application/common/governanceSigningApplicationService'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { notifyError, notifyWarning } from '../../shared/ui/feedback'
 import { handleTransactionFeedback } from '../../shared/lib/transactionFeedback'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 import { isCommonWallet } from '../../shared/lib/types'
+import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 import { notifyGovernanceSigningFailure } from './governanceSigningFeedback'
-import type { SdkTransactionLike } from '../../shared/chain/types'
+import type { SdkTransactionLike } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 import type { WalletSigner } from '../../shared/lib/types'
 import type { GovernanceSignablePayload } from './governanceSigningTypes'
 // common component to sign tx or messages with wallet or ledger.
@@ -128,9 +129,15 @@ async function handleWalletSignOK() {
       await new Promise((resolve) => setTimeout(resolve, 1000))
     }
 
+    const adapter = WalletAdapterFactory.fromWalletSigner(wallet)
+    if (!adapter) {
+      notifyError('nodeStake.selectIndividualWallet')
+      return
+    }
+
     const result = await signGovernancePayload({
       payload,
-      wallet,
+      adapter,
       password: walletPassword.value,
       ledgerConnected: Boolean(ledgerWallet.value.address),
     })

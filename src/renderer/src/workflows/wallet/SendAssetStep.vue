@@ -103,194 +103,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { varifyPositiveInt, varifyOngValue, varifyOpe4Value } from '../../shared/lib/validators'
-import { BigNumber } from 'bignumber.js'
-import { validateSharedTransferAddress } from '../../modules/wallet/application/sharedWalletTransactionApplicationService'
-import { notifyError } from '../../shared/ui/feedback'
-import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
-import { useTokensStore } from '../../stores/modules/Tokens'
 import { TRANSFER_GAS_MAX, TRANSFER_GAS_MIN, TRANSFER_GAS_STEP } from '../../shared/lib/constants'
-import type { TrackedOep4Token } from '../../shared/types'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
+import { useSendAsset } from './useSendAsset'
 
 defineOptions({
   name: 'SendAsset',
 })
 
 const emit = defineEmits(['cancelEvent', 'sendAssetNext'])
-const currentWalletStore = useCurrentWalletStore()
-const tokensStore = useTokensStore()
 
-const gas = ref<number>(TRANSFER_GAS_MIN)
-const asset = ref<string>('ONT')
-const scriptHash = ref<string>('ONT')
-const decimal = ref<number>(0)
-const amount = ref<number | string>(0)
-const to = ref<string>('')
-const validToAddress = ref(true)
-const validAmount = ref(true)
-const selectedOep4 = ref<TrackedOep4Token | null>(null)
-
-const balance = computed(() => currentWalletStore.balance)
-const oep4s = computed(() => tokensStore.oep4WithBalances)
-const availableBalance = computed(() => {
-  if (asset.value === 'ONT') {
-    return `${balance.value.ont} ONT`
-  }
-
-  if (asset.value === 'ONG') {
-    return `${balance.value.ong} ONG`
-  }
-
-  return `${selectedOep4.value?.balance ?? 0} ${asset.value}`
-})
-
-const oep4ByContractHash = computed(
-  () => new Map(oep4s.value.map((item) => [item.contract_hash, item]))
-)
-
-const oep4BySymbol = computed(() => new Map(oep4s.value.map((item) => [item.symbol, item])))
-
-onMounted(() => {
-  const transfer = currentWalletStore.transfer
-  gas.value = transfer.gas
-  asset.value = transfer.asset
-  scriptHash.value = transfer.scriptHash || transfer.asset || 'ONT'
-  decimal.value = transfer.decimal || 0
-  amount.value = transfer.amount
-  to.value = transfer.to
-
-  if (transfer.scriptHash && transfer.asset !== 'ONT' && transfer.asset !== 'ONG') {
-    selectedOep4.value = oep4ByContractHash.value.get(transfer.scriptHash) ?? null
-  }
-})
-
-async function validateToAddress() {
-  if (!to.value || !(await validateSharedTransferAddress(to.value))) {
-    validToAddress.value = false
-    return
-  }
-
-  validToAddress.value = true
-}
-
-function validateAmount() {
-  if (asset.value === 'ONT' && !varifyPositiveInt(amount.value)) {
-    validAmount.value = false
-    return
-  }
-
-  if (asset.value === 'ONG' && !varifyOngValue(amount.value)) {
-    validAmount.value = false
-    return
-  }
-
-  if (
-    asset.value !== 'ONT' &&
-    asset.value !== 'ONG' &&
-    !varifyOpe4Value(amount.value, decimal.value)
-  ) {
-    validAmount.value = false
-    return
-  }
-
-  if (
-    (asset.value === 'ONT' && Number(amount.value) > Number(balance.value.ont)) ||
-    (asset.value === 'ONG' && Number(amount.value) > Number(balance.value.ong)) ||
-    (asset.value !== 'ONT' &&
-      asset.value !== 'ONG' &&
-      new BigNumber(amount.value).isGreaterThan(new BigNumber(selectedOep4.value?.balance ?? 0)))
-  ) {
-    validAmount.value = false
-    notifyError('transfer.exceedBalance')
-    return
-  }
-
-  if (
-    asset.value === 'ONG' &&
-    new BigNumber(amount.value).plus(gas.value).isGreaterThan(balance.value.ong)
-  ) {
-    notifyError('transfer.exceedBalance')
-    validAmount.value = false
-    return
-  }
-
-  validAmount.value = true
-}
-
-function changeAsset(value: string) {
-  amount.value = '0'
-  scriptHash.value = value
-
-  if (value !== 'ONT' && value !== 'ONG') {
-    const matchedOep4 = oep4ByContractHash.value.get(value)
-    if (!matchedOep4) {
-      return
-    }
-
-    decimal.value = matchedOep4.decimal ?? matchedOep4.decimals ?? 0
-    selectedOep4.value = matchedOep4
-    asset.value = matchedOep4.symbol
-    return
-  }
-
-  asset.value = value
-  decimal.value = 0
-  selectedOep4.value = null
-}
-
-function maxAmount() {
-  if (asset.value === 'ONT') {
-    amount.value = balance.value.ont
-  } else if (asset.value === 'ONG') {
-    amount.value = new BigNumber(balance.value.ong).minus(gas.value).toString()
-  } else {
-    const matchedOep4 = oep4BySymbol.value.get(asset.value)
-    if (matchedOep4 && matchedOep4.balance !== undefined) {
-      amount.value = matchedOep4.balance
-    }
-  }
-
-  validateAmount()
-}
-
-function cancel() {
-  currentWalletStore.resetCurrentTransfer()
-  emit('cancelEvent')
-}
-
-function next() {
-  if (!amount.value || Number(amount.value) === 0 || !validAmount.value) {
-    notifyError('transfer.inputValidAmount')
-    return
-  }
-
-  if (!to.value || !validToAddress.value) {
-    notifyError('transfer.inputValidAddress')
-    return
-  }
-
-  if (
-    asset.value === 'ONG' &&
-    new BigNumber(amount.value).plus(gas.value).isGreaterThan(balance.value.ong)
-  ) {
-    notifyError('transfer.ongBalanceNotEnough')
-    return
-  }
-
-  currentWalletStore.setTransfer({
-    transfer: {
-      amount: Number(amount.value),
-      to: to.value,
-      gas: gas.value,
-      asset: asset.value,
-      scriptHash: scriptHash.value,
-      decimal: decimal.value,
-    },
-  })
-  emit('sendAssetNext')
-}
+const {
+  gas,
+  asset,
+  scriptHash,
+  amount,
+  to,
+  validToAddress,
+  validAmount,
+  oep4s,
+  availableBalance,
+  changeAsset,
+  validateAmount,
+  validateToAddress,
+  maxAmount,
+  cancel,
+  next,
+} = useSendAsset(emit)
 </script>
 
 <style scoped>

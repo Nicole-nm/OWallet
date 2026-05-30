@@ -10,8 +10,10 @@ import {
   createReduceInitPosManagementTransaction,
   submitSignedNodeStakeManagementTransaction,
   validateReduceInitPosAmount,
-} from '../../modules/governance/application/nodeStakeManagementApplicationService'
-import { notifyError, notifyWarning } from '../../shared/ui/feedback'
+} from '../../modules/governance/application/nodeStake/nodeStakeManagementApplicationService'
+import { notifyError } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
+import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 import { notifyGovernanceSigningFailure } from './governanceSigningFeedback'
 import type { CommonWallet, HardwareWallet, Identity, NetworkId } from '../../shared/lib/types'
 import type {
@@ -98,9 +100,14 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
     }
 
     try {
+      const adapter = WalletAdapterFactory.fromWalletSigner(wallet)
+      if (!adapter) {
+        notifyError('nodeStake.selectIndividualWallet')
+        return
+      }
       const result = await submitSignedNodeStakeManagementTransaction({
         tx: tx.value,
-        wallet,
+        adapter,
         password: walletPassword.value,
         network: settingStore.network,
         ontid: stakeIdentity.value.ontid,
@@ -155,10 +162,7 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       stakeWalletAddress: wallet.address,
       nodePublicKey: nodePublicKey.value,
     })
-    if (!result.ok) {
-      notifyError(result.errorKey)
-      return result
-    }
+    if (notifyFailure(result)) return result
 
     tx.value = result.tx
     walletPassModal.value = true
@@ -177,14 +181,7 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       nodePublicKey: nodePublicKey.value,
       claimableAmount: authorizationInfo.value.claimableVal,
     })
-    if (!result.ok) {
-      if (result.level === 'warning') {
-        notifyWarning(result.errorKey)
-      } else {
-        notifyError(result.errorKey)
-      }
-      return result
-    }
+    if (notifyFailure(result)) return result
 
     tx.value = result.tx
     walletPassModal.value = true
@@ -203,14 +200,7 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       nodePublicKey: nodePublicKey.value,
       claimableAmount: authorizationInfo.value.claimableVal,
     })
-    if (!result.ok) {
-      if (result.level === 'warning') {
-        notifyWarning(result.errorKey)
-      } else {
-        notifyError(result.errorKey)
-      }
-      return result
-    }
+    if (notifyFailure(result)) return result
 
     tx.value = result.tx
     isQuit.value = true
@@ -233,7 +223,7 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
 
     validReducePos.value = result.ok
     if (!result.ok && result.errorKey !== 'nodeMgmt.invalidInput') {
-      notifyError(result.errorKey)
+      notifyFailure(result)
     }
     return result.ok
   }
@@ -255,10 +245,7 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       stakeWalletAddress: wallet.address,
       amount: addPos.value,
     })
-    if (!result.ok) {
-      notifyError(result.errorKey)
-      return result
-    }
+    if (notifyFailure(result)) return result
 
     addPosVisible.value = false
     tx.value = result.tx
@@ -283,10 +270,7 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       stakeWalletAddress: wallet.address,
       amount: reducePos.value,
     })
-    if (!result.ok) {
-      notifyError(result.errorKey)
-      return result
-    }
+    if (notifyFailure(result)) return result
 
     reducePosVisible.value = false
     tx.value = result.tx
@@ -307,14 +291,7 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       nodePublicKey: nodePublicKey.value,
       claimableAmount: authorizationInfo.value.claimableVal,
     })
-    if (!result.ok) {
-      if (result.level === 'warning') {
-        notifyWarning(result.errorKey)
-      } else {
-        notifyError(result.errorKey)
-      }
-      return result
-    }
+    if (notifyFailure(result)) return result
 
     redeemPosVisible.value = false
     tx.value = result.tx

@@ -7,7 +7,7 @@ import { notifyError, notifySuccess, notifyWarning } from '../../shared/ui/feedb
 import {
   persistImportedSharedWallet,
   queryImportableSharedWallet,
-} from '../../modules/wallet/application/importSharedWalletApplicationService'
+} from '../../modules/wallet/application/sharedWallet/importSharedWalletApplicationService'
 import { useWizardPage } from '../../shared/composables/useWizardPage'
 import { ROUTE_NAMES } from '../../router/routes'
 import { applyWalletCollectionsResult } from '../support/walletCollectionsStoreSync'

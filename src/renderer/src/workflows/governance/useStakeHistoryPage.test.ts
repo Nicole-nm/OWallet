@@ -116,12 +116,15 @@ vi.mock('./useStakeWalletSelection', () => ({
   useStakeWalletSelection: () => mocks.selection,
 }))
 
-vi.mock('../../modules/governance/application/authorizationQueryApplicationService', () => ({
-  loadAuthorizationStakeHistory: (...args: unknown[]) =>
-    mocks.queryService.loadAuthorizationStakeHistory(...args),
-}))
+vi.mock(
+  '../../modules/governance/application/authorization/authorizationQueryApplicationService',
+  () => ({
+    loadAuthorizationStakeHistory: (...args: unknown[]) =>
+      mocks.queryService.loadAuthorizationStakeHistory(...args),
+  })
+)
 
-vi.mock('../../modules/governance/application/authorizationContextService', () => ({
+vi.mock('../../modules/governance/application/authorization/authorizationContextService', () => ({
   openAuthorizationManagement: (...args: unknown[]) =>
     mocks.authorizationContextService.openAuthorizationManagement(...args),
 }))

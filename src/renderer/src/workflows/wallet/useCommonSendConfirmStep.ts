@@ -1,10 +1,12 @@
 import { computed, ref } from 'vue'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
-import { notifyWarning } from '../../shared/ui/feedback'
+import { notifyError, notifyWarning } from '../../shared/ui/feedback'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 import { handleTransactionFeedback } from '../../shared/lib/transactionFeedback'
-import { submitCommonTransfer } from '../../modules/wallet/application/commonTransferApplicationService'
+import { submitCommonTransfer } from '../../modules/wallet/application/transfer/commonTransferApplicationService'
+import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
+import type { WalletSigner } from '../../shared/lib/types'
 
 export function useCommonSendConfirmStep() {
   const loadingStore = useLoadingModalStore()
@@ -49,8 +51,16 @@ export function useCommonSendConfirmStep() {
       ledgerConnectorStore.setLedgerStatus('Please sign on Ledger')
     }
 
+    const adapter = WalletAdapterFactory.fromWalletSigner(currentWallet.value as WalletSigner)
+    if (!adapter) {
+      loadingStore.hideLoadingModals()
+      sending.value = false
+      notifyError('common.networkErr')
+      return { ok: false, errorKey: 'common.networkErr' }
+    }
     const result = await submitCommonTransfer({
-      wallet: currentWallet.value,
+      address: currentWallet.value.address,
+      adapter,
       transfer: transfer.value,
       password: isCommonWallet.value ? password.value : undefined,
     })

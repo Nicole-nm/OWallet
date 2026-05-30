@@ -6,9 +6,9 @@ import { useSettingStore } from '../../stores/modules/Setting'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useNodeSessionStore } from '../../modules/governance/store/nodeSessionStore'
-import { loadMyNodeCards } from '../../modules/governance/application/queryApplicationService'
-import { openNodeManagement as openNodeManagementRoute } from '../../modules/governance/application/managementContextService'
-import { notifyError } from '../../shared/ui/feedback'
+import { loadMyNodeCards } from '../../modules/governance/application/common/queryApplicationService'
+import { openNodeManagement as openNodeManagementRoute } from '../../modules/governance/application/nodeStake/managementContextService'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { applyManagementContext } from '../support/governanceContextStoreSync'
 import { loadWalletCollectionsIntoStore } from '../support/walletCollectionsStoreSync'
 import { createLogger } from '../../shared/lib/logger'
@@ -52,9 +52,7 @@ export function useMyNodesPage() {
         wallets: localWallets.value,
       })
 
-      if (!result.ok) {
-        notifyError(result.errorKey)
-      }
+      notifyFailure(result)
 
       return result.nodes
     } catch (err: unknown) {

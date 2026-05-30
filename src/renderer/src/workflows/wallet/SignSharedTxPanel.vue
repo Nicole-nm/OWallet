@@ -31,7 +31,7 @@ import { useI18n } from 'vue-i18n'
 import {
   countSerializedSharedTransactionSignatures,
   sendSerializedSharedTransaction,
-} from '../../modules/wallet/application/sharedWalletTransactionApplicationService'
+} from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { notifyError, notifySuccess, showSuccessModal } from '../../shared/ui/feedback'
 import SharedTxEditorShell from './SharedTxEditorShell.vue'
@@ -117,8 +117,8 @@ async function handleSend() {
   loading.value = false
 
   if (!result.ok) {
-    if (result.messageKey) {
-      notifyError(result.messageKey)
+    if (result.errorKey) {
+      notifyError(result.errorKey)
     } else if (result.message) {
       notifyError(result.message, { literal: true })
     }

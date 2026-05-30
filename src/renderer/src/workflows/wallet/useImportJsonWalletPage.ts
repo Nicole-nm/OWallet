@@ -10,7 +10,7 @@ import {
 import { handleWorkflowError } from '../../shared/lib/workflowErrorHandler'
 import { useWalletsStore } from '../../stores/modules/Wallets'
 import { notifyError, notifySuccess } from '../../shared/ui/feedback'
-import { persistImportedJsonWallet } from '../../modules/wallet/application/importJsonWalletApplicationService'
+import { persistImportedJsonWallet } from '../../modules/wallet/application/json/importJsonWalletApplicationService'
 import { ROUTE_NAMES } from '../../router/routes'
 import { useWizardPage } from '../../shared/composables/useWizardPage'
 import { applyWalletCollectionsResult } from '../support/walletCollectionsStoreSync'

@@ -39,6 +39,12 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: any) => key,
   }),
+  createI18n: () => ({
+    global: {
+      t: (key: any) => key,
+      locale: { value: 'en' },
+    },
+  }),
 }))
 
 vi.mock('../../modules/identity/application/createIdentityApplicationService', () => ({

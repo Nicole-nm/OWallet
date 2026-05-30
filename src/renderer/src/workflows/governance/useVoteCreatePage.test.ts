@@ -40,7 +40,7 @@ vi.mock('../../stores/modules/Setting', () => ({
   useSettingStore: () => mocks.settingStore,
 }))
 
-vi.mock('../../modules/governance/application/voteTopicApplicationService', () => ({
+vi.mock('../../modules/governance/application/vote/voteTopicApplicationService', () => ({
   createVoteTopicTransaction: (...args: unknown[]) =>
     mocks.voteService.createVoteTopicTransaction(...args),
 }))

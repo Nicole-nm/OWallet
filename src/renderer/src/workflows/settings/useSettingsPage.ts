@@ -12,6 +12,7 @@ import {
   SETTINGS_THEME_MODES,
   selectAndPersistSavePathPreference,
 } from '../../modules/settings/application/settingsPreferencesApplicationService'
+import { loadLocaleMessages } from '../../lang/loadLocale'
 import { openExternalUrl } from '../../modules/app/application/externalNavigationApplicationService'
 import { notifySuccess, notifyWarning } from '../../shared/ui/feedback'
 import { useAppUpdateStore } from '../../stores/modules/AppUpdate'
@@ -64,8 +65,9 @@ export function useSettingsPage() {
     notifySuccess(result.message, { literal: true })
   }
 
-  function changeLanguage() {
+  async function changeLanguage() {
     const result = changeApplicationLanguage(lang.value)
+    await loadLocaleMessages(result.language)
     locale.value = result.language
     lang.value = result.language
   }

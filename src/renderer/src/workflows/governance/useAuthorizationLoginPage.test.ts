@@ -60,7 +60,7 @@ vi.mock('./useStakeWalletSelection', () => ({
   useStakeWalletSelection: () => mocks.selection,
 }))
 
-vi.mock('../../modules/governance/application/authorizationContextService', () => ({
+vi.mock('../../modules/governance/application/authorization/authorizationContextService', () => ({
   openAuthorizationManagement: (...args: unknown[]) =>
     mocks.authorizationContextService.openAuthorizationManagement(...args),
 }))

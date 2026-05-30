@@ -5,7 +5,7 @@ import {
   validateRequired,
 } from '../../shared/lib/formValidation'
 import { createValidationErrors } from '../../shared/lib/formValidation'
-import { buildImportedJsonWalletDraftFromWif } from '../../modules/wallet/application/importJsonWalletApplicationService'
+import { buildImportedJsonWalletDraftFromWif } from '../../modules/wallet/application/json/importJsonWalletApplicationService'
 import type { WalletImportTabDependencies } from './importJsonWallet.types'
 
 const WIF_VALIDATION_FIELDS = ['wifLabel', 'wif', 'wifPassword', 'wifRePassword'] as const

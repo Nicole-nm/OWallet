@@ -85,7 +85,7 @@ vi.mock('../../stores/modules/Setting', () => ({
   useSettingStore: () => mocks.settingStore,
 }))
 
-vi.mock('../../modules/wallet/application/walletDashboardApplicationService', () => ({
+vi.mock('../../modules/wallet/application/dashboard/walletDashboardApplicationService', () => ({
   getWalletAddressExplorerUrl: (...args: unknown[]) =>
     mocks.walletDashboardService.getWalletAddressExplorerUrl(...args),
   getWalletTransactionExplorerUrl: (...args: unknown[]) =>
@@ -98,7 +98,7 @@ vi.mock('../../modules/wallet/application/walletDashboardApplicationService', ()
     mocks.walletDashboardService.loadWalletTransactions(...args),
 }))
 
-vi.mock('../../modules/wallet/application/tokenSelectionApplicationService', () => ({
+vi.mock('../../modules/wallet/application/transfer/tokenSelectionApplicationService', () => ({
   loadSelectableOep4Tokens: (...args: unknown[]) =>
     mocks.tokenSelectionService.loadSelectableOep4Tokens(...args),
   loadSelectedOep4TokenBalances: (...args: unknown[]) =>

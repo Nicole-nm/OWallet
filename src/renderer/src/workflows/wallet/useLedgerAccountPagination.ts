@@ -1,5 +1,5 @@
 import { Ref } from 'vue'
-import { loadLedgerAccountPage } from '../../modules/wallet/application/ledgerWalletConnectionService'
+import { loadLedgerAccountPage } from '../../modules/wallet/application/ledger/ledgerWalletConnectionService'
 
 const LEDGER_ACCOUNT_PAGE_SIZE = 5
 const LEDGER_INITIAL_PAGE_RETRY_INTERVAL = 1000

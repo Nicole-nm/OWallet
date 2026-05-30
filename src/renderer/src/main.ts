@@ -8,25 +8,18 @@ import {
   Alert,
   Card,
   Checkbox,
-  Col,
   ConfigProvider,
   DatePicker,
   Dropdown,
-  Empty,
   Form,
   Input,
   InputNumber,
-  List,
   Menu,
   Modal,
   Pagination,
   Radio,
-  Result,
-  Row,
   Select,
-  Skeleton,
   Slider,
-  Space,
   Spin,
   Steps,
   Switch,
@@ -34,7 +27,6 @@ import {
   Tabs,
   TimePicker,
   Tooltip,
-  Typography,
   Upload,
 } from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
@@ -46,29 +38,29 @@ import AppButton from './shared/ui/actions/AppButton.vue'
 
 const app = createApp(App)
 const pinia = createPinia()
+// Globally-registered Ant Design components. Trimmed to those actually used in
+// at least one Vue template; components consumed via local `<script setup>`
+// imports (Button, FormItem, Select, Spin, etc. inside shared/ui/*) stay
+// per-component to keep tree-shaking effective.
+//
+// Removed (zero template usage as of the Round 5 bundle audit):
+//   Col, Empty, List, Result, Row, Skeleton, Space, Typography
 const antdComponents = [
   Alert,
   Card,
   Checkbox,
-  Col,
   ConfigProvider,
   DatePicker,
   Dropdown,
-  Empty,
   Form,
   Input,
   InputNumber,
-  List,
   Menu,
   Modal,
   Pagination,
   Radio,
-  Result,
-  Row,
   Select,
-  Skeleton,
   Slider,
-  Space,
   Spin,
   Steps,
   Switch,
@@ -76,7 +68,6 @@ const antdComponents = [
   Tabs,
   TimePicker,
   Tooltip,
-  Typography,
   Upload,
 ]
 

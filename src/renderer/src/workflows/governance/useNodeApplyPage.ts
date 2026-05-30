@@ -6,14 +6,15 @@ import {
   isNodeApplyAmountValid,
   validateNodeApplyForm,
   validateNodeApplyOperationWallet,
-} from '../../modules/governance/application/nodeApplyApplicationService'
-import { openNodeManagement } from '../../modules/governance/application/managementContextService'
+} from '../../modules/governance/application/nodeStake/nodeApplyApplicationService'
+import { openNodeManagement } from '../../modules/governance/application/nodeStake/managementContextService'
 import {
   mapOperationWalletOptions,
   mapStakeWalletOptions,
-} from '../../modules/governance/application/walletOptionMapper'
+} from '../../modules/governance/application/common/walletOptionMapper'
 import { useNodeSessionStore } from '../../modules/governance/store/nodeSessionStore'
 import { notifyError, notifyWarning } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { ROUTE_NAMES } from '../../router/routes'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useSettingStore } from '../../stores/modules/Setting'
@@ -148,12 +149,7 @@ export function useNodeApplyPage() {
       amountIsValid: validAmount.value,
     })
 
-    if (!result.ok) {
-      if (result.errorKey) {
-        notifyError(result.errorKey)
-      }
-      return
-    }
+    if (notifyFailure(result)) return
 
     current.value += 1
   }
@@ -188,10 +184,7 @@ export function useNodeApplyPage() {
       stakeAmount: stakeAmount.value,
     })
 
-    if (!result.ok) {
-      notifyError(result.errorKey || 'common.networkErr')
-      return result
-    }
+    if (notifyFailure(result, 'common.networkErr')) return result
 
     tx.value = result.tx
     signVisible.value = true
@@ -214,9 +207,7 @@ export function useNodeApplyPage() {
     pendingNodePublicKey.value = result.nodePublicKey || nodePk
     pendingNodeInfoPersisted.value = result.ok
 
-    if (!result.ok) {
-      notifyError(result.errorKey || 'common.networkErr')
-    }
+    notifyFailure(result, 'common.networkErr')
 
     return result
   }

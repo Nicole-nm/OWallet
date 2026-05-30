@@ -2,7 +2,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAMES, ROUTE_PATHS } from '../../router/routes'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
-import { loadLocalSharedCopayers } from '../../modules/wallet/application/sharedWalletOverviewApplicationService'
+import { loadLocalSharedCopayers } from '../../modules/wallet/application/sharedWallet/sharedWalletOverviewApplicationService'
 import type { SharedCopayer } from '../../shared/types'
 
 export function useSharedTxManagementPage() {

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { changeStoredWalletPassword } from '../../modules/wallet/application/walletDetailApplicationService'
+import { changeStoredWalletPassword } from '../../modules/wallet/application/dashboard/walletDetailApplicationService'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { notifyError, notifySuccess } from '../../shared/ui/feedback'

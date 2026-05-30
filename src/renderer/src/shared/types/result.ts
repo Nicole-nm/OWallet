@@ -7,5 +7,7 @@ export type {
   ServiceFailure,
   ServiceResult,
   TransactionDraftResult,
+  TransactionFailureResult,
+  SigningFailureResult,
 } from '../lib/result'
 export { success, failure, isOk } from '../lib/result'

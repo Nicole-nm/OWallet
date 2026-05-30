@@ -11,6 +11,9 @@
  */
 
 import type { SdkTransactionLike, SdkTransactionResponseLike } from '../../shared/chain/types'
+import type { TransactionFailureResult } from '../../shared/lib/result'
+
+export type { TransactionFailureResult, SigningFailureResult } from '../../shared/lib/result'
 
 /**
  * A transaction that has been constructed but not yet signed.
@@ -28,21 +31,7 @@ export type TransactionDraft = SdkTransactionLike
 export type SignedTransaction = SdkTransactionLike
 
 /**
- * Common failure payload used by transaction workflows.
- */
-export interface TransactionFailureResult {
-  ok: false
-  cancelled?: true
-  messageKey?: string
-  errorKey?: string
-  detail?: string
-  message?: string | null
-  error?: unknown
-  level?: 'warning'
-}
-
-/**
- * The result returned by `sendTransaction` / `signAndSendTransaction`.
+ * The result returned by `sendTransaction`.
  */
 export type SendTransactionResult =
   | {
@@ -51,8 +40,3 @@ export type SendTransactionResult =
       txHash: string
     }
   | TransactionFailureResult
-
-/**
- * The result returned when signing fails (wrong password or ledger cancel).
- */
-export type SigningFailureResult = TransactionFailureResult

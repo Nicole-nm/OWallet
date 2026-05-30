@@ -60,11 +60,14 @@ vi.mock('../../shared/ui/feedback', () => ({
   notifySuccess: (...args: any[]) => mocks.feedback.notifySuccess(...args),
 }))
 
-vi.mock('../../modules/wallet/application/createSharedWalletApplicationService', () => ({
-  createSharedWalletDraft: (...args: any[]) => mocks.application.createSharedWalletDraft(...args),
-  submitSharedWalletCreation: (...args: any[]) =>
-    mocks.application.submitSharedWalletCreation(...args),
-}))
+vi.mock(
+  '../../modules/wallet/application/sharedWallet/createSharedWalletApplicationService',
+  () => ({
+    createSharedWalletDraft: (...args: any[]) => mocks.application.createSharedWalletDraft(...args),
+    submitSharedWalletCreation: (...args: any[]) =>
+      mocks.application.submitSharedWalletCreation(...args),
+  })
+)
 
 import { useCreateSharedWalletPage } from './useCreateSharedWalletPage'
 

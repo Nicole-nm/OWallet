@@ -1,11 +1,12 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { loadVoteDetail } from '../../modules/governance/application/voteTopicApplicationService'
+import { loadVoteDetail } from '../../modules/governance/application/vote/voteTopicApplicationService'
 import { openExternalUrl } from '../../modules/app/application/externalNavigationApplicationService'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
 import { getExplorerUrl } from '../../shared/lib/urlBuilder'
-import { notifyError, notifyWarning } from '../../shared/ui/feedback'
+import { notifyWarning } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { MY_VOTED, VOTE_STATUS_TEXT, useVoteStore } from '../../stores/modules/Vote'
 import { formatVoteTime, formatVoteStatus, reverseVoteHash } from './useVoteFormatting'
@@ -147,7 +148,7 @@ export function useVoteDetailPage() {
         errorKey: 'nodeStake.selectIndividualWallet',
       }
       if (showError) {
-        notifyError(result.errorKey)
+        notifyFailure(result)
       }
       return result
     }
@@ -175,7 +176,7 @@ export function useVoteDetailPage() {
     }
 
     if (showError) {
-      notifyError(result.errorKey)
+      notifyFailure(result)
     }
 
     return result

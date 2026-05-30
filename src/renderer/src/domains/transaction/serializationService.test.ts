@@ -17,16 +17,10 @@ import type { SdkTransactionLike } from '../../shared/chain/types'
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeTx(overrides: Partial<SdkTransactionLike> = {}): SdkTransactionLike {
-  return {
-    serialize: vi.fn(() => 'serialized-hex-data'),
-    sigs: [],
-    payload: { code: '' },
-    serializeUnsignedData: vi.fn(() => new Uint8Array()),
-    getHash: vi.fn(() => 'deadbeef'),
-    ...overrides,
-  }
-}
+import { createFakeTransaction } from '../../shared/chain/__fixtures__/fakeSdk'
+
+const makeTx = (overrides: Partial<SdkTransactionLike> = {}): SdkTransactionLike =>
+  createFakeTransaction({ serialize: vi.fn(() => 'serialized-hex-data'), ...overrides })
 
 // ---------------------------------------------------------------------------
 // serializeTx

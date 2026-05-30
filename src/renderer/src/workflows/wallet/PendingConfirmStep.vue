@@ -68,7 +68,7 @@ import { computed, onMounted, ref } from 'vue'
 import { BigNumber } from 'bignumber.js'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
-import { findLocalSharedSigner } from '../../modules/wallet/application/sharedWalletOverviewApplicationService'
+import { findLocalSharedSigner } from '../../modules/wallet/application/sharedWallet/sharedWalletOverviewApplicationService'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
 import SendAssetSummary from '../../shared/ui/cards/SendAssetSummary.vue'
 defineOptions({

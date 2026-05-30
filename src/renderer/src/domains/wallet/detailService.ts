@@ -4,7 +4,7 @@ import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
 import {
   removeWallet as removeWalletFromDomain,
   updateWalletField as updateWalletFieldFromDomain,
-} from './applicationService'
+} from './walletDomainService'
 import { WalletType } from '../../shared/types/wallet'
 import type { CommonWallet, HardwareWallet, ScryptParams } from '../../shared/lib/types'
 

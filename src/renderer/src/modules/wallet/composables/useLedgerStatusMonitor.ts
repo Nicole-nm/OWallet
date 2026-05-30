@@ -4,7 +4,7 @@ import i18n from '../../../lang'
 import { APP_CLOSED } from '../../../shared/chain/ledgerTransport'
 import { createLogger } from '../../../shared/lib/logger'
 import { useLedgerConnectorStore } from '../../../stores/modules/LedgerConnector'
-import { readLedgerConnectionSelection } from '../application/ledgerWalletConnectionService'
+import { readLedgerConnectionSelection } from '../application/ledger/ledgerWalletConnectionService'
 
 const logger = createLogger('useLedgerStatusMonitor')
 

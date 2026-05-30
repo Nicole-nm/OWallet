@@ -1,4 +1,4 @@
-import { removeIdentity as removeIdentityRecord } from '../../../domains/wallet/applicationService'
+import { removeIdentity as removeIdentityRecord } from '../../../domains/wallet/walletDomainService'
 import {
   buildIdentityKeystore as buildIdentityKeystoreFromDomain,
   validateIdentityPassword as validateIdentityPasswordFromDomain,

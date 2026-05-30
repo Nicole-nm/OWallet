@@ -1,18 +1,18 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { notifyError } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { Modal } from 'ant-design-vue'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { ROUTE_NAMES } from '../../router/routes'
 import { openExternalUrl } from '../../modules/app/application/externalNavigationApplicationService'
-import { openAuthorizationLogin } from '../../modules/governance/application/authorizationContextService'
+import { openAuthorizationLogin } from '../../modules/governance/application/authorization/authorizationContextService'
 import { applyAuthorizationContext } from '../support/governanceContextStoreSync'
 import {
   loadAuthorizationBlockCountdown,
   loadAuthorizationNodeListPage,
-} from '../../modules/governance/application/authorizationQueryApplicationService'
+} from '../../modules/governance/application/authorization/authorizationQueryApplicationService'
 import type { GovernanceNode } from '../../shared/types'
 
 let countdownIntervalId: ReturnType<typeof setInterval> | null = null
@@ -79,7 +79,7 @@ export function useNodeAuthorizationListPage() {
       if (!result.ok) {
         nodeAuthStore.setNodeList({ nodes: [] })
         if (showError) {
-          notifyError(result.errorKey || 'commonWalletHome.networkError')
+          notifyFailure(result, 'commonWalletHome.networkError')
         }
         return result.total
       }
@@ -104,8 +104,8 @@ export function useNodeAuthorizationListPage() {
       countdown.value = Number(result.countdown) || 0
     }
 
-    if (!result.ok && showError) {
-      notifyError(result.errorKey || 'commonWalletHome.networkError')
+    if (showError) {
+      notifyFailure(result, 'commonWalletHome.networkError')
     }
 
     return result

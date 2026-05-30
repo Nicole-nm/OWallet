@@ -43,7 +43,7 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-vi.mock('../../modules/wallet/application/createJsonWalletApplicationService', () => ({
+vi.mock('../../modules/wallet/application/json/createJsonWalletApplicationService', () => ({
   createJsonWalletDraft: (...args: any[]) => mocks.application.createJsonWalletDraft(...args),
   downloadCreatedJsonWallet: (...args: any[]) =>
     mocks.application.downloadCreatedJsonWallet(...args),

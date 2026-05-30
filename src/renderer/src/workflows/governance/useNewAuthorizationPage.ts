@@ -2,11 +2,11 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
-import { notifyError } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import {
   createNewAuthorizationTransaction,
   resolveNewAuthorizationInput,
-} from '../../modules/governance/application/authorizationManagementApplicationService'
+} from '../../modules/governance/application/authorization/authorizationManagementApplicationService'
 import type { GovernanceSignablePayload } from './governanceSigningTypes'
 
 export function useNewAuthorizationPage() {
@@ -95,9 +95,7 @@ export function useNewAuthorizationPage() {
 
   async function submit() {
     const result = await submitNewAuthorization()
-    if (!result.ok) {
-      notifyError(result.errorKey || 'common.networkErr')
-    }
+    notifyFailure(result, 'common.networkErr')
     return result
   }
 

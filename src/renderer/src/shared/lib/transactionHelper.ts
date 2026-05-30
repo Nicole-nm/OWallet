@@ -1,6 +1,5 @@
-import type { TransactionDraftResult } from '../types'
+import type { TransactionDraftResult, SigningFailureResult } from '../types'
 import type { WalletSigner } from './types'
-import type { SigningFailureResult } from '../../domains/transaction/types'
 
 interface LoggerLike {
   error(context: string, error: unknown): void
@@ -27,17 +26,13 @@ export async function tryCreateTransaction<T>({
 
 export function mapSigningFailure({
   wallet,
-  field = 'messageKey',
   passwordErrorKey = 'common.pwdErr',
 }: {
   wallet?: WalletSigner | null
-  field?: 'messageKey' | 'errorKey'
   passwordErrorKey?: string
 }): SigningFailureResult {
   if (wallet && typeof wallet === 'object' && 'key' in wallet && typeof wallet.key === 'string') {
-    return field === 'messageKey'
-      ? { ok: false, messageKey: passwordErrorKey }
-      : { ok: false, errorKey: passwordErrorKey }
+    return { ok: false, errorKey: passwordErrorKey }
   }
 
   return { ok: false, cancelled: true }

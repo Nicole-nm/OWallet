@@ -10,7 +10,9 @@ import {
   notifyWarning,
   showSuccessModal,
 } from '../../shared/ui/feedback'
-import { submitWalletRedeem } from '../../modules/wallet/application/commonRedeemApplicationService'
+import { submitWalletRedeem } from '../../modules/wallet/application/transfer/commonRedeemApplicationService'
+import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
+import type { WalletSigner } from '../../shared/lib/types'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 
 export function useCommonRedeemPage() {
@@ -58,8 +60,16 @@ export function useCommonRedeemPage() {
       ledgerConnectorStore.setLedgerStatus(i18n.global.t('common.waitForSign'))
     }
 
+    const adapter = WalletAdapterFactory.fromWalletSigner(currentWallet.value as WalletSigner)
+    if (!adapter) {
+      loadingStore.hideLoadingModals()
+      sending.value = false
+      notifyError('common.networkErr')
+      return { ok: false, errorKey: 'common.networkErr' }
+    }
     const result = await submitWalletRedeem({
-      wallet: currentWallet.value,
+      address: currentWallet.value.address,
+      adapter,
       claimableOng: redeem.value.claimableOng,
       password: type.value === 'commonWallet' ? password.value : undefined,
     })
@@ -72,8 +82,8 @@ export function useCommonRedeemPage() {
         return result
       }
 
-      if (result.messageKey) {
-        notifyError(result.messageKey)
+      if (result.errorKey) {
+        notifyError(result.errorKey)
       } else if (result.message) {
         notifyError(result.message, { literal: true })
       }
@@ -81,7 +91,7 @@ export function useCommonRedeemPage() {
       return {
         ok: false,
         cancelled: result.cancelled,
-        errorKey: result.messageKey ?? result.errorKey,
+        errorKey: result.errorKey,
         message: result.message,
       }
     }

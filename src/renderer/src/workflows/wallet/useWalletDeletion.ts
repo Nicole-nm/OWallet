@@ -1,4 +1,4 @@
-import { deleteStoredWallet } from '../../modules/wallet/application/walletDetailApplicationService'
+import { deleteStoredWallet } from '../../modules/wallet/application/dashboard/walletDetailApplicationService'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useWalletsStore } from '../../stores/modules/Wallets'
@@ -6,8 +6,7 @@ import { notifyError, notifySuccess } from '../../shared/ui/feedback'
 import type { WalletAction } from './useWalletExport'
 
 export function useWalletDeletion(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  wallet: () => Record<string, any>,
+  wallet: () => Record<string, unknown>,
   isCommonWallet: () => boolean,
   openModal: (opt: WalletAction) => void,
   onDeleteDone: () => void
@@ -28,13 +27,14 @@ export function useWalletDeletion(
       return
     }
 
+    const address = String(wallet().address ?? '')
     if (isCommonWallet()) {
-      walletsStore.deleteCommonWallet(wallet().address)
+      walletsStore.deleteCommonWallet(address)
     } else {
-      walletsStore.deleteHardwareWallet(wallet().address)
+      walletsStore.deleteHardwareWallet(address)
     }
 
-    if (currentWalletStore.wallet.address === wallet().address) {
+    if (currentWalletStore.wallet.address === address) {
       currentWalletStore.resetCurrentWallet()
     }
 

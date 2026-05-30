@@ -2,7 +2,7 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useNodeSessionStore } from '../../modules/governance/store/nodeSessionStore'
-import { syncManagementContextFromSession } from '../../modules/governance/application/managementContextService'
+import { syncManagementContextFromSession } from '../../modules/governance/application/nodeStake/managementContextService'
 import { applyManagementContext } from '../support/governanceContextStoreSync'
 
 const DEFAULT_TAB_KEY = '1'

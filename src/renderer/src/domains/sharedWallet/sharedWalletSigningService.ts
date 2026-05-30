@@ -1,19 +1,11 @@
 import { getOntPassHost, ONT_PASS_API_PATHS } from '../../shared/lib/constants'
 import httpClient from '../../shared/network/httpClient'
-import {
-  deserializeTransaction,
-  signTransactionMultiSig,
-  tryDecryptWallet,
-} from '../../shared/chain/transactionSdk'
+import { deserializeTransaction } from '../../shared/chain/transactionSdk'
 import { reverseHex } from '../../shared/chain/sdkHex'
 import type { SdkTransactionLike } from '../../shared/chain/types'
-import {
-  checkPublicKeyIsInTheConnectedLedger,
-  legacySignWithLedger,
-} from '../../shared/chain/ledgerSigner'
-import { sendTx, signSharedTx, signSharedTxWithLedger } from '../transaction/signingService'
+import { sendTx } from '../transaction/signingService'
 import { serializeTx } from '../transaction/serializationService'
-import type { SharedWallet, Copayer, WalletSigner } from '../../shared/lib/types'
+import type { WalletAdapter } from '../wallet/adapter'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -27,7 +19,7 @@ export interface SignatureCollectionState {
 
 export type SharedWalletSendFailure = {
   ok: false
-  messageKey?: string
+  errorKey?: string
   message?: string | null
   detail?: string
 }
@@ -46,19 +38,6 @@ export type PendingSharedSignatureResult =
 // ---------------------------------------------------------------------------
 
 type HttpBody = Record<string, unknown>
-
-interface SharedSignerInput extends HttpBody {
-  type?: string
-  address?: string
-  key?: string
-  salt?: string
-  publicKey?: string
-  publickey?: string
-  sharedWalletAddress?: string
-  neo?: boolean | number
-  acct?: number
-  wallet?: HttpBody
-}
 
 interface PendingSharedTransaction extends HttpBody {
   transactionbodyhash: string
@@ -100,11 +79,11 @@ function normalizeSendResponse(
   }
 
   if (detail.includes('balance insufficient')) {
-    return { ok: false, messageKey: 'common.balanceInsufficient', detail }
+    return { ok: false, errorKey: 'common.balanceInsufficient', detail }
   }
 
   if (errorCode === -1 || detail.includes('cover gas cost')) {
-    return { ok: false, messageKey: 'common.ongNoEnough', detail }
+    return { ok: false, errorKey: 'common.ongNoEnough', detail }
   }
 
   return { ok: false, message: detail || null, detail }
@@ -114,94 +93,50 @@ function asSdkTransaction(tx: unknown): SdkTransactionLike {
   return tx as SdkTransactionLike
 }
 
-function normalizeSharedSigner(
-  wallet: SharedSignerInput,
-  sharedWalletAddress?: string
-): WalletSigner & HttpBody {
-  const nestedWallet = wallet.wallet && typeof wallet.wallet === 'object' ? wallet.wallet : {}
-  const neo = nestedWallet.neo ?? wallet.neo
-  if (wallet.type === 'CommonWallet') {
-    return {
-      key: String(nestedWallet.key || wallet.key || ''),
-      address: String(wallet.address || ''),
-      salt: String(nestedWallet.salt || wallet.salt || ''),
-    } as WalletSigner & HttpBody
-  }
-
-  return {
-    publicKey: String(nestedWallet.publicKey || wallet.publicKey || wallet.publickey || ''),
-    address: String(wallet.address || ''),
-    sharedWalletAddress: wallet.sharedWalletAddress || sharedWalletAddress,
-    neo: typeof neo === 'boolean' || typeof neo === 'number' ? neo : undefined,
-    acct: Number(nestedWallet.acct ?? wallet.acct ?? 0),
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Signing operations
 // ---------------------------------------------------------------------------
 
 export async function signSharedTransactionDraft({
   tx,
-  sharedWallet,
-  wallet,
+  adapter,
   password,
   isFirstSign = true,
 }: {
   tx: unknown
-  sharedWallet: SharedWallet
-  wallet: SharedSignerInput
+  adapter: WalletAdapter
   password?: string
   isFirstSign?: boolean
 }) {
-  const M = Number(sharedWallet.requiredNumber)
-  const publicKeys = sharedWallet.coPayers.map((payer: Copayer) => payer.publickey)
-
-  if (wallet.type === 'CommonWallet') {
-    const signed = await signSharedTx(
-      asSdkTransaction(tx),
-      M,
-      publicKeys,
-      normalizeSharedSigner(wallet),
-      password
-    )
-    return signed || null
-  }
-
-  return signSharedTxWithLedger(
-    asSdkTransaction(tx),
-    M,
-    publicKeys,
-    normalizeSharedSigner(wallet, sharedWallet.sharedWalletAddress),
-    isFirstSign
-  )
+  const ctx = { password, isFirstSignature: isFirstSign }
+  const signed = isFirstSign
+    ? await adapter.signTransaction(asSdkTransaction(tx), ctx)
+    : await adapter.addSignature(asSdkTransaction(tx), ctx)
+  return signed || null
 }
 
 export async function signSerializedSharedTransaction({
   serializedTx,
-  sharedWallet,
-  wallet,
+  adapter,
   password,
   isFirstSign = false,
 }: {
   serializedTx: string
-  sharedWallet: SharedWallet
-  wallet: SharedSignerInput
+  adapter: WalletAdapter
   password?: string
   isFirstSign?: boolean
 }) {
   const tx = await deserializeTransaction(serializedTx)
   const signed = await signSharedTransactionDraft({
     tx,
-    sharedWallet,
-    wallet,
+    adapter,
     password,
     isFirstSign,
   })
 
   if (!signed) {
-    return wallet.type === 'CommonWallet'
-      ? { ok: false, messageKey: 'common.pwdErr' }
+    return adapter.capabilities.requiresPassword
+      ? { ok: false, errorKey: 'common.pwdErr' }
       : { ok: false, cancelled: true }
   }
 
@@ -222,7 +157,7 @@ export async function sendSerializedSharedTransaction(
     const response = (await sendTx(asSdkTransaction(tx))) as unknown as HttpBody
     return normalizeSendResponse(response, tx)
   } catch {
-    return { ok: false, messageKey: 'common.networkErr' }
+    return { ok: false, errorKey: 'common.networkErr' }
   }
 }
 
@@ -236,12 +171,12 @@ export async function countSerializedSharedTransactionSignatures(
 export async function submitPendingSharedSignature({
   network,
   pendingTx,
-  currentSigner,
+  adapter,
   password,
 }: {
   network: string
   pendingTx: PendingSharedTransaction
-  currentSigner: SharedSignerInput
+  adapter: WalletAdapter
   password?: string
 }): Promise<PendingSharedSignatureResult> {
   try {
@@ -249,47 +184,23 @@ export async function submitPendingSharedSignature({
     if (!tx.sigs?.[0]) {
       throw new Error('Shared transaction signature payload is missing')
     }
-    const M = tx.sigs[0].M
-    const publicKeys = tx.sigs[0].pubKeys
 
-    if (currentSigner.type === 'CommonWallet') {
-      const privateKey = await tryDecryptWallet(
-        {
-          key: String(currentSigner.key || ''),
-          address: String(currentSigner.address || ''),
-          salt: String(currentSigner.salt || ''),
-        },
-        password as string
-      )
+    const signed = await adapter.addSignature(asSdkTransaction(tx), {
+      password,
+      isFirstSignature: false,
+    })
 
-      if (!privateKey) {
-        return { ok: false, messageKey: 'common.pwdErr' }
-      }
-
-      await signTransactionMultiSig(asSdkTransaction(tx), M, publicKeys, privateKey)
-    } else {
-      try {
-        await checkPublicKeyIsInTheConnectedLedger(
-          currentSigner.acct,
-          currentSigner.neo,
-          String(currentSigner.publicKey || '')
-        )
-        const signature = await legacySignWithLedger(
-          tx.serializeUnsignedData(),
-          currentSigner.neo,
-          currentSigner.acct
-        )
-        tx.sigs[0].sigData.push('01' + signature)
-      } catch {
-        return { ok: false, messageKey: 'ledgerWallet.signFailed' }
-      }
+    if (!signed) {
+      return adapter.capabilities.requiresPassword
+        ? { ok: false, errorKey: 'common.pwdErr' }
+        : { ok: false, errorKey: 'ledgerWallet.signFailed' }
     }
 
     const signResponse = (await signSharedTransfer(network, {
       transactionIdHash: pendingTx.transactionidhash,
-      signedAddress: currentSigner.address,
+      signedAddress: adapter.identity.address,
       signedHash: serializeTx(
-        asSdkTransaction(tx),
+        asSdkTransaction(signed),
         'sharedWallet.submitPendingSharedSignature.serialize'
       ),
     })) as HttpBody
@@ -298,10 +209,10 @@ export async function submitPendingSharedSignature({
       return { ok: false, message: String(signResponse.Desc || signResponse.Result || '') || null }
     }
 
-    const sigState = getSignatureState(tx)
+    const sigState = getSignatureState(asSdkTransaction(signed))
     if (sigState.required <= sigState.collected) {
-      const sendResponse = (await sendTx(asSdkTransaction(tx))) as unknown as HttpBody
-      const sendResult = normalizeSendResponse(sendResponse, tx)
+      const sendResponse = (await sendTx(asSdkTransaction(signed))) as unknown as HttpBody
+      const sendResult = normalizeSendResponse(sendResponse, signed as { getHash: () => string })
       return sendResult.ok
         ? { ...sendResult, sentToChain: true }
         : { ...sendResult, sentToChain: true }
@@ -309,6 +220,6 @@ export async function submitPendingSharedSignature({
 
     return { ok: true, sentToChain: false }
   } catch {
-    return { ok: false, messageKey: 'common.networkErr' }
+    return { ok: false, errorKey: 'common.networkErr' }
   }
 }

@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../../domains/app/applicationService', () => ({
+vi.mock('../../../domains/app/appDomainService', () => ({
   fetchLatestRelease: mocks.appService.fetchLatestRelease,
 }))
 

@@ -3,8 +3,8 @@ import { handleWorkflowError } from '../../shared/lib/workflowErrorHandler'
 import {
   importDatWalletAccounts,
   parseImportedDatWallet,
-} from '../../modules/wallet/application/importJsonWalletApplicationService'
-import { readImportedWalletFile } from '../../modules/wallet/application/walletImportFileApplicationService'
+} from '../../modules/wallet/application/json/importJsonWalletApplicationService'
+import { readImportedWalletFile } from '../../modules/wallet/application/json/walletImportFileApplicationService'
 import type { DatWalletImportDependencies, ImportJsonDatAccount } from './importJsonWallet.types'
 
 const logger = createLogger('useImportDatWallet')

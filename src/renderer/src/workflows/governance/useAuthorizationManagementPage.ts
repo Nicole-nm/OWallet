@@ -1,10 +1,11 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { canOpenNewAuthorization } from '../../modules/governance/application/authorizationManagementApplicationService'
-import { refreshAuthorizationOverview } from '../../modules/governance/application/authorizationQueryApplicationService'
+import { canOpenNewAuthorization } from '../../modules/governance/application/authorization/authorizationManagementApplicationService'
+import { refreshAuthorizationOverview } from '../../modules/governance/application/authorization/authorizationQueryApplicationService'
 import { ROUTE_NAMES } from '../../router/routes'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
-import { notifyError, notifyWarning } from '../../shared/ui/feedback'
+import { notifyWarning } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
@@ -169,9 +170,7 @@ export function useAuthorizationManagementPage() {
 
   async function handleRefresh() {
     const result = await triggerRefresh()
-    if (!result.ok) {
-      notifyError(result.errorKey)
-    }
+    notifyFailure(result)
     return result
   }
 
@@ -189,9 +188,7 @@ export function useAuthorizationManagementPage() {
 
   async function handleCancelAuthorizationOk() {
     const result = await submitCancelAuthorization()
-    if (!result.ok) {
-      notifyError(result.errorKey)
-    }
+    notifyFailure(result)
     return result
   }
 
@@ -213,13 +210,7 @@ export function useAuthorizationManagementPage() {
 
   async function redeemOnt() {
     const result = await redeemClaimableOnt()
-    if (!result.ok) {
-      if ('level' in result && result.level === 'warning') {
-        notifyWarning(result.errorKey)
-      } else {
-        notifyError(result.errorKey)
-      }
-    }
+    notifyFailure(result)
     return result
   }
 

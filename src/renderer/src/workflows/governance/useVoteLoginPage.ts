@@ -1,7 +1,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { notifyError } from '../../shared/ui/feedback'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { ROUTE_NAMES, ROUTE_PATHS } from '../../router/routes'
 import { useWalletsStore } from '../../stores/modules/Wallets'
 import { useVoteStore } from '../../stores/modules/Vote'
@@ -111,9 +111,7 @@ export function useVoteLoginPage() {
 
   function next() {
     const result = submitVoteLoginSelection()
-    if (!result.ok) {
-      notifyError(result.errorKey || 'common.networkErr')
-    }
+    notifyFailure(result, 'common.networkErr')
     return result
   }
 

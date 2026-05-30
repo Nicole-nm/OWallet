@@ -1,10 +1,7 @@
-import { buildIdentityRegistration } from '../../../domains/identity/applicationService'
-import {
-  addSignerSignature,
-  sendTransaction,
-} from '../../../domains/transaction/applicationService'
+import { buildIdentityRegistration } from '../../../domains/identity/identityDomainService'
+import { submitWithAdapter } from '../../../domains/transaction/submitWithAdapter'
 import { createChainAddress, generateWalletKeyPair } from '../../../domains/wallet/accountService'
-import { fetchCommonWalletDocs, insertIdentity } from '../../../domains/wallet/applicationService'
+import { fetchCommonWalletDocs, insertIdentity } from '../../../domains/wallet/walletDomainService'
 import { createLogger } from '../../../shared/lib/logger'
 import { tryCatch } from '../../../shared/lib/result'
 import type {
@@ -13,6 +10,10 @@ import type {
   Identity,
   WalletOption,
 } from '../../../shared/lib/types'
+import type {
+  SdkTransactionLike,
+  WalletAdapter,
+} from '../../wallet/application/adapter/WalletAdapterFactory'
 
 const logger = createLogger('createIdentityApplicationService')
 
@@ -116,60 +117,38 @@ export async function createIdentityRegistrationDraft({
 
 export async function submitIdentityRegistration({
   tx,
-  payerWalletType,
-  payerWallet,
+  adapter,
   payerPassword,
-  ledgerWallet,
   ledgerConnected = true,
 }: {
   tx: unknown
-  payerWalletType: string
-  payerWallet?: CommonWallet
+  adapter: WalletAdapter
   payerPassword?: string
-  ledgerWallet?: HardwareWalletSigner
   ledgerConnected?: boolean
 }) {
   if (!tx) {
     return { ok: false, errorKey: 'common.networkErr' }
   }
 
-  if (payerWalletType === 'commonWallet') {
-    if (!payerWallet?.address) {
-      return { ok: false, errorKey: 'createIdentity.selectOneWallet' }
-    }
+  const { requiresPassword, requiresHardwareDevice } = adapter.capabilities
 
-    if (!payerPassword) {
-      return { ok: false, errorKey: 'createIdentity.enterPassword' }
-    }
-  } else if (!ledgerConnected || !ledgerWallet?.address) {
+  if (requiresPassword && !payerPassword) {
+    return { ok: false, errorKey: 'createIdentity.enterPassword' }
+  }
+
+  if (requiresHardwareDevice && (!ledgerConnected || !adapter.identity.address)) {
     return { ok: false, level: 'warning', errorKey: 'ledgerWallet.connectApp' }
   }
 
-  const signerWallet = payerWalletType === 'commonWallet' ? payerWallet : ledgerWallet
-
-  try {
-    const signedTx = await addSignerSignature({
-      tx: tx as never,
-      wallet: signerWallet as unknown as CommonWallet, // Cast since wallet interfaces might be complex
-      password: payerWalletType === 'commonWallet' ? payerPassword : undefined,
-    })
-
-    if (!signedTx) {
-      return payerWalletType === 'commonWallet'
-        ? { ok: false, errorKey: 'common.pwdErr' }
-        : { ok: false, cancelled: true }
-    }
-
-    return await sendTransaction(signedTx)
-  } catch (err: unknown) {
-    logger.error('submitIdentityRegistration', err)
-    return {
-      ok: false,
-      errorKey:
-        payerWalletType === 'commonWallet' ? 'common.networkErr' : 'ledgerWallet.signFailed',
-      error: err,
-    }
-  }
+  return submitWithAdapter({
+    tx: tx as SdkTransactionLike,
+    adapter,
+    password: payerPassword,
+    useAddSignature: true,
+    networkErrorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.networkErr',
+    logger,
+    errorContext: 'submitIdentityRegistration',
+  })
 }
 
 export async function persistCreatedIdentity({

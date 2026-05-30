@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import { computed, ref, PropType } from 'vue'
-import { createSerializedSharedInvokeTransaction } from '../../modules/wallet/application/sharedWalletTransactionApplicationService'
+import { createSerializedSharedInvokeTransaction } from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
 import { notifyError } from '../../shared/ui/feedback'
 import SharedTxEditorShell from './SharedTxEditorShell.vue'
 import { useSharedTxEditor } from './useSharedTxEditor'

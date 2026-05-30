@@ -54,13 +54,13 @@ vi.mock('../../modules/wallet/composables/useLedgerStatusMonitor', () => ({
     mocks.ledgerMonitor.useLedgerStatusMonitor(...args),
 }))
 
-vi.mock('../../modules/wallet/application/ledgerWalletConnectionService', () => ({
+vi.mock('../../modules/wallet/application/ledger/ledgerWalletConnectionService', () => ({
   loadLedgerAccountPage: (...args: unknown[]) => mocks.application.loadLedgerAccountPage(...args),
   loadLedgerAccountSelection: (...args: unknown[]) =>
     mocks.application.loadLedgerAccountSelection(...args),
 }))
 
-vi.mock('../../modules/wallet/application/ledgerWalletImportService', () => ({
+vi.mock('../../modules/wallet/application/ledger/ledgerWalletImportService', () => ({
   importLedgerWalletSelections: (...args: unknown[]) =>
     mocks.application.importLedgerWalletSelections(...args),
 }))

@@ -1,9 +1,11 @@
 /**
- * Wallet signing orchestrator.
+ * Low-level signing primitives consumed by the WalletAdapter implementations.
  *
- * Contains the CommonWallet / Ledger / SharedWallet branching logic that
- * decides *how* a transaction or payload is signed. applicationService.ts
- * delegates all signing decisions here and stays a thin orchestration facade.
+ * The wallet-type branching that lived in this file has moved to
+ * `domains/wallet/adapter/` — every external caller now talks to a
+ * `WalletAdapter`. This file is intentionally narrow: it only exports the
+ * primitives that the adapters delegate to. Nothing in `workflows/`, `pages/`,
+ * or `module-application/*` should import from here directly.
  */
 
 import {
@@ -20,11 +22,9 @@ import {
   legacySignWithLedger,
 } from '../../shared/chain/ledgerSigner'
 import type { SdkTransactionLike } from '../../shared/chain/types'
-import { signMessageWithWallet, signWithLedger, signWithWallet } from './signingService'
+import { signWithLedger } from './signingService'
 import { serializeTx } from './serializationService'
-import { isCommonWallet } from '../../shared/lib/types'
 import type { HardwareWalletSigner, WalletSigner } from '../../shared/lib/types'
-import type { SignedTransaction, TransactionDraft } from './types'
 
 function setLedgerGasPrice(tx: SdkTransactionLike) {
   if (!tx.gasPrice) {
@@ -32,23 +32,6 @@ function setLedgerGasPrice(tx: SdkTransactionLike) {
   }
 
   tx.gasPrice = new tx.gasPrice.constructor(LEDGER_GAS_PRICE) as SdkTransactionLike['gasPrice']
-}
-
-// ---------------------------------------------------------------------------
-// CommonWallet signing
-// ---------------------------------------------------------------------------
-
-/**
- * Sign a transaction with a software (CommonWallet) key.
- * Returns `null` when password decryption fails.
- */
-export async function signTransactionWithWallet(
-  tx: TransactionDraft,
-  wallet: WalletSigner,
-  password?: string
-): Promise<SignedTransaction | null> {
-  const signed = await signWithWallet(tx, wallet, password)
-  return signed ?? null
 }
 
 /**
@@ -74,10 +57,6 @@ export async function addWalletSignature({
     return tx
   })
 }
-
-// ---------------------------------------------------------------------------
-// Ledger (HardwareWallet) signing
-// ---------------------------------------------------------------------------
 
 /**
  * Sign a transaction with a connected Ledger device.
@@ -109,71 +88,6 @@ export async function addLedgerSignature({
     await createSdkTxSignature(1, [await createSdkPublicKey(publicKeyHex)], ['01' + signature])
   )
   return tx
-}
-
-// ---------------------------------------------------------------------------
-// Unified branching: CommonWallet vs Ledger
-// ---------------------------------------------------------------------------
-
-/**
- * Sign a transaction — routes to CommonWallet or Ledger based on wallet type.
- * Returns `null` on failure (wrong password or ledger cancelled).
- */
-export async function signTransaction({
-  tx,
-  wallet,
-  password,
-}: {
-  tx: SdkTransactionLike
-  wallet: WalletSigner
-  password?: string
-}): Promise<SignedTransaction | null> {
-  if (isCommonWallet(wallet)) {
-    return signTransactionWithWallet(tx, wallet, password)
-  }
-
-  return signWithLedger(tx, wallet)
-}
-
-/**
- * Append a co-signer signature — routes to CommonWallet or Ledger.
- * Returns `null` on password failure.
- */
-export async function addSignerSignature({
-  tx,
-  wallet,
-  password,
-}: {
-  tx: SdkTransactionLike
-  wallet: WalletSigner
-  password?: string
-}): Promise<SdkTransactionLike | null> {
-  if (isCommonWallet(wallet)) {
-    return addWalletSignature({ tx, wallet, password: password || '' })
-  }
-
-  return addLedgerSignature({ tx, wallet })
-}
-
-/**
- * Sign an arbitrary payload — routes string payloads to message signing and
- * transaction objects to transaction signing.
- */
-export async function signPayload({
-  payload,
-  wallet,
-  password,
-}: {
-  payload: string | SdkTransactionLike
-  wallet: WalletSigner
-  password?: string
-}): Promise<unknown> {
-  if (typeof payload === 'string') {
-    const signature = await signMessageWithWallet(payload, wallet, password)
-    return signature ?? null
-  }
-
-  return signTransaction({ tx: payload, wallet, password })
 }
 
 /**

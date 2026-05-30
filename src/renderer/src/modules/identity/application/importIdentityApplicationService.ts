@@ -1,8 +1,8 @@
 import {
   importIdentityFromSerializedKeystore,
   verifyIdentityExistsOnChain,
-} from '../../../domains/identity/applicationService'
-import { insertIdentity } from '../../../domains/wallet/applicationService'
+} from '../../../domains/identity/identityDomainService'
+import { insertIdentity } from '../../../domains/wallet/walletDomainService'
 import type { Identity } from '../../../shared/lib/types'
 
 interface ImportedIdentityKeystore {

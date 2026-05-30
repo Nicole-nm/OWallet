@@ -24,7 +24,7 @@ const sharedRules: Record<string, unknown> = {
 
 const tsRules: Record<string, unknown> = {
   '@typescript-eslint/no-unused-vars': 'warn',
-  '@typescript-eslint/no-explicit-any': 'warn',
+  '@typescript-eslint/no-explicit-any': 'error',
 }
 
 export default tseslint.config(

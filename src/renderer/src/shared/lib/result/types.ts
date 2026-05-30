@@ -31,6 +31,26 @@ export type Ok<T> = { ok: true } & (T extends void ? unknown : { data: T })
 export type Err<K extends string = string> = { ok: false; errorKey: K; error?: unknown }
 export type BoundaryResult<T, K extends string = string> = Ok<T> | Err<K>
 
+/**
+ * Common failure payload used by transaction workflows. Lives in `shared/`
+ * so non-domain helpers (e.g. `shared/lib/transactionHelper`) can reference
+ * it without an upward-layer import.
+ */
+export interface TransactionFailureResult {
+  ok: false
+  cancelled?: true
+  errorKey?: string
+  detail?: string
+  message?: string | null
+  error?: unknown
+  level?: 'warning'
+}
+
+/**
+ * The result returned when signing fails (wrong password or ledger cancel).
+ */
+export type SigningFailureResult = TransactionFailureResult
+
 export function success<T>(data: T): Result<T> {
   return { ok: true, data }
 }

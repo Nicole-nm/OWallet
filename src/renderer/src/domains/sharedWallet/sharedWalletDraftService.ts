@@ -29,7 +29,7 @@ export interface SharedTransactionDraft {
 
 export type CreatedSharedTransferResult =
   | { ok: true; txHash: string; serializedTx: string; response: HttpBody }
-  | { ok: false; messageKey: string; response: HttpBody }
+  | { ok: false; errorKey: string; response: HttpBody }
 
 type HttpBody = Record<string, unknown>
 
@@ -174,7 +174,7 @@ export async function submitCreatedSharedTransfer({
   })) as HttpBody
 
   if (response && response.Error && response.Error !== 0) {
-    return { ok: false, messageKey: 'sharedWalletHome.createTransferFailed', response }
+    return { ok: false, errorKey: 'sharedWalletHome.createTransferFailed', response }
   }
 
   return { ok: true, txHash, serializedTx: txData, response }

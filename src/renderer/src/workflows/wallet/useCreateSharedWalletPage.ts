@@ -7,7 +7,7 @@ import { useWalletsStore } from '../../stores/modules/Wallets'
 import {
   createSharedWalletDraft,
   submitSharedWalletCreation,
-} from '../../modules/wallet/application/createSharedWalletApplicationService'
+} from '../../modules/wallet/application/sharedWallet/createSharedWalletApplicationService'
 import { useWizardPage } from '../../shared/composables/useWizardPage'
 import { ROUTE_NAMES } from '../../router/routes'
 import { applyWalletCollectionsResult } from '../support/walletCollectionsStoreSync'

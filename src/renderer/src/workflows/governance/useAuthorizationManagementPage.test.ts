@@ -69,25 +69,31 @@ vi.mock('../../shared/composables/useGlobalLoading', () => ({
   useLoadingModalStore: () => mocks.loadingStore,
 }))
 
-vi.mock('../../modules/governance/application/authorizationQueryApplicationService', () => ({
-  refreshAuthorizationOverview: (...args: unknown[]) =>
-    mocks.authorizationService.refreshAuthorizationOverview(...args),
-}))
+vi.mock(
+  '../../modules/governance/application/authorization/authorizationQueryApplicationService',
+  () => ({
+    refreshAuthorizationOverview: (...args: unknown[]) =>
+      mocks.authorizationService.refreshAuthorizationOverview(...args),
+  })
+)
 
-vi.mock('../../modules/governance/application/authorizationManagementApplicationService', () => ({
-  canOpenNewAuthorization: (...args: unknown[]) =>
-    mocks.managementService.canOpenNewAuthorization(...args),
-  createAuthorizationClaimableOntRedeemTransaction: (...args: unknown[]) =>
-    mocks.managementService.createAuthorizationClaimableOntRedeemTransaction(...args),
-  createAuthorizationRewardsRedeemTransaction: (...args: unknown[]) =>
-    mocks.managementService.createAuthorizationRewardsRedeemTransaction(...args),
-  createAuthorizationUnboundOngRedeemTransaction: (...args: unknown[]) =>
-    mocks.managementService.createAuthorizationUnboundOngRedeemTransaction(...args),
-  createCancelAuthorizationTransaction: (...args: unknown[]) =>
-    mocks.managementService.createCancelAuthorizationTransaction(...args),
-  validateCancelAuthorizationAmount: (...args: unknown[]) =>
-    mocks.managementService.validateCancelAuthorizationAmount(...args),
-}))
+vi.mock(
+  '../../modules/governance/application/authorization/authorizationManagementApplicationService',
+  () => ({
+    canOpenNewAuthorization: (...args: unknown[]) =>
+      mocks.managementService.canOpenNewAuthorization(...args),
+    createAuthorizationClaimableOntRedeemTransaction: (...args: unknown[]) =>
+      mocks.managementService.createAuthorizationClaimableOntRedeemTransaction(...args),
+    createAuthorizationRewardsRedeemTransaction: (...args: unknown[]) =>
+      mocks.managementService.createAuthorizationRewardsRedeemTransaction(...args),
+    createAuthorizationUnboundOngRedeemTransaction: (...args: unknown[]) =>
+      mocks.managementService.createAuthorizationUnboundOngRedeemTransaction(...args),
+    createCancelAuthorizationTransaction: (...args: unknown[]) =>
+      mocks.managementService.createCancelAuthorizationTransaction(...args),
+    validateCancelAuthorizationAmount: (...args: unknown[]) =>
+      mocks.managementService.validateCancelAuthorizationAmount(...args),
+  })
+)
 
 vi.mock('../../shared/ui/feedback', () => ({
   notifyError: vi.fn(),

@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../../domains/wallet/applicationService', () => ({
+vi.mock('../../../domains/wallet/walletDomainService', () => ({
   removeIdentity: (...args: unknown[]) => mocks.walletService.removeIdentity(...args),
 }))
 

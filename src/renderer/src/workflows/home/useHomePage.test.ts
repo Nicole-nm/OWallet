@@ -47,7 +47,7 @@ vi.mock('../../stores/modules/AppUpdate', () => ({
   useAppUpdateStore: () => mocks.appUpdateStore,
 }))
 
-vi.mock('../../modules/wallet/application/walletCollectionApplicationService', () => ({
+vi.mock('../../modules/wallet/application/dashboard/walletCollectionApplicationService', () => ({
   loadWalletCollections: mocks.walletCollectionService.loadWalletCollections,
 }))
 

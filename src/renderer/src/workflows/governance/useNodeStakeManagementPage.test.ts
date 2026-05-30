@@ -42,7 +42,7 @@ vi.mock('../../modules/governance/store/nodeSessionStore', () => ({
   useNodeSessionStore: () => mocks.nodeSessionStore,
 }))
 
-vi.mock('../../modules/governance/application/managementContextService', () => ({
+vi.mock('../../modules/governance/application/nodeStake/managementContextService', () => ({
   syncManagementContextFromSession: (...args: unknown[]) =>
     mocks.managementContextService.syncManagementContextFromSession(...args),
 }))

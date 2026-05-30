@@ -3,10 +3,10 @@ import { useRouter } from 'vue-router'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorization'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
-import { loadAuthorizationStakeHistory } from '../../modules/governance/application/authorizationQueryApplicationService'
+import { loadAuthorizationStakeHistory } from '../../modules/governance/application/authorization/authorizationQueryApplicationService'
 import { useNodeSessionStore } from '../../modules/governance/store/nodeSessionStore'
-import { openAuthorizationManagement } from '../../modules/governance/application/authorizationContextService'
-import { notifyError } from '../../shared/ui/feedback'
+import { openAuthorizationManagement } from '../../modules/governance/application/authorization/authorizationContextService'
+import { notifyFailure } from '../../shared/ui/notifyFailure'
 import {
   applyAuthorizationContext,
   applyManagementContext,
@@ -93,15 +93,15 @@ export function useStakeHistoryPage() {
   async function handleChangePayer(selectionPayload: StakeWalletSelectionPayload) {
     selection.setSelectedWalletByAddress(selectionPayload.wallet.address || '')
     const result = await search()
-    if (!result.ok && !('stale' in result)) {
-      notifyError(result.errorKey || 'common.networkErr')
+    if (!('stale' in result)) {
+      notifyFailure(result, 'common.networkErr')
     }
   }
 
   async function handleSearch() {
     const result = await search()
-    if (!result.ok && !('stale' in result)) {
-      notifyError(result.errorKey || 'common.networkErr')
+    if (!('stale' in result)) {
+      notifyFailure(result, 'common.networkErr')
     }
     return result
   }

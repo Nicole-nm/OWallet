@@ -5,6 +5,8 @@ export type {
   ServiceFailure,
   ServiceResult,
   TransactionDraftResult,
+  TransactionFailureResult,
+  SigningFailureResult,
   Ok,
   Err,
   BoundaryResult,

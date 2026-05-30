@@ -46,6 +46,17 @@ vi.mock('vue-i18n', () => ({
     locale: { value: 'en' },
     t: (key: string) => key,
   }),
+  createI18n: () => ({
+    global: {
+      t: (key: string) => key,
+      locale: { value: 'en' },
+      setLocaleMessage: vi.fn(),
+    },
+  }),
+}))
+
+vi.mock('../../lang/loadLocale', () => ({
+  loadLocaleMessages: vi.fn(() => Promise.resolve()),
 }))
 
 vi.mock('../../shared/ui/feedback', () => ({

@@ -8,7 +8,7 @@ import { usePollingTask } from '../../shared/composables/usePollingTask'
 import { ROUTE_NAMES } from '../../router/routes'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 import { isCommonWallet, type CommonWallet, type HardwareWallet } from '../../shared/lib/types'
-import { refreshNodeStakeManagementDetails } from '../../modules/governance/application/nodeStakeManagementApplicationService'
+import { refreshNodeStakeManagementDetails } from '../../modules/governance/application/nodeStake/nodeStakeManagementApplicationService'
 import { useNodeStakeDialogs } from './useNodeStakeDialogs'
 import { useNodeStakeTransactions } from './useNodeStakeTransactions'
 
