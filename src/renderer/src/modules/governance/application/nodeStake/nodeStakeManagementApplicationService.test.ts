@@ -74,6 +74,8 @@ vi.mock('./nodeStakeApplicationService', () => ({
 import {
   createChangeStakeAuthorizationTransaction,
   createNodeRefundTransaction,
+  createStakeRewardsRedeemTransaction,
+  createStakeUnboundOngRedeemTransaction,
   refreshNodeStakeAuthorizationDetails,
   refreshNodeStakeManagementDetails,
   submitSignedNodeStakeManagementTransaction,
@@ -291,5 +293,57 @@ describe('nodeStakeManagementApplicationService', () => {
       posLimit: 10,
       peerUnboundOng: 2,
     })
+  })
+
+  it('requires a password for common wallets before submitting', async () => {
+    await expect(
+      submitSignedNodeStakeManagementTransaction({
+        tx: 'tx',
+        adapter: makeAdapter(commonCapabilities),
+        network: 'TEST_NET',
+        ontid: 'did:ont:1',
+        nodePublicKey: 'pk-1',
+        stakeWalletAddress: 'AQ123',
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'nodeStake.passwordEmpty' })
+  })
+
+  it('fails fast when there is no transaction to submit', async () => {
+    await expect(
+      submitSignedNodeStakeManagementTransaction({
+        tx: null,
+        adapter: makeAdapter(commonCapabilities),
+        password: 'secret',
+        network: 'TEST_NET',
+        ontid: 'did:ont:1',
+        nodePublicKey: 'pk-1',
+        stakeWalletAddress: 'AQ123',
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'common.txFailed' })
+  })
+
+  it('warns and builds stake reward redemption transactions', async () => {
+    await expect(
+      createStakeRewardsRedeemTransaction({ stakeWalletAddress: 'AQ123', amount: 0 })
+    ).resolves.toEqual({ ok: false, level: 'warning', errorKey: 'nodeMgmt.noRewards' })
+
+    mocks.governanceService.createWithdrawFeeTransaction.mockResolvedValue('fee-tx')
+    await expect(
+      createStakeRewardsRedeemTransaction({ stakeWalletAddress: 'AQ123', amount: 5 })
+    ).resolves.toEqual({ ok: true, tx: 'fee-tx' })
+    expect(mocks.governanceService.createWithdrawFeeTransaction).toHaveBeenCalledWith({
+      stakeWalletAddress: 'AQ123',
+    })
+  })
+
+  it('warns and builds unbound ONG redemption transactions', async () => {
+    await expect(
+      createStakeUnboundOngRedeemTransaction({ stakeWalletAddress: 'AQ123', amount: 0 })
+    ).resolves.toEqual({ ok: false, level: 'warning', errorKey: 'nodeMgmt.noUnboundOng' })
+
+    mocks.governanceService.createWithdrawPeerUnboundOngTransaction.mockResolvedValue('ong-tx')
+    await expect(
+      createStakeUnboundOngRedeemTransaction({ stakeWalletAddress: 'AQ123', amount: 3 })
+    ).resolves.toEqual({ ok: true, tx: 'ong-tx' })
   })
 })

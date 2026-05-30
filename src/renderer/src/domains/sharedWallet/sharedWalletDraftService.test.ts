@@ -58,7 +58,17 @@ vi.mock('../transaction/serializationService', () => ({
 }))
 
 import { TRANSFER_GAS_MIN } from '../../shared/lib/constants'
-import { prepareSharedTransferDraft } from './sharedWalletDraftService'
+import { createInvokeTransaction, createSdkParameter } from '../../shared/chain/transactionSdk'
+import { createSdkAddress } from '../../shared/chain/walletSdk'
+import {
+  createSerializedSharedInvokeTransaction,
+  createSharedTransfer,
+  createSharedWallet,
+  prepareSharedTransferDraft,
+  queryPendingTransfer,
+  querySharedWallet,
+  submitCreatedSharedTransfer,
+} from './sharedWalletDraftService'
 
 const makeSharedWallet = (requiredNumber: string, totalNumber: string, copayerCount: number) => ({
   address: 'AShared123',
@@ -218,6 +228,136 @@ describe('sharedWalletDraftService', () => {
           redeem: {},
         })
       ).rejects.toThrow('Invalid address')
+    })
+  })
+
+  describe('HTTP wrappers', () => {
+    it('createSharedWallet posts to the create-wallet endpoint', () => {
+      createSharedWallet('MAIN_NET', { foo: 'bar' })
+      expect(mocks.httpClient.post).toHaveBeenCalledWith(
+        'https://node.example/wallet',
+        { foo: 'bar' },
+        { silent: true }
+      )
+    })
+
+    it('querySharedWallet gets with the shared wallet address param', () => {
+      querySharedWallet('MAIN_NET', 'AShared123')
+      expect(mocks.httpClient.get).toHaveBeenCalledWith('https://node.example/query', {
+        params: { sharedWalletAddress: 'AShared123' },
+      })
+    })
+
+    it('createSharedTransfer posts silently to the create-transfer endpoint', () => {
+      createSharedTransfer('MAIN_NET', { a: 1 })
+      expect(mocks.httpClient.post).toHaveBeenCalledWith(
+        'https://node.example/create',
+        { a: 1 },
+        { silent: true }
+      )
+    })
+
+    it('queryPendingTransfer posts to the pending endpoint', () => {
+      queryPendingTransfer('MAIN_NET', { b: 2 })
+      expect(mocks.httpClient.post).toHaveBeenCalledWith('https://node.example/pending', { b: 2 })
+    })
+  })
+
+  describe('submitCreatedSharedTransfer', () => {
+    const baseDraft = {
+      tx: { getHash: () => 'hashbytes' } as never,
+      amount: '100',
+      gasPrice: '500',
+      gasLimit: '20000',
+      tokenType: 'ONT',
+    }
+
+    it('returns ok with txHash and serialized tx on success', async () => {
+      mocks.serializeTx.mockReturnValue('serialized-data')
+      mocks.httpClient.post.mockResolvedValue({ Error: 0 })
+
+      const result = await submitCreatedSharedTransfer({
+        network: 'MAIN_NET',
+        sharedWallet: makeSharedWallet('2', '3', 3),
+        transfer: { asset: 'ONT', to: 'ATo', isRedeem: false, amount: '100' },
+        payers: [{ name: 'p1' }],
+        draft: baseDraft,
+      })
+
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        expect(result.txHash).toBe('hashbytes')
+        expect(result.serializedTx).toBe('serialized-data')
+      }
+    })
+
+    it('returns a failure result when the API responds with an error code', async () => {
+      mocks.serializeTx.mockReturnValue('serialized-data')
+      mocks.httpClient.post.mockResolvedValue({ Error: 53000 })
+
+      const result = await submitCreatedSharedTransfer({
+        network: 'MAIN_NET',
+        sharedWallet: makeSharedWallet('2', '3', 3),
+        transfer: { asset: 'ONT', to: 'ATo', isRedeem: false, amount: '100' },
+        payers: [],
+        draft: baseDraft,
+      })
+
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.errorKey).toBe('sharedWalletHome.createTransferFailed')
+      }
+    })
+  })
+
+  describe('createSerializedSharedInvokeTransaction', () => {
+    it('serializes an invoke transaction resolving Address-typed parameters', async () => {
+      vi.mocked(createSdkAddress).mockImplementation(
+        async (value: string) => ({ value, serialize: () => `serialized:${value}` }) as never
+      )
+      vi.mocked(createSdkParameter).mockImplementation(
+        async (_name: string, type: string, value: unknown) => ({ type, value }) as never
+      )
+      vi.mocked(createInvokeTransaction).mockResolvedValue({ id: 'invoke-tx' } as never)
+      mocks.serializeTx.mockReturnValue('serialized-invoke')
+
+      const result = await createSerializedSharedInvokeTransaction({
+        sharedWalletAddress: 'AShared123',
+        contractHash: '  abcd1234  ',
+        method: '  transfer  ',
+        parameters: JSON.stringify([
+          { type: 'Address', value: ' AParam ' },
+          { type: 'Integer', value: '5' },
+        ]),
+      })
+
+      expect(result).toBe('serialized-invoke')
+      expect(createSdkParameter).toHaveBeenCalledWith('', 'Address', 'serialized:AParam')
+      expect(createSdkParameter).toHaveBeenCalledWith('', 'Integer', '5')
+      expect(createInvokeTransaction).toHaveBeenCalledWith(
+        'transfer',
+        expect.any(Array),
+        expect.anything(),
+        '500',
+        '20000',
+        expect.anything()
+      )
+    })
+
+    it('handles empty parameters by defaulting to an empty list', async () => {
+      vi.mocked(createSdkAddress).mockResolvedValue({ serialize: () => 'x' } as never)
+      vi.mocked(createInvokeTransaction).mockResolvedValue({ id: 'invoke-tx' } as never)
+      mocks.serializeTx.mockReturnValue('serialized-empty')
+
+      const result = await createSerializedSharedInvokeTransaction({
+        sharedWalletAddress: 'AShared123',
+        contractHash: 'abcd',
+        method: 'name',
+        parameters: '',
+      })
+
+      expect(result).toBe('serialized-empty')
+      expect(createInvokeTransaction).toHaveBeenCalled()
     })
   })
 })

@@ -29,12 +29,14 @@ vi.mock('../../../../domains/nodeStake/nodeStakeDomainService', () => ({
 }))
 
 import {
+  createEmptyNodeStakeProfile,
   createEmptyStakeStatus,
   createNodeStakeProfileDraft,
   createPendingNodeStakeInfo,
   describeStakeStatus,
   loadNodeStakeProfile,
   loadStakeDetail,
+  mapNodeStakeProfile,
   saveLedgerNodeStakeProfile,
   saveNodeStakeProfile,
 } from './nodeStakeApplicationService'
@@ -217,5 +219,62 @@ describe('nodeStakeApplicationService', () => {
       current: 2,
       statusTip: '',
     })
+  })
+
+  it('describes every known stake status code and an unknown default', () => {
+    expect(describeStakeStatus(0)).toMatchObject({
+      status1: 'nodeStakeStatus.transfering',
+      statusTip: 'nodeStakeStatus.transferNeedTime',
+      current: 0,
+    })
+    expect(describeStakeStatus(1)).toMatchObject({ status1: 'nodeStakeStatus.transferFailed' })
+    expect(describeStakeStatus(2)).toMatchObject({ current: 1 })
+    expect(describeStakeStatus(3)).toMatchObject({
+      status2: 'nodeStakeStatus.auditFailed',
+      current: 1,
+    })
+    expect(describeStakeStatus(4)).toMatchObject({
+      status1: 'nodeStakeStatus.nodeExited',
+      statusTip: 'nodeStakeStatus.unfrozenToRefund',
+    })
+    expect(describeStakeStatus(5)).toMatchObject({
+      status2: 'nodeStakeStatus.refunding',
+      current: 1,
+    })
+    expect(describeStakeStatus(7)).toMatchObject({
+      status2: 'nodeStakeStatus.refundFailed',
+      current: 1,
+    })
+    expect(describeStakeStatus(8)).toMatchObject({
+      status3: 'nodeStakeStatus.staked',
+      current: 2,
+    })
+    expect(describeStakeStatus(9)).toMatchObject({ status2: 'nodeStakeStatus.refund' })
+    expect(describeStakeStatus(10)).toMatchObject({ status2: 'nodeStakeStatus.refund' })
+    expect(describeStakeStatus(99)).toEqual({
+      status1: '',
+      status2: '',
+      status3: '',
+      current: 0,
+      statusTip: '',
+    })
+  })
+
+  it('creates empty profile and status shapes', () => {
+    expect(createEmptyNodeStakeProfile()).toMatchObject({ name: '', isPublic: false })
+    expect(createEmptyStakeStatus()).toMatchObject({ current: 0, btnText: '' })
+  })
+
+  it('maps a profile using camelCase fields and a default empty profile', () => {
+    expect(
+      mapNodeStakeProfile({
+        name: 'N',
+        logoUrl: 'logo',
+        contactEmail: 'c@e',
+        publicEmail: 'p@e',
+        isPublic: true,
+      })
+    ).toMatchObject({ logoUrl: 'logo', contactEmail: 'c@e', publicEmail: 'p@e', isPublic: true })
+    expect(mapNodeStakeProfile()).toMatchObject({ name: '', isPublic: false })
   })
 })

@@ -4,10 +4,7 @@ import type { IpcMain, IpcMainInvokeEvent } from 'electron'
 import { app } from 'electron'
 import type { FetchJsonOptions } from '../../shared-types/ipc'
 import { isAllowedApiUrl } from '../config'
-
-const REQUEST_TIMEOUT_MS = 15000
-const ALLOWED_METHODS = new Set(['GET', 'POST'])
-const ALLOWED_HEADER_NAMES = new Set(['accept', 'content-type'])
+import { ALLOWED_HEADER_NAMES, ALLOWED_METHODS, REQUEST_TIMEOUT_MS } from '../constants'
 
 function getDefaultUserAgent() {
   return `OWallet/${app.getVersion()} (Electron ${process.versions.electron}; ${process.platform})`
@@ -87,8 +84,15 @@ async function fetchAllowedJson(requestUrl: URL, options: FetchJsonOptions = {})
 
   const responseText = await response.text()
   if (!response.ok) {
-    const detail = responseText ? `: ${responseText.slice(0, 300)}` : ''
-    throw new Error(`HTTP ${response.status} for ${requestUrl.href}${detail}`)
+    // Log the full response body for diagnostics, but never surface it to the
+    // renderer: upstream error bodies can leak internal paths, versions, or
+    // other implementation details.
+    if (responseText) {
+      console.error(
+        `[OWallet] HTTP ${response.status} for ${requestUrl.href}: ${responseText.slice(0, 300)}`
+      )
+    }
+    throw new Error(`HTTP ${response.status} for ${requestUrl.href}`)
   }
 
   try {

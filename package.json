@@ -29,6 +29,9 @@
     "test:visual": "vitest run --project storybook",
     "test:all": "yarn test:unit && yarn test:e2e && yarn test:visual",
     "verify": "yarn lint && yarn typecheck && yarn test:unit && yarn test:coverage",
+    "audit:deps": "yarn audit --level moderate --groups dependencies",
+    "audit:ci": "tsx scripts/audit-gate.ts",
+    "size:budget": "tsx scripts/check-bundle-size.ts",
     "lint": "eslint --no-error-on-unmatched-pattern src scripts",
     "lint:fix": "eslint --no-error-on-unmatched-pattern src scripts --fix",
     "format": "prettier --write \"{src,build,scripts,.storybook}/**/*.{js,ts,mjs,vue,scss,json}\" \"{package.json,electron.vite.config.ts,eslint.config.ts,vitest.config.ts,vitest.unit.config.ts}\"",
@@ -97,7 +100,8 @@
     "vue-tsc": "^3.2.6"
   },
   "simple-git-hooks": {
-    "pre-commit": "yarn lint-staged && yarn typecheck"
+    "pre-commit": "yarn lint-staged && yarn typecheck",
+    "pre-push": "yarn verify"
   },
   "lint-staged": {
     "*.{js,ts,mjs,vue}": [

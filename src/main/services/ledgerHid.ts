@@ -1,9 +1,7 @@
 'use strict'
 
 import type { BrowserWindow, HIDDevice } from 'electron'
-
-const LEDGER_VENDOR_ID = 0x2c97
-const HID_SELECTION_TIMEOUT_MS = 3000
+import { HID_SELECTION_TIMEOUT_MS, LEDGER_VENDOR_ID } from '../constants'
 
 interface LedgerDeviceSelection {
   callback: (deviceId: string | undefined) => void

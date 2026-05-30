@@ -49,7 +49,13 @@ vi.mock('../transaction/serializationService', () => ({
   serializeTx: (...args: any[]) => mocks.serializationService.serializeTx(...args),
 }))
 
-import { submitPendingSharedSignature } from './sharedWalletSigningService'
+import {
+  countSerializedSharedTransactionSignatures,
+  sendSerializedSharedTransaction,
+  signSerializedSharedTransaction,
+  signSharedTransactionDraft,
+  submitPendingSharedSignature,
+} from './sharedWalletSigningService'
 import type { WalletAdapter, WalletCapabilities } from '../wallet/adapter'
 
 const commonCapabilities: WalletCapabilities = {
@@ -233,6 +239,126 @@ describe('sharedWalletSigningService', () => {
 
       expect(result).toEqual({ ok: false, message: 'Signature already submitted' })
       expect(mocks.signingService.sendTx).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('signSharedTransactionDraft', () => {
+    it('uses signTransaction for the first signer', async () => {
+      const adapter = makeAdapter(commonCapabilities, { signed: 'first' })
+      adapter.signTransaction = vi.fn().mockResolvedValue({ signed: 'first' })
+      const signed = await signSharedTransactionDraft({
+        tx: {},
+        adapter,
+        password: 'p',
+        isFirstSign: true,
+      })
+      expect(adapter.signTransaction).toHaveBeenCalled()
+      expect(signed).toEqual({ signed: 'first' })
+    })
+
+    it('uses addSignature for cosigners and returns null when signing is cancelled', async () => {
+      const adapter = makeAdapter(commonCapabilities, null)
+      const signed = await signSharedTransactionDraft({
+        tx: {},
+        adapter,
+        isFirstSign: false,
+      })
+      expect(adapter.addSignature).toHaveBeenCalled()
+      expect(signed).toBeNull()
+    })
+  })
+
+  describe('signSerializedSharedTransaction', () => {
+    it('returns a serialized tx on success', async () => {
+      const adapter = makeAdapter(commonCapabilities, { sig: 'ok' })
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({})
+      mocks.serializationService.serializeTx.mockReturnValue('serialized-signed')
+
+      const result = await signSerializedSharedTransaction({
+        serializedTx: 'hex',
+        adapter,
+        password: 'p',
+      })
+
+      expect(result).toEqual({ ok: true, serializedTx: 'serialized-signed' })
+    })
+
+    it('returns a password error when password is required and signing fails', async () => {
+      const adapter = makeAdapter(commonCapabilities, null)
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({})
+
+      const result = await signSerializedSharedTransaction({
+        serializedTx: 'hex',
+        adapter,
+      })
+      expect(result).toEqual({ ok: false, errorKey: 'common.pwdErr' })
+    })
+
+    it('returns cancelled when no password is required and signing fails', async () => {
+      const adapter = makeAdapter(ledgerCapabilities, null)
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({})
+
+      const result = await signSerializedSharedTransaction({
+        serializedTx: 'hex',
+        adapter,
+      })
+      expect(result).toEqual({ ok: false, cancelled: true })
+    })
+  })
+
+  describe('sendSerializedSharedTransaction', () => {
+    it('returns ok with a reversed tx hash when the chain accepts the tx', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({
+        getHash: () => 'abcd',
+      })
+      mocks.signingService.sendTx.mockResolvedValue({ Error: 0, Result: '' })
+
+      const result = await sendSerializedSharedTransaction('hex')
+      expect(result).toEqual({ ok: true, txHash: 'abcd', response: { Error: 0, Result: '' } })
+    })
+
+    it('maps an insufficient-balance result to a localized error key', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({ getHash: () => 'h' })
+      mocks.signingService.sendTx.mockResolvedValue({ Error: 1, Result: 'balance insufficient' })
+
+      const result = await sendSerializedSharedTransaction('hex')
+      expect(result).toMatchObject({ ok: false, errorKey: 'common.balanceInsufficient' })
+    })
+
+    it('maps a gas-cost result to the ong-not-enough error key', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({ getHash: () => 'h' })
+      mocks.signingService.sendTx.mockResolvedValue({ Error: -1, Result: 'cannot cover gas cost' })
+
+      const result = await sendSerializedSharedTransaction('hex')
+      expect(result).toMatchObject({ ok: false, errorKey: 'common.ongNoEnough' })
+    })
+
+    it('returns a generic failure message for other errors', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({ getHash: () => 'h' })
+      mocks.signingService.sendTx.mockResolvedValue({ Error: 99, Result: 'some other error' })
+
+      const result = await sendSerializedSharedTransaction('hex')
+      expect(result).toMatchObject({ ok: false, message: 'some other error' })
+    })
+
+    it('returns a network error when deserialization or send throws', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockRejectedValue(new Error('boom'))
+      const result = await sendSerializedSharedTransaction('hex')
+      expect(result).toEqual({ ok: false, errorKey: 'common.networkErr' })
+    })
+  })
+
+  describe('countSerializedSharedTransactionSignatures', () => {
+    it('returns the number of collected signatures', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({
+        sigs: [{ sigData: ['a', 'b'] }],
+      })
+      expect(await countSerializedSharedTransactionSignatures('hex')).toBe(2)
+    })
+
+    it('returns 0 when no signatures are present', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({ sigs: [undefined] })
+      expect(await countSerializedSharedTransactionSignatures('hex')).toBe(0)
     })
   })
 })
