@@ -326,6 +326,43 @@ describe('useImportJsonWalletPage', () => {
     expect(mocks.router.push).not.toHaveBeenCalled()
   })
 
+  it('accepts DAT files from a direct upload file wrapper', async () => {
+    const file = { name: 'wallet.dat' }
+    const datWallet = { accounts: [] as unknown[] }
+    mocks.walletImportFile.readImportedWalletFile.mockResolvedValue('{"accounts":[]}')
+    mocks.application.parseImportedDatWallet.mockReturnValue({
+      ok: true,
+      wallet: datWallet,
+    })
+    const page = useImportJsonWalletPage()
+
+    await page.handleImportJsonFileChange({ file })
+
+    expect(mocks.walletImportFile.readImportedWalletFile).toHaveBeenCalledWith(file)
+    expect(page.form.datPath).toBe('importJsonWallet.selectedDatFilewallet.dat')
+    expect(page.form.datWallet).toEqual(datWallet)
+  })
+
+  it('accepts DAT files from a native upload input event', async () => {
+    const file = { name: 'wallet.dat' }
+    mocks.walletImportFile.readImportedWalletFile.mockResolvedValue('{"accounts":[]}')
+    mocks.application.parseImportedDatWallet.mockReturnValue({
+      ok: true,
+      wallet: { accounts: [] },
+    })
+    const page = useImportJsonWalletPage()
+
+    await page.handleImportJsonFileChange({
+      target: {
+        value: 'C:\\fakepath\\wallet.dat',
+        files: [file],
+      },
+    })
+
+    expect(mocks.walletImportFile.readImportedWalletFile).toHaveBeenCalledWith(file)
+    expect(page.form.datPath).toBe('importJsonWallet.selectedDatFilewallet.dat')
+  })
+
   it('resets DAT selection for missing and rejected wallet files', async () => {
     const page = useImportJsonWalletPage()
 

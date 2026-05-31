@@ -138,6 +138,29 @@ describe('useWalletsPage', () => {
       'AQ-no-metadata',
     ])
   })
+
+  it('breaks ties on acct between hardware wallets that both have a defined account index', () => {
+    mocks.walletsStore.hardwareWallets = [
+      { address: 'AQ-acct-low', timestamp: 1, acct: 1 },
+      { address: 'AQ-acct-high', timestamp: 1, acct: 3 },
+    ]
+    const page = useWalletsPage()
+
+    expect(page.hardwareWalletSort.value.map((wallet) => wallet.address)).toEqual([
+      'AQ-acct-high',
+      'AQ-acct-low',
+    ])
+  })
+
+  it('preserves order when neither timestamp nor acct disambiguates', () => {
+    mocks.walletsStore.hardwareWallets = [{ address: 'AQ-first' }, { address: 'AQ-second' }]
+    const page = useWalletsPage()
+
+    expect(page.hardwareWalletSort.value.map((wallet) => wallet.address)).toEqual([
+      'AQ-first',
+      'AQ-second',
+    ])
+  })
 })
 
 describe('useWalletsPage filter', () => {

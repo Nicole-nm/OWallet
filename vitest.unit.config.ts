@@ -5,6 +5,7 @@ export default defineConfig({
     name: 'unit',
     environment: 'node',
     include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    silent: 'passed-only',
     coverage: {
       provider: 'v8',
       // Coverage is scoped to testable units. Declarative/config-only modules

@@ -196,6 +196,7 @@ import CreateEntryCard from '../../shared/ui/cards/CreateEntryCard.vue'
 import AppState from '../../shared/ui/feedback/AppState.vue'
 import AppButton from '../../shared/ui/actions/AppButton.vue'
 import { ROUTE_NAMES } from '../../shared/navigation/routeNames'
+import { isTextEntryTarget, isUnmodifiedKey } from '../../shared/lib/keyboardShortcuts'
 import { useWalletsPage } from '../../workflows/wallet/useWalletsPage'
 
 defineOptions({
@@ -204,16 +205,8 @@ defineOptions({
 
 const filterInputRef = ref<{ focus: () => void } | null>(null)
 
-function isTextEntryTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  if (target.isContentEditable) return true
-  const tag = target.tagName
-  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
-}
-
 function handleGlobalKey(event: KeyboardEvent) {
-  if (event.key !== '/') return
-  if (event.ctrlKey || event.metaKey || event.altKey) return
+  if (!isUnmodifiedKey(event, '/')) return
   if (isTextEntryTarget(event.target)) return
   event.preventDefault()
   filterInputRef.value?.focus()
