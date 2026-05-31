@@ -44,6 +44,13 @@ const mocks = vi.hoisted(() => ({
     syncAdminVotes: vi.fn(),
     createVoteStopTransaction: vi.fn(),
   },
+  feedback: {
+    notifyWarning: vi.fn(),
+    notifyFailure: vi.fn(),
+  },
+  polling: {
+    startPolling: vi.fn(),
+  },
 }))
 
 vi.mock('vue', async () => {
@@ -85,7 +92,15 @@ vi.mock('../../shared/composables/useGlobalLoading', () => ({
 
 vi.mock('../../shared/ui/feedback', () => ({
   notifyError: vi.fn(),
-  notifyWarning: vi.fn(),
+  notifyWarning: (...args: unknown[]) => mocks.feedback.notifyWarning(...args),
+}))
+
+vi.mock('../../shared/ui/notifyFailure', () => ({
+  notifyFailure: (...args: unknown[]) => mocks.feedback.notifyFailure(...args),
+}))
+
+vi.mock('../../shared/composables/usePollingTask', () => ({
+  usePollingTask: () => mocks.polling,
 }))
 
 vi.mock('../../modules/governance/application/vote/voteTopicApplicationService', () => ({
@@ -106,6 +121,7 @@ describe('useVoteListPage', () => {
     mocks.voteStore.allVotes = []
     mocks.voteStore.adminVotes = []
     mocks.voteStore.voteWallet = null
+    mocks.voteStore.contractHash = ''
     mocks.voteService.loadVoteRole.mockResolvedValue({
       ok: true,
       contractHash: 'resolved-hash',
@@ -254,5 +270,93 @@ describe('useVoteListPage', () => {
       ['1\u2009234\u2009567', '9\u2009876\u2009543'],
       ['1\u2009000', '2\u2009000'],
     ])
+  })
+
+  it('loads the wallet role, refreshes votes, and starts polling on mount', async () => {
+    mocks.voteStore.voteWallet = { address: 'AQ123' } as WalletSigner
+
+    useVoteListPage()
+
+    await vi.waitFor(() => {
+      expect(mocks.voteService.loadVoteRole).toHaveBeenCalledWith({
+        contractHash: '',
+        network: 'testnet',
+        address: 'AQ123',
+      })
+      expect(mocks.voteService.loadVoteList).toHaveBeenCalled()
+      expect(mocks.polling.startPolling).toHaveBeenCalledWith({ immediate: false })
+    })
+    expect(mocks.loadingStore.showLoadingModals).toHaveBeenCalled()
+    expect(mocks.loadingStore.hideLoadingModals).toHaveBeenCalled()
+  })
+
+  it('refreshes without loading UI or failure notifications when requested', async () => {
+    mocks.voteService.loadVoteList.mockResolvedValue({
+      ok: false,
+      errorKey: 'common.networkErr',
+    })
+    const page = useVoteListPage()
+    await vi.waitFor(() => expect(mocks.polling.startPolling).toHaveBeenCalled())
+    vi.clearAllMocks()
+
+    await expect(
+      page.refreshVoteList({
+        showLoading: false,
+        showError: false,
+      })
+    ).resolves.toMatchObject({ ok: false })
+
+    expect(mocks.loadingStore.showLoadingModals).not.toHaveBeenCalled()
+    expect(mocks.loadingStore.hideLoadingModals).not.toHaveBeenCalled()
+    expect(mocks.feedback.notifyFailure).not.toHaveBeenCalled()
+  })
+
+  it('supports navigation, dialog controls, pagination defaults, and stoppable statuses', () => {
+    const page = useVoteListPage()
+    const routes = [{ name: 'Votes', path: '/votes' }]
+
+    page.setVoteListRoutes(routes)
+    page.setVoteListMenuLabels({ all: 'All', created: 'Created' })
+    expect(page.routes.value).toEqual(routes)
+    expect(page.menus.value).toEqual([{ key: 'all', name: 'All' }])
+
+    page.handleTableChange()
+    expect(page.tablePagination.value.current).toBe(1)
+    page.handleSelectMenu({ key: 'created' })
+    expect(page.currentMenu.value).toEqual(['created'])
+
+    expect(page.isVoteStoppable({ statusText: 'NOT_START' })).toBe(true)
+    expect(page.isVoteStoppable({ statusText: 'IN_PROGRESS' })).toBe(true)
+    expect(page.isVoteStoppable({ statusText: 'FINISHED' })).toBe(false)
+
+    page.setVoteListDialogVisible(true)
+    page.tx.value = 'pending'
+    page.handleCancel()
+    expect(page.signVisible.value).toBe(false)
+    expect(page.tx.value).toBe('')
+
+    page.handleAddVote()
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: ROUTE_NAMES.VOTE_CREATE })
+    page.back()
+    expect(mocks.router.back).toHaveBeenCalled()
+  })
+
+  it('notifies when a stop-vote request fails and refreshes after sent transactions', async () => {
+    mocks.voteService.createVoteStopTransaction.mockResolvedValue({
+      ok: false,
+      errorKey: 'vote.stopFailed',
+    })
+    const page = useVoteListPage()
+    await vi.waitFor(() => expect(mocks.polling.startPolling).toHaveBeenCalled())
+    vi.clearAllMocks()
+
+    await expect(page.onStopVote({ hash: 'vote-hash' })).resolves.toMatchObject({ ok: false })
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('vote.stopFailed', {
+      literal: true,
+    })
+
+    page.handleTxSent()
+    expect(page.signVisible.value).toBe(false)
+    await vi.waitFor(() => expect(mocks.voteService.loadVoteList).toHaveBeenCalled())
   })
 })

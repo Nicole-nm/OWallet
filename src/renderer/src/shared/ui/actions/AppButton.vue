@@ -7,6 +7,7 @@
     :disabled="disabled || loading"
     :danger="isDanger"
     :block="block"
+    :aria-label="resolvedAriaLabel"
     :aria-busy="loading || undefined"
     :aria-disabled="disabled || loading || undefined"
     :class="buttonClasses"
@@ -68,6 +69,10 @@ const props = defineProps({
     type: [String, Object] as PropType<RouteLocationRaw | null>,
     default: null,
   },
+  ariaLabel: {
+    type: String,
+    default: '',
+  },
 })
 
 const emit = defineEmits<{
@@ -80,6 +85,14 @@ const forwardedAttrs = computed(() => {
   const nextAttrs = { ...attrs }
   delete nextAttrs.class
   return nextAttrs
+})
+
+const resolvedAriaLabel = computed(() => {
+  if (props.ariaLabel) {
+    return props.ariaLabel
+  }
+
+  return typeof attrs['aria-label'] === 'string' ? attrs['aria-label'] : undefined
 })
 
 const resolvedVariant = computed(() => {

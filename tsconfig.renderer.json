@@ -18,8 +18,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
       "@/*": ["./src/renderer/src/*"]
-    },
-    "baseUrl": "."
+    }
   },
   "include": ["src/renderer/src/**/*.ts", "src/renderer/src/**/*.vue", "src/shared-types/**/*.ts"],
   "exclude": ["node_modules", "out", "dist_electron"]

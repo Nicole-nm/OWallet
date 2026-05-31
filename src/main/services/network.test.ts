@@ -37,6 +37,24 @@ describe('network IPC service', () => {
     vi.stubGlobal('fetch', mocks.fetch)
   })
 
+  function expectErrorMessageToBeRedacted(error: unknown, ...sensitiveValues: string[]) {
+    const message = error instanceof Error ? error.message : String(error)
+    for (const sensitiveValue of sensitiveValues) {
+      expect(message).not.toContain(sensitiveValue)
+    }
+  }
+
+  async function captureRejectedError(promise: unknown): Promise<unknown> {
+    let capturedError: unknown
+    try {
+      await promise
+    } catch (error) {
+      capturedError = error
+    }
+    expect(capturedError).toBeInstanceOf(Error)
+    return capturedError
+  }
+
   it('fetches allowed JSON endpoints with safe default headers', async () => {
     mocks.fetch.mockResolvedValueOnce(
       new Response(JSON.stringify({ tag_name: 'v0.11.0' }), { status: 200 })
@@ -88,15 +106,27 @@ describe('network IPC service', () => {
 
   it('rejects disallowed URLs and malformed input before fetching', async () => {
     const handler = await getFetchJsonHandler()
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
 
-    await expect(
-      handler?.(null, { url: 'https://api.github.com.attacker.test/repos', options: {} })
-    ).rejects.toThrow('Blocked network request')
-    expect(() => handler?.(null, { url: 'not a url', options: {} })).toThrow('malformed URL')
-    expect(() => handler?.(null, { url: 'javascript:alert(1)', options: {} })).toThrow(
+    const disallowedUrl = 'https://api.github.com.attacker.test/repos'
+    const disallowedError = await captureRejectedError(
+      handler?.(null, { url: disallowedUrl, options: {} })
+    )
+    expect(disallowedError).toEqual(expect.objectContaining({ message: expect.any(String) }))
+    expect(String((disallowedError as Error).message)).toContain('Blocked network request')
+    expectErrorMessageToBeRedacted(disallowedError, 'api.github.com.attacker.test', disallowedUrl)
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[OWallet] Blocked network request to disallowed upstream JSON endpoint'
+    )
+    warnSpy.mockRestore()
+
+    await expect(handler?.(null, { url: 'not a url', options: {} })).rejects.toThrow(
+      'malformed URL'
+    )
+    await expect(handler?.(null, { url: 'javascript:alert(1)', options: {} })).rejects.toThrow(
       'only supports http/https'
     )
-    expect(() => handler?.(null, { url: 42, options: {} })).toThrow('requires a string URL')
+    await expect(handler?.(null, { url: 42, options: {} })).rejects.toThrow('requires a string URL')
     expect(mocks.fetch).not.toHaveBeenCalled()
   })
 
@@ -114,21 +144,21 @@ describe('network IPC service', () => {
 
   it('surfaces HTTP and JSON parsing failures with useful messages', async () => {
     const handler = await getFetchJsonHandler()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const upstreamUrl = 'https://api.github.com/repos/ontio/OWallet/releases/latest'
 
     mocks.fetch.mockResolvedValueOnce(new Response('server exploded', { status: 500 }))
-    await expect(
-      handler?.(null, {
-        url: 'https://api.github.com/repos/ontio/OWallet/releases/latest',
-        options: {},
-      })
-    ).rejects.toThrow('HTTP 500')
+    const httpError = await captureRejectedError(handler?.(null, { url: upstreamUrl, options: {} }))
+    expect(String((httpError as Error).message)).toContain('HTTP 500')
+    expect(errorSpy).toHaveBeenCalledWith('[OWallet] HTTP 500 from upstream JSON endpoint')
+    expect(String(errorSpy.mock.calls[0]?.[0] ?? '')).not.toContain('server exploded')
+    expectErrorMessageToBeRedacted(httpError, upstreamUrl, 'server exploded')
 
     mocks.fetch.mockResolvedValueOnce(new Response('not-json', { status: 200 }))
-    await expect(
-      handler?.(null, {
-        url: 'https://api.github.com/repos/ontio/OWallet/releases/latest',
-        options: {},
-      })
-    ).rejects.toThrow('Invalid JSON')
+    const jsonError = await captureRejectedError(handler?.(null, { url: upstreamUrl, options: {} }))
+    expect(String((jsonError as Error).message)).toContain('Invalid JSON response')
+    expect(errorSpy).toHaveBeenCalledWith('[OWallet] Invalid JSON from upstream JSON endpoint')
+    expectErrorMessageToBeRedacted(jsonError, upstreamUrl, 'not-json')
+    errorSpy.mockRestore()
   })
 })

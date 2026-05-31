@@ -1,6 +1,7 @@
 import { BigNumber } from 'bignumber.js'
 import { GAS_LIMIT, GAS_PRICE } from '../../shared/lib/constants'
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
+import { assertSdkTransactionLike } from '../../shared/chain/sdkBoundary'
 import type { SdkTransactionLike } from '../../shared/chain/types'
 
 export async function buildNativeTransfer(
@@ -19,15 +20,18 @@ export async function buildNativeTransfer(
   const sdkAmount =
     asset === 'ONG' ? new BigNumber(amount).multipliedBy(1e9).toString() : String(amount)
 
-  return OntAssetTxBuilder.makeTransferTx(
-    asset,
-    fromAddr,
-    toAddr,
-    sdkAmount,
-    gasPrice,
-    gasLimit,
-    payerAddr
-  ) as unknown as SdkTransactionLike
+  return assertSdkTransactionLike(
+    OntAssetTxBuilder.makeTransferTx(
+      asset,
+      fromAddr,
+      toAddr,
+      sdkAmount,
+      gasPrice,
+      gasLimit,
+      payerAddr
+    ),
+    'OntAssetTxBuilder.makeTransferTx'
+  )
 }
 
 export async function buildOep4Transfer(
@@ -48,14 +52,10 @@ export async function buildOep4Transfer(
   const payerAddr = payer ? new Crypto.Address(payer) : fromAddr
   const sdkAmount = new BigNumber(amount).multipliedBy(Math.pow(10, decimal)).toString()
 
-  return oep4.makeTransferTx(
-    fromAddr,
-    toAddr,
-    sdkAmount,
-    gasPrice,
-    gasLimit,
-    payerAddr
-  ) as unknown as SdkTransactionLike
+  return assertSdkTransactionLike(
+    oep4.makeTransferTx(fromAddr, toAddr, sdkAmount, gasPrice, gasLimit, payerAddr),
+    'Oep4TxBuilder.makeTransferTx'
+  )
 }
 
 export async function buildClaimOng(
@@ -67,12 +67,8 @@ export async function buildClaimOng(
   const { Crypto, OntAssetTxBuilder } = await loadOntologySdk()
   const addr = new Crypto.Address(address)
   const amount = new BigNumber(ongAmount).multipliedBy(1e9).toString()
-  return OntAssetTxBuilder.makeWithdrawOngTx(
-    addr,
-    addr,
-    amount,
-    addr,
-    gasPrice,
-    gasLimit
-  ) as unknown as SdkTransactionLike
+  return assertSdkTransactionLike(
+    OntAssetTxBuilder.makeWithdrawOngTx(addr, addr, amount, addr, gasPrice, gasLimit),
+    'OntAssetTxBuilder.makeWithdrawOngTx'
+  )
 }

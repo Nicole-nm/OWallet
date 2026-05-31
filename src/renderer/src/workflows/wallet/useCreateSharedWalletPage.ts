@@ -8,7 +8,7 @@ import {
   createSharedWalletDraft,
   submitSharedWalletCreation,
 } from '../../modules/wallet/application/sharedWallet/createSharedWalletApplicationService'
-import { useWizardPage } from '../../shared/composables/useWizardPage'
+import { useBasicConfirmWizardPage } from '../../shared/composables/useWizardPage'
 import { ROUTE_NAMES } from '../../router/routes'
 import { applyWalletCollectionsResult } from '../support/walletCollectionsStoreSync'
 
@@ -28,7 +28,10 @@ export function useCreateSharedWalletPage() {
   const settingStore = useSettingStore()
   const walletsStore = useWalletsStore()
   const loadingStore = useLoadingModalStore()
-  const currentStep = ref(0)
+  const wizard = useBasicConfirmWizardPage({
+    backRouteName: ROUTE_NAMES.WALLETS,
+    stepTitleKeys: ['createSharedWallet.basicInfo', 'createSharedWallet.copayers'],
+  })
   const createdLabel = ref('')
   const createdAddress = ref('')
   const copayers = ref<unknown[]>([])
@@ -49,7 +52,7 @@ export function useCreateSharedWalletPage() {
   })
 
   function resetCreateSharedWalletFlow() {
-    currentStep.value = 0
+    wizard.resetWizardStep()
     createdLabel.value = ''
     createdAddress.value = ''
     copayers.value = []
@@ -141,7 +144,7 @@ export function useCreateSharedWalletPage() {
     if (requiredSigNum.value > result.copayers.length) {
       requiredSigNum.value = result.copayers.length
     }
-    currentStep.value = 1
+    wizard.goToConfirmStep()
   }
 
   function cancelCreateSharedWalletBasicStep() {
@@ -149,7 +152,7 @@ export function useCreateSharedWalletPage() {
   }
 
   function backCreateSharedWalletConfirmStep() {
-    currentStep.value = 0
+    wizard.goToBasicStep()
   }
 
   async function submitCreateSharedWalletConfirmStep() {
@@ -193,11 +196,7 @@ export function useCreateSharedWalletPage() {
   })
 
   return {
-    ...useWizardPage({
-      currentStep,
-      backRouteName: ROUTE_NAMES.WALLETS,
-      stepTitleKeys: ['createSharedWallet.basicInfo', 'createSharedWallet.copayers'],
-    }),
+    ...wizard,
     basicLabel,
     validLabel,
     pks,

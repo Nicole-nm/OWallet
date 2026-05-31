@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   open: vi.fn(),
   notifyError: vi.fn(),
+  loggerError: vi.fn(),
   currentWalletStore: {
     balance: {
       ont: 10,
@@ -69,6 +70,12 @@ vi.mock('../../shared/ui/feedback', () => ({
   notifyError: (...args: unknown[]) => mocks.notifyError(...args),
 }))
 
+vi.mock('../../shared/lib/logger', () => ({
+  logger: {
+    error: (...args: unknown[]) => mocks.loggerError(...args),
+  },
+}))
+
 vi.mock('../../stores/modules/CurrentWallet', () => ({
   useCurrentWalletStore: () => mocks.currentWalletStore,
 }))
@@ -106,10 +113,6 @@ vi.mock('../../modules/wallet/application/transfer/tokenSelectionApplicationServ
 }))
 
 import { useWalletDashboard } from './useWalletDashboard'
-
-function flushPromises() {
-  return new Promise((resolve) => setTimeout(resolve, 0))
-}
 
 describe('useWalletDashboard', () => {
   beforeEach(() => {
@@ -163,8 +166,13 @@ describe('useWalletDashboard', () => {
     const address = ref('AQ123')
     const dashboard = useWalletDashboard(address)
 
-    dashboard.refresh(true)
-    await flushPromises()
+    await expect(dashboard.refresh(true)).resolves.toMatchObject({
+      ok: true,
+      skipped: false,
+      successCount: 3,
+      failureCount: 0,
+      failures: [],
+    })
 
     expect(mocks.loadingStore.showLoadingModals).toHaveBeenCalled()
     expect(mocks.currentWalletStore.setNativeBalance).toHaveBeenCalledWith({
@@ -177,6 +185,59 @@ describe('useWalletDashboard', () => {
     expect(mocks.tokensStore.setOep4Balances).toHaveBeenCalledWith([{ symbol: 'TK1', balance: 99 }])
     expect(dashboard.completedTx.value).toEqual([{ txHash: 'tx-1', asset: 'ONT', amount: '+10' }])
     expect(mocks.loadingStore.hideLoadingModals).toHaveBeenCalled()
+    expect(dashboard.requestStart.value).toBe(false)
+  })
+
+  it('reports refresh failures and always clears loading state', async () => {
+    const error = new Error('transactions failed')
+    mocks.walletDashboardService.loadWalletTransactions.mockRejectedValueOnce(error)
+    const dashboard = useWalletDashboard(ref('AQ123'))
+
+    await expect(dashboard.refresh(true)).resolves.toMatchObject({
+      ok: false,
+      skipped: false,
+      successCount: 2,
+      failureCount: 1,
+      failures: [error],
+    })
+
+    expect(mocks.loadingStore.showLoadingModals).toHaveBeenCalled()
+    expect(mocks.loadingStore.hideLoadingModals).toHaveBeenCalled()
+    expect(dashboard.requestStart.value).toBe(false)
+    expect(mocks.loggerError).toHaveBeenCalledWith('useWalletDashboard.refresh', error)
+    expect(mocks.notifyError).toHaveBeenCalledWith('common.networkErr')
+  })
+
+  it('resolves a rapid second refresh as skipped while the first remains in flight', async () => {
+    let resolveBalance!: (value: unknown) => void
+    mocks.walletDashboardService.loadWalletNativeBalance.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveBalance = resolve
+      })
+    )
+    const dashboard = useWalletDashboard(ref('AQ123'))
+
+    const firstRefresh = dashboard.refresh(true)
+    expect(dashboard.requestStart.value).toBe(true)
+
+    await expect(dashboard.refresh(false)).resolves.toMatchObject({
+      ok: true,
+      skipped: true,
+      successCount: 0,
+      failureCount: 0,
+      failures: [],
+    })
+
+    resolveBalance({
+      ok: true,
+      balance: {
+        ont: 10,
+        ong: 5,
+        ontValue: 0,
+      },
+    })
+    await expect(firstRefresh).resolves.toMatchObject({ ok: true, skipped: false })
+    expect(dashboard.requestStart.value).toBe(false)
   })
 
   it('exposes thin-space formatted wallet balance display values', () => {

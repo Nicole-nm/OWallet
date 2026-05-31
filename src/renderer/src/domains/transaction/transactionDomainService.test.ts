@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock('./signingService', () => ({
-  sendTx: (...args: any[]) => mocks.signingService.sendTx(...args),
+  sendTx: (...args: unknown[]) => mocks.signingService.sendTx(...args),
 }))
 
 vi.mock('./serializationService', () => ({
@@ -30,11 +30,11 @@ vi.mock('./assetBuilder', () => ({
 }))
 
 import { sendTransaction } from './transactionDomainService'
+import { createFakeTransaction } from '../../shared/chain/__fixtures__/fakeSdk'
+import type { SdkTransactionLike } from '../../shared/chain/types'
 
-function makeTx(id: string) {
-  return {
-    getHash: () => id,
-  } as any
+function makeTx(id: string): SdkTransactionLike {
+  return createFakeTransaction({ getHash: vi.fn(() => id) })
 }
 
 describe('transactionApplicationService.sendTransaction', () => {

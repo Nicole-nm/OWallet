@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: '20.x'
+          node-version: '20.19.0'
           cache: yarn
 
       - name: Enable Corepack
@@ -32,14 +32,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Lint
-        run: yarn lint
+      - name: Install Playwright Chromium
+        run: yarn playwright install chromium
 
-      - name: Typecheck
-        run: yarn typecheck
-
-      - name: Unit tests
-        run: yarn test:unit
+      - name: Verify
+        run: yarn verify:ci
 
       - name: Setup temporary keychain and import certificate
         run: |

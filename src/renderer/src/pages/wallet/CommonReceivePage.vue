@@ -87,6 +87,7 @@ async function copy(value: string) {
 
 .receive-shell {
   width: min(100%, 860px);
+  margin: 0 auto;
 }
 
 .receive-shell__body {

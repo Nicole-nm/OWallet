@@ -8,7 +8,7 @@ import {
 } from '../../modules/governance/application/authorization/authorizationManagementApplicationService'
 import type { WalletSigner } from '../../shared/lib/types'
 import type { AuthorizationInfo, GovernanceNode, SplitFee } from '../../shared/types'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
+import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 
 interface AuthorizationTransactionsDeps {
   signVisible: Ref<boolean>

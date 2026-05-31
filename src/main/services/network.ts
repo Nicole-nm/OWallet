@@ -5,6 +5,7 @@ import { app } from 'electron'
 import type { FetchJsonOptions } from '../../shared-types/ipc'
 import { isAllowedApiUrl } from '../config'
 import { ALLOWED_HEADER_NAMES, ALLOWED_METHODS, REQUEST_TIMEOUT_MS } from '../constants'
+import { NETWORK_IPC_TIMEOUT_MS, registerIpcHandlerWithTimeout } from './ipcTimeout'
 
 function getDefaultUserAgent() {
   return `OWallet/${app.getVersion()} (Electron ${process.versions.electron}; ${process.platform})`
@@ -64,7 +65,8 @@ function parseHttpUrl(url: unknown): URL {
 
 async function fetchAllowedJson(requestUrl: URL, options: FetchJsonOptions = {}) {
   if (!isAllowedApiUrl(requestUrl.href)) {
-    throw new Error(`[OWallet] Blocked network request to disallowed URL: ${requestUrl.href}`)
+    console.warn('[OWallet] Blocked network request to disallowed upstream JSON endpoint')
+    throw new Error('[OWallet] Blocked network request to disallowed URL')
   }
 
   const method = typeof options.method === 'string' ? options.method.toUpperCase() : 'GET'
@@ -84,37 +86,30 @@ async function fetchAllowedJson(requestUrl: URL, options: FetchJsonOptions = {})
 
   const responseText = await response.text()
   if (!response.ok) {
-    // Log the full response body for diagnostics, but never surface it to the
-    // renderer: upstream error bodies can leak internal paths, versions, or
-    // other implementation details.
-    if (responseText) {
-      console.error(
-        `[OWallet] HTTP ${response.status} for ${requestUrl.href}: ${responseText.slice(0, 300)}`
-      )
-    }
-    throw new Error(`HTTP ${response.status} for ${requestUrl.href}`)
+    console.error(`[OWallet] HTTP ${response.status} from upstream JSON endpoint`)
+    throw new Error(`HTTP ${response.status}`)
   }
 
   try {
     return responseText ? JSON.parse(responseText) : {}
   } catch (error) {
-    throw new Error(
-      `Invalid JSON from ${requestUrl.href}: ${error instanceof Error ? error.message : error}`,
-      {
-        cause: error,
-      }
-    )
+    console.error('[OWallet] Invalid JSON from upstream JSON endpoint')
+    throw new Error('[OWallet] Invalid JSON response from upstream endpoint', {
+      cause: error,
+    })
   }
 }
 
 export function registerNetworkIpc(ipcMain: IpcMain): void {
-  ipcMain.handle(
+  registerIpcHandlerWithTimeout(
+    ipcMain,
     'http:fetchJson',
     (
       _event: IpcMainInvokeEvent,
       { url, options }: { url: unknown; options?: FetchJsonOptions }
     ) => {
       return fetchAllowedJson(parseHttpUrl(url), options || {})
-    }
+    },
+    NETWORK_IPC_TIMEOUT_MS
   )
 }

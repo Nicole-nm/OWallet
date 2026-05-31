@@ -297,4 +297,54 @@ describe('useImportJsonWalletPage', () => {
     )
     expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
   })
+
+  it('rejects DAT submissions before a wallet file is selected', async () => {
+    const page = useImportJsonWalletPage()
+
+    await page.submitImportJsonWallet()
+
+    expect(mocks.loading.hideLoadingModals).not.toHaveBeenCalled()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('importJsonWallet.invalidDatFile')
+  })
+
+  it('reports failed DAT account imports', async () => {
+    mocks.application.importDatWalletAccounts.mockResolvedValue({ ok: false })
+    const datWallet = {
+      accounts: [{ address: 'AQ123', key: 'encrypted-key', salt: 'salt' }],
+    }
+    mocks.walletImportFile.readImportedWalletFile.mockResolvedValue('{}')
+    mocks.application.parseImportedDatWallet.mockReturnValue({
+      ok: true,
+      wallet: datWallet,
+    })
+    const page = useImportJsonWalletPage()
+    await page.handleImportJsonFileChange({ originFileObj: { name: 'wallet.dat' } })
+
+    await page.submitImportJsonWallet()
+
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('importJsonWallet.importFailed')
+    expect(mocks.router.push).not.toHaveBeenCalled()
+  })
+
+  it('resets DAT selection for missing and rejected wallet files', async () => {
+    const page = useImportJsonWalletPage()
+
+    await page.handleImportJsonFileChange({})
+    expect(page.form.datPath).toBe('importJsonWallet.datFile')
+    expect(page.form.datWallet).toBeNull()
+
+    mocks.walletImportFile.readImportedWalletFile.mockResolvedValue('invalid')
+    mocks.application.parseImportedDatWallet.mockReturnValue({
+      ok: false,
+      errorKey: 'importJsonWallet.invalidDatFile',
+    })
+    await page.handleImportJsonFileChange({
+      file: {
+        originFileObj: {
+          name: 'invalid.dat',
+        },
+      },
+    })
+    expect(page.form.datWallet).toBeNull()
+  })
 })

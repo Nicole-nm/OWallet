@@ -2,7 +2,6 @@ import dbService, { dbFind } from '../../shared/persistence/dbService'
 import {
   WalletType,
   type DbWalletRecord as WalletRecord,
-  type SharedWalletRecord,
   type HardwareWalletRecord,
   type WalletCollections,
   type CommonWallet,
@@ -18,7 +17,10 @@ interface DbRecord<T> {
   wallet: T
 }
 
-type AnyWalletRecord = DbRecord<WalletRecord | SharedWalletRecord | HardwareWalletRecord>
+type AnyWalletRecord =
+  | { _id?: string; type: WalletType.CommonWallet; address: string; wallet: CommonWallet }
+  | { _id?: string; type: WalletType.SharedWallet; address: string; wallet: SharedWallet }
+  | { _id?: string; type: WalletType.HardwareWallet; address: string; wallet: HardwareWallet }
 type LocalAccountRecord = DbRecord<WalletRecord | HardwareWalletRecord>
 
 export async function findWalletCollections(): Promise<WalletCollections> {
@@ -34,11 +36,11 @@ export async function findWalletCollections(): Promise<WalletCollections> {
 
   for (const item of walletDocs) {
     if (item.type === WalletType.CommonWallet) {
-      collections.normalWallets.push(item.wallet as unknown as CommonWallet)
+      collections.normalWallets.push(item.wallet)
     } else if (item.type === WalletType.SharedWallet) {
-      collections.sharedWallets.push(item.wallet as unknown as SharedWallet)
+      collections.sharedWallets.push(item.wallet)
     } else if (item.type === WalletType.HardwareWallet) {
-      collections.hardwareWallets.push(item.wallet as unknown as HardwareWallet)
+      collections.hardwareWallets.push(item.wallet)
     }
   }
 

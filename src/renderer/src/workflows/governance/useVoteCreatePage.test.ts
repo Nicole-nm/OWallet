@@ -20,6 +20,9 @@ const mocks = vi.hoisted(() => ({
   voteService: {
     createVoteTopicTransaction: vi.fn(),
   },
+  feedback: {
+    notifyWarning: vi.fn(),
+  },
 }))
 
 vi.mock('vue-router', () => ({
@@ -46,7 +49,7 @@ vi.mock('../../modules/governance/application/vote/voteTopicApplicationService',
 }))
 
 vi.mock('../../shared/ui/feedback', () => ({
-  notifyWarning: vi.fn(),
+  notifyWarning: (...args: unknown[]) => mocks.feedback.notifyWarning(...args),
 }))
 
 import { useVoteCreatePage } from './useVoteCreatePage'
@@ -122,5 +125,95 @@ describe('useVoteCreatePage', () => {
     expect(mocks.voteStore.setContractHash).toHaveBeenCalledWith('resolved-hash')
     expect(page.tx.value).toBe('serialized-vote-tx')
     expect(page.signVisible.value).toBe(true)
+  })
+
+  it('sanitizes oversized and Chinese title and detail input', () => {
+    const page = useVoteCreatePage()
+    page.titleLimit.value = 4
+    page.detailLimit.value = 5
+    page.title.value = 'abcdef'
+    page.content.value = 'abcdef'
+
+    expect(page.sanitizeVoteTitle('abcdef')).toEqual({ ok: true })
+    expect(page.title.value).toBe('abcd')
+    expect(page.sanitizeVoteContent('abcdef')).toEqual({ ok: true })
+    expect(page.content.value).toBe('abcde')
+
+    page.title.value = 'Topic中'
+    page.content.value = 'Detail中'
+    expect(page.onTitleInput({ target: { value: 'Topic中' } })).toMatchObject({ ok: false })
+    expect(page.onDetailInput({ target: { value: 'Detail中' } })).toMatchObject({ ok: false })
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledTimes(2)
+  })
+
+  it('rejects missing wallets, Chinese text, expired windows, and service failures', async () => {
+    const page = useVoteCreatePage()
+    mocks.voteStore.voteWallet = null as never
+    await expect(page.submitVoteCreateForm()).resolves.toMatchObject({
+      errorKey: 'nodeStake.selectIndividualWallet',
+    })
+
+    mocks.voteStore.voteWallet = { address: 'AQ123' }
+    const validWalletPage = useVoteCreatePage()
+    validWalletPage.title.value = '主题'
+    validWalletPage.content.value = 'Details'
+    await expect(validWalletPage.submitVoteCreateForm()).resolves.toMatchObject({
+      errorKey: 'vote.onlySupportEnglish',
+    })
+
+    validWalletPage.title.value = 'Topic'
+    validWalletPage.content.value = '内容'
+    await expect(validWalletPage.submitVoteCreateForm()).resolves.toMatchObject({
+      errorKey: 'vote.onlySupportEnglish',
+    })
+
+    validWalletPage.content.value = 'Details'
+    const start = new Date(Date.now() - 2 * 60 * 60 * 1000)
+    const end = new Date(Date.now() - 60 * 60 * 1000)
+    validWalletPage.startDate.value = start
+    validWalletPage.startTime.value = start
+    validWalletPage.endDate.value = end
+    validWalletPage.endTime.value = end
+    await expect(validWalletPage.submitVoteCreateForm()).resolves.toMatchObject({
+      errorKey: 'vote.endTimeError',
+    })
+
+    const futureEnd = new Date(Date.now() + 60 * 60 * 1000)
+    validWalletPage.endDate.value = futureEnd
+    validWalletPage.endTime.value = futureEnd
+    mocks.voteService.createVoteTopicTransaction.mockResolvedValueOnce({
+      ok: false,
+      errorKey: 'common.networkErr',
+    })
+    await expect(validWalletPage.submit()).resolves.toMatchObject({
+      errorKey: 'common.networkErr',
+    })
+    expect(mocks.feedback.notifyWarning).toHaveBeenLastCalledWith('common.networkErr')
+  })
+
+  it('supports route overrides and resets dialog state during navigation', async () => {
+    mocks.voteService.createVoteTopicTransaction.mockResolvedValue({
+      ok: true,
+      tx: 'tx-without-contract-hash',
+    })
+    const page = useVoteCreatePage()
+    const routes = [{ name: 'Votes', path: '/votes' }]
+
+    page.setVoteCreateRoutes(routes)
+    expect(page.routes.value).toEqual(routes)
+
+    page.tx.value = 'pending'
+    page.signVisible.value = true
+    page.handleCancel()
+    expect(page.tx.value).toBe('')
+    expect(page.signVisible.value).toBe(false)
+
+    page.signVisible.value = true
+    page.handleTxSent()
+    expect(page.signVisible.value).toBe(false)
+    expect(mocks.router.back).toHaveBeenCalledOnce()
+
+    page.back()
+    expect(mocks.router.back).toHaveBeenCalledTimes(2)
   })
 })

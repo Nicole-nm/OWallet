@@ -243,4 +243,58 @@ describe('useImportLedgerWalletPage', () => {
     })
     expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
   })
+
+  it('warns and skips import when no ledger account is selected', async () => {
+    const page = useImportLedgerWalletPage()
+
+    await expect(page.submitImportLedgerWallet()).resolves.toEqual({
+      ok: false,
+      errorKey: 'ledgerWallet.pleaseSelectWallet',
+    })
+
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('ledgerWallet.pleaseSelectWallet')
+    expect(mocks.application.importLedgerWalletSelections).not.toHaveBeenCalled()
+  })
+
+  it('surfaces ledger import failures without mutating wallet state', async () => {
+    mocks.application.importLedgerWalletSelections.mockResolvedValue({
+      ok: false,
+      errorKey: 'common.savedbFailed',
+    })
+
+    const page = useImportLedgerWalletPage()
+    page.updateImportLedgerField({ field: 'label', value: 'Ledger' })
+    page.selectImportLedgerAddress({ acct: 0, publicKey: 'PUB-0', address: 'AQ000' })
+
+    await page.submitImportLedgerWallet()
+
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('common.savedbFailed')
+    expect(mocks.walletsStore.setWalletCollections).not.toHaveBeenCalled()
+    expect(mocks.currentWalletStore.setCurrentWallet).not.toHaveBeenCalled()
+    expect(mocks.router.push).not.toHaveBeenCalled()
+  })
+
+  it('imports the advanced-mode ledger selection with the selected derivation mode', async () => {
+    mocks.application.importLedgerWalletSelections.mockResolvedValue({
+      ok: true,
+      insertedAccounts: [] as unknown[],
+      duplicateCount: 0,
+      collectionsResult: { ok: true, collections: {} },
+    })
+
+    const page = useImportLedgerWalletPage()
+    page.updateImportLedgerField({ field: 'label', value: 'Ledger' })
+    page.updateImportLedgerField({ field: 'neo', value: true })
+    page.form.isAdvancedMode = true
+    page.form.advancedModePublicKey = { acct: 3, publicKey: 'PUB-3', address: 'AQ003' }
+
+    await page.submitImportLedgerWallet()
+
+    expect(mocks.application.importLedgerWalletSelections).toHaveBeenCalledWith({
+      selections: [{ acct: 3, publicKey: 'PUB-3', address: 'AQ003' }],
+      label: 'Ledger',
+      neo: true,
+    })
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
+  })
 })

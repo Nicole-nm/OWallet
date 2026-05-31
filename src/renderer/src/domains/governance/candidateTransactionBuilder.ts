@@ -6,6 +6,7 @@
  */
 
 import { GAS_PRICE, GAS_LIMIT, GAS_LIMIT_HIGH } from '../../shared/lib/constants'
+import { invokeSdkTransactionBuilder } from '../../shared/chain/sdkBoundary'
 import { resolveGovContext } from './governanceSdkLoader'
 import type { SdkTransactionLike } from '../../shared/chain/types'
 
@@ -18,17 +19,12 @@ function createPeerTxBuilder(method: string) {
     gasLimit = GAS_LIMIT
   ): Promise<SdkTransactionLike> => {
     const { GovernanceTxBuilder, userAddr, payerAddr } = await resolveGovContext(address, payer)
-    const builder = GovernanceTxBuilder as unknown as Record<
-      string,
-      (...args: unknown[]) => unknown
-    >
-    return builder[method]!(
-      userAddr,
-      peerPubkey,
-      payerAddr,
-      gasPrice,
-      gasLimit
-    ) as SdkTransactionLike
+    return invokeSdkTransactionBuilder(
+      GovernanceTxBuilder,
+      method,
+      [userAddr, peerPubkey, payerAddr, gasPrice, gasLimit],
+      `GovernanceTxBuilder.${method}`
+    )
   }
 }
 
@@ -50,17 +46,12 @@ export async function buildRegisterCandidate(
   gasLimit = GAS_LIMIT_HIGH
 ): Promise<SdkTransactionLike> {
   const { GovernanceTxBuilder, userAddr, payerAddr } = await resolveGovContext(address, payer)
-  const builder = GovernanceTxBuilder as unknown as Record<string, (...args: unknown[]) => unknown>
-  return builder.makeRegisterCandidateTx!(
-    ontid,
-    peerPubkey,
-    keyNo,
-    userAddr,
-    initPos,
-    payerAddr,
-    gasPrice,
-    gasLimit
-  ) as SdkTransactionLike
+  return invokeSdkTransactionBuilder(
+    GovernanceTxBuilder,
+    'makeRegisterCandidateTx',
+    [ontid, peerPubkey, keyNo, userAddr, initPos, payerAddr, gasPrice, gasLimit],
+    'GovernanceTxBuilder.makeRegisterCandidateTx'
+  )
 }
 
 export async function buildSetFeePercentage(
@@ -73,14 +64,10 @@ export async function buildSetFeePercentage(
   gasLimit = GAS_LIMIT
 ): Promise<SdkTransactionLike> {
   const { GovernanceTxBuilder, userAddr, payerAddr } = await resolveGovContext(address, payer)
-  const builder = GovernanceTxBuilder as unknown as Record<string, (...args: unknown[]) => unknown>
-  return builder.makeSetFeePercentageTx!(
-    peerPubkey,
-    userAddr,
-    peerCost,
-    stakeCost,
-    payerAddr,
-    gasPrice,
-    gasLimit
-  ) as SdkTransactionLike
+  return invokeSdkTransactionBuilder(
+    GovernanceTxBuilder,
+    'makeSetFeePercentageTx',
+    [peerPubkey, userAddr, peerCost, stakeCost, payerAddr, gasPrice, gasLimit],
+    'GovernanceTxBuilder.makeSetFeePercentageTx'
+  )
 }

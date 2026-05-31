@@ -124,6 +124,42 @@ describe('governanceSigningApplicationService', () => {
     })
   })
 
+  it('maps ledger transaction signing without a signature to ledgerWallet.signFailed', async () => {
+    const adapter = fakeAdapter(ledgerCapabilities, {
+      signTransaction: vi.fn().mockResolvedValue(null),
+    })
+
+    await expect(
+      signGovernancePayload({
+        payload: makeTx('ledger-tx') as never,
+        adapter,
+        ledgerConnected: true,
+      })
+    ).resolves.toEqual({
+      ok: false,
+      errorKey: 'ledgerWallet.signFailed',
+    })
+  })
+
+  it('maps software-wallet transaction signing throws to a network error', async () => {
+    const error = new Error('sdk failed')
+    const adapter = fakeAdapter(commonCapabilities, {
+      signTransaction: vi.fn().mockRejectedValue(error),
+    })
+
+    await expect(
+      signGovernancePayload({
+        payload: makeTx('common-tx') as never,
+        adapter,
+        password: 'secret',
+      })
+    ).resolves.toEqual({
+      ok: false,
+      errorKey: 'common.networkErr',
+      error,
+    })
+  })
+
   it('returns a signed payload when wallet message signing succeeds', async () => {
     const adapter = fakeAdapter(commonCapabilities, {
       signMessage: vi.fn().mockResolvedValue('signed'),

@@ -4,9 +4,18 @@ const sdk = vi.hoisted(() => {
   class FakeAddress {
     constructor(public value: string) {}
   }
-  const makeTransferTx = vi.fn((...args: unknown[]) => ({ kind: 'transfer', args }))
-  const makeWithdrawOngTx = vi.fn((...args: unknown[]) => ({ kind: 'withdraw', args }))
-  const oep4Transfer = vi.fn((...args: unknown[]) => ({ kind: 'oep4', args }))
+  function fakeTx(kind: string, args: unknown[]) {
+    return {
+      kind,
+      args,
+      serializeUnsignedData: vi.fn(() => new Uint8Array([1, 2, 3])),
+      serialize: vi.fn(() => 'serialized'),
+      getHash: vi.fn(() => `${kind}-hash`),
+    }
+  }
+  const makeTransferTx = vi.fn((...args: unknown[]) => fakeTx('transfer', args))
+  const makeWithdrawOngTx = vi.fn((...args: unknown[]) => fakeTx('withdraw', args))
+  const oep4Transfer = vi.fn((...args: unknown[]) => fakeTx('oep4', args))
   class FakeOep4Builder {
     constructor(public addr: unknown) {}
     makeTransferTx = oep4Transfer

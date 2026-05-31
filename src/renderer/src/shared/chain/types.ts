@@ -62,3 +62,15 @@ export interface SdkTransactionResponseLike {
   Result?: string
   [key: string]: unknown
 }
+
+/**
+ * Shape of an SDK `Account.toJsonObj()` result. The SDK declares this method as
+ * returning the opaque `Account` class, but at runtime it yields a plain JSON
+ * object, so the transaction/wallet layers consume it through this looser shape.
+ */
+export interface SdkJsonAccountLike {
+  address?: string
+  publicKey?: string
+  label?: string
+  [key: string]: unknown
+}

@@ -8,7 +8,7 @@ import {
   createNewAuthorizationTransaction,
   resolveNewAuthorizationInput,
 } from '../../modules/governance/application/authorization/authorizationManagementApplicationService'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
+import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 
 export function useNewAuthorizationPage() {
   const router = useRouter()

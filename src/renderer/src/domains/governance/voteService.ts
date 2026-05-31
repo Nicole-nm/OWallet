@@ -1,6 +1,7 @@
 import { GAS_PRICE, GAS_LIMIT_HIGH, getExplorerApiUrl } from '../../shared/lib/constants'
 import { createLogger } from '../../shared/lib/logger'
 import { getRestClient } from '../../shared/chain/restClient'
+import { assertSdkTransactionLike } from '../../shared/chain/sdkBoundary'
 import httpClient from '../../shared/network/httpClient'
 import { serializeTx } from '../transaction/serializationService'
 import {
@@ -14,7 +15,6 @@ import {
   parseVoterEntry,
 } from './voteParser'
 import { loadVoteSdk, contractHashOld } from './voteTransactionBuilder'
-import type { SdkTransactionLike } from '../../shared/chain/types'
 import type { VoteRecord } from './types'
 
 /* -------------------------------------------------------------------------- */
@@ -42,7 +42,7 @@ export {
 const logger = createLogger('voteService')
 
 function serializeVoteTx(tx: unknown, context: string) {
-  return serializeTx(tx as SdkTransactionLike, context)
+  return serializeTx(assertSdkTransactionLike(tx, context), context)
 }
 
 /* -------------------------------------------------------------------------- */

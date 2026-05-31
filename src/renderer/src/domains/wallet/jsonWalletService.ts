@@ -1,11 +1,6 @@
 import { DEFAULT_SCRYPT } from '../../shared/lib/constants'
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
-
-type JsonWalletDraftLike = Record<string, unknown> & {
-  address?: string
-  publicKey?: string
-  label?: string
-}
+import { toSdkJsonAccount } from '../../shared/chain/sdkBoundary'
 
 interface BuildJsonWalletInput {
   label?: string
@@ -29,7 +24,7 @@ export async function buildJsonWallet(body: BuildJsonWalletInput) {
   account = account.toJsonObj()
   return {
     label: body.label,
-    account: account as unknown as JsonWalletDraftLike,
+    account: toSdkJsonAccount(account),
     content: wallet.toJsonObj(),
     wif: body.wif,
   }

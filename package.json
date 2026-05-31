@@ -14,6 +14,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
+    "build:compile": "electron-vite build",
     "build": "electron-vite build && electron-builder -mlw --publish=never",
     "build:mac": "electron-vite build && electron-builder -m --publish=never",
     "build:linux": "electron-vite build && electron-builder -l --publish=never",
@@ -23,12 +24,14 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.renderer.json",
     "test:watch": "vitest",
     "test:coverage": "vitest run --config vitest.unit.config.ts --coverage",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "test:e2e:headed": "playwright test --config e2e/playwright.config.ts --headed",
     "test:e2e:debug": "playwright test --config e2e/playwright.config.ts --debug",
     "test:visual": "vitest run --project storybook",
     "test:all": "yarn test:unit && yarn test:e2e && yarn test:visual",
-    "verify": "yarn lint && yarn typecheck && yarn test:unit && yarn test:coverage",
+    "verify": "yarn lint && yarn typecheck && yarn check:boundaries && yarn test:coverage && yarn test:integration && yarn build:compile && yarn size:budget",
+    "verify:ci": "yarn format:check && yarn verify && yarn audit:ci && yarn test:e2e && yarn test:visual",
     "audit:deps": "yarn audit --level moderate --groups dependencies",
     "audit:ci": "tsx scripts/audit-gate.ts",
     "size:budget": "tsx scripts/check-bundle-size.ts",
@@ -70,6 +73,7 @@
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^25.5.2",
     "@types/sortablejs": "^1.15.9",
+    "@vue/compiler-sfc": "^3.5.32",
     "@typescript-eslint/eslint-plugin": "^8.58.1",
     "@typescript-eslint/parser": "^8.58.1",
     "@vitejs/plugin-vue": "^6.0.5",
@@ -113,9 +117,10 @@
     ]
   },
   "resolutions": {
-    "app-builder-bin": "3.5.13",
     "electron-builder": "26.8.1",
-    "@xmldom/xmldom": "0.8.13",
+    "app-builder-bin": "5.0.0-alpha.12",
+    "@xmldom/xmldom": "^0.9.10",
+    "plist": "3.1.1",
     "postcss": "8.5.15"
   },
   "build": {

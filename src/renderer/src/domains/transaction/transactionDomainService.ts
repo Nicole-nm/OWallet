@@ -4,6 +4,7 @@ import {
   tryDecryptWallet,
 } from '../../shared/chain/transactionSdk'
 import { reverseHex } from '../../shared/chain/sdkHex'
+import { toSdkTransactionResponse } from '../../shared/chain/sdkBoundary'
 import { sendTx } from './signingService'
 import { serializeTx } from './serializationService'
 import type {
@@ -83,7 +84,7 @@ export async function createRedeemTransaction({
 
 export async function sendTransaction(tx: SdkTransactionLike): Promise<SendTransactionResult> {
   try {
-    const response = (await sendTx(tx)) as unknown as SdkTransactionResponseLike
+    const response = toSdkTransactionResponse(await sendTx(tx))
     if (response?.Error === 0) {
       return {
         ok: true,

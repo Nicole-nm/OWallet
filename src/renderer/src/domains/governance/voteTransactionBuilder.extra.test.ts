@@ -60,14 +60,15 @@ function fakeBuilderSdk(extra: Record<string, unknown> = {}) {
           gp: string,
           gl: string,
           payer: unknown
-        ) => ({
-          fn,
-          params,
-          contract,
-          gp,
-          gl,
-          payer,
-        })
+        ) =>
+          createFakeTransaction({
+            fn,
+            params,
+            contract,
+            gp,
+            gl,
+            payer,
+          })
       ),
     },
     Crypto: { Address: FakeAddress, PublicKey: FakePublicKey, PrivateKey: class {} },

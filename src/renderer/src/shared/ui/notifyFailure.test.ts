@@ -79,4 +79,11 @@ describe('shared/ui/notifyFailure', () => {
 
     expect(mocks.messageError).toHaveBeenCalledWith('T(specific.error)')
   })
+
+  it('falls back to the category default when no errorKey is present', () => {
+    const result = notifyFailure({ ok: false, category: 'timeout', code: 'timeout.request' })
+
+    expect(result).toBe(true)
+    expect(mocks.messageError).toHaveBeenCalledWith('T(common.requestTimeout)')
+  })
 })

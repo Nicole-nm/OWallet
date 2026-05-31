@@ -437,8 +437,18 @@
   min-width: 0;
 }
 
+.ow-flow-grid {
+  display: grid;
+  grid-template-columns: var(--ow-flow-grid-columns, repeat(2, minmax(0, 1fr)));
+  gap: var(--ow-flow-grid-gap, var(--ow-space-2));
+}
+
 @media (max-width: 700px) {
   .ow-flow-shell__progress {
+    grid-template-columns: 1fr;
+  }
+
+  .ow-flow-grid {
     grid-template-columns: 1fr;
   }
 }

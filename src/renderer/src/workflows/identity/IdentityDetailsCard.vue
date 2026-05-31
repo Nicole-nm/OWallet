@@ -204,7 +204,11 @@ function handleShowKeystoreOk() {
   padding: 14px;
   border: 1px solid var(--ow-color-border-subtle);
   border-radius: var(--ow-radius-panel);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ow-color-surface-elevated) 98%, var(--ow-color-brand) 2%),
+    var(--ow-color-surface)
+  );
   display: grid;
   gap: var(--ow-space-3);
 }
@@ -223,7 +227,7 @@ function handleShowKeystoreOk() {
   min-height: 28px;
   padding: 0 10px;
   border-radius: var(--ow-radius-pill);
-  background: color-mix(in srgb, var(--ow-color-brand) 10%, white);
+  background: color-mix(in srgb, var(--ow-color-brand) 10%, var(--ow-color-surface-elevated));
   color: var(--ow-color-brand);
   font-family: var(--ow-font-medium);
   font-size: var(--ow-font-size-caption);

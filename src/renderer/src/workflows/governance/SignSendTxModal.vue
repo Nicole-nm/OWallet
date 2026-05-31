@@ -36,9 +36,11 @@ import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedg
 import { isCommonWallet } from '../../shared/lib/types'
 import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 import { notifyGovernanceSigningFailure } from './governanceSigningFeedback'
-import type { SdkTransactionLike } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
+import {
+  isSdkTransactionLike,
+  type GovernanceSignablePayload,
+} from '../../modules/governance/application/common/governanceSignablePayload'
 import type { WalletSigner } from '../../shared/lib/types'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
 // common component to sign tx or messages with wallet or ledger.
 
 defineOptions({
@@ -78,16 +80,6 @@ const { startMonitoring, stopMonitoring, ledgerStatus, ledgerWallet } = useLedge
 
 function unwrapPayload(payload: unknown): GovernanceSignablePayload {
   return typeof payload === 'string' ? payload : (toRaw(payload) as GovernanceSignablePayload)
-}
-
-function isSdkTransactionLike(payload: unknown): payload is SdkTransactionLike {
-  return Boolean(
-    payload &&
-    typeof payload === 'object' &&
-    typeof (payload as SdkTransactionLike).serializeUnsignedData === 'function' &&
-    typeof (payload as SdkTransactionLike).serialize === 'function' &&
-    typeof (payload as SdkTransactionLike).getHash === 'function'
-  )
 }
 
 function handleWalletSignCancel() {

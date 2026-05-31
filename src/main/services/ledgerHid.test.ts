@@ -124,8 +124,30 @@ describe('ledger HID registration', () => {
 
     expect(callback).toHaveBeenCalledWith('ledger-added')
     expect(fake.listenerCount('hid-device-added')).toBe(0)
+    expect(fake.listenerCount('hid-device-removed')).toBe(0)
     vi.runOnlyPendingTimers()
     expect(callback).toHaveBeenCalledTimes(1)
+  })
+
+  it('ignores non-Ledger devices while waiting for selection', async () => {
+    vi.useFakeTimers()
+    const { registerLedgerHid } = await import('./ledgerHid')
+    const fake = createFakeWindow()
+    const callback = vi.fn()
+
+    registerLedgerHid(fake.window as never)
+    fake.emit('select-hid-device', { preventDefault: vi.fn() }, { deviceList: [] }, callback)
+    fake.emit('hid-device-added', {}, { deviceId: 'keyboard', vendorId: 1234 })
+
+    expect(callback).not.toHaveBeenCalled()
+    expect(fake.listenerCount('hid-device-added')).toBe(1)
+    expect(fake.listenerCount('hid-device-removed')).toBe(1)
+
+    vi.advanceTimersByTime(3000)
+
+    expect(callback).toHaveBeenCalledWith(undefined)
+    expect(fake.listenerCount('hid-device-added')).toBe(0)
+    expect(fake.listenerCount('hid-device-removed')).toBe(0)
   })
 
   it('returns undefined when no Ledger device is selected before timeout', async () => {
@@ -140,6 +162,7 @@ describe('ledger HID registration', () => {
 
     expect(callback).toHaveBeenCalledWith(undefined)
     expect(fake.listenerCount('hid-device-added')).toBe(0)
+    expect(fake.listenerCount('hid-device-removed')).toBe(0)
   })
 
   it('cleans pending selections on window close', async () => {
@@ -154,5 +177,6 @@ describe('ledger HID registration', () => {
 
     expect(callback).toHaveBeenCalledWith(undefined)
     expect(fake.listenerCount('hid-device-added')).toBe(0)
+    expect(fake.listenerCount('hid-device-removed')).toBe(0)
   })
 })

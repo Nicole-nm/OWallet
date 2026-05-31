@@ -47,10 +47,15 @@ describe('fetchWalletCollections', () => {
     expect(result).toEqual({ ok: true, data: { normalWallets: [] } })
   })
 
-  it('returns a network failure when the repository throws', async () => {
+  it('returns a storage failure when the repository throws', async () => {
     repository.findWalletCollections.mockRejectedValue(new Error('boom'))
     const result = await fetchWalletCollections()
-    expect(result).toEqual({ ok: false, errorKey: 'common.networkErr' })
+    expect(result).toMatchObject({
+      ok: false,
+      errorKey: 'common.savedbFailed',
+      category: 'storage',
+      code: 'storage.unavailable',
+    })
   })
 })
 
@@ -62,7 +67,11 @@ describe('fetchIdentityCollection', () => {
 
   it('fails gracefully on error', async () => {
     repository.findIdentityCollection.mockRejectedValue(new Error('x'))
-    expect(await fetchIdentityCollection()).toEqual({ ok: false, errorKey: 'common.networkErr' })
+    expect(await fetchIdentityCollection()).toMatchObject({
+      ok: false,
+      errorKey: 'common.savedbFailed',
+      category: 'storage',
+    })
   })
 })
 
@@ -98,7 +107,11 @@ describe('fetchNativeBalance', () => {
 
   it('fails when the request throws', async () => {
     httpGet.mockRejectedValue(new Error('net'))
-    expect(await fetchNativeBalance('addr')).toEqual({ ok: false, errorKey: 'common.networkErr' })
+    expect(await fetchNativeBalance('addr')).toMatchObject({
+      ok: false,
+      errorKey: 'common.networkErr',
+      category: 'network',
+    })
   })
 })
 
@@ -116,9 +129,10 @@ describe('registerOep4Contract', () => {
 
   it('fails when the post throws', async () => {
     httpPost.mockRejectedValue(new Error('x'))
-    expect(await registerOep4Contract('MAIN_NET', 'hash')).toEqual({
+    expect(await registerOep4Contract('MAIN_NET', 'hash')).toMatchObject({
       ok: false,
       errorKey: 'common.networkErr',
+      category: 'network',
     })
   })
 })
@@ -139,9 +153,10 @@ describe('queryOep4TransactionHistory', () => {
 
   it('fails when the request throws', async () => {
     httpGet.mockRejectedValue(new Error('x'))
-    expect(await queryOep4TransactionHistory('MAIN_NET', 'addr')).toEqual({
+    expect(await queryOep4TransactionHistory('MAIN_NET', 'addr')).toMatchObject({
       ok: false,
       errorKey: 'common.networkErr',
+      category: 'network',
     })
   })
 })
@@ -168,9 +183,12 @@ describe('fetchWalletTransactionGroups', () => {
 
   it('fails when the request throws', async () => {
     httpGet.mockRejectedValue(new Error('x'))
-    expect(await fetchWalletTransactionGroups({ address: 'addr', network: 'MAIN_NET' })).toEqual({
+    expect(
+      await fetchWalletTransactionGroups({ address: 'addr', network: 'MAIN_NET' })
+    ).toMatchObject({
       ok: false,
       errorKey: 'common.networkErr',
+      category: 'network',
     })
   })
 })

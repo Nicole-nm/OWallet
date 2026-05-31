@@ -1,8 +1,9 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { parse as parseVueSfc } from '@vue/compiler-sfc'
+import ts from 'typescript'
 
-const projectRoot = process.cwd()
-const rendererRoot = path.join(projectRoot, 'src/renderer/src')
 const codeExtensions = new Set(['.js', '.mjs', '.ts', '.vue'])
 
 type Layer =
@@ -17,6 +18,18 @@ type Layer =
   | 'module-domain'
   | 'module-store'
   | 'module-ui'
+
+export interface BoundaryViolation {
+  filePath: string
+  sourceLayer: string
+  targetLayer: string
+  specifier: string
+}
+
+interface CheckImportBoundariesOptions {
+  projectRoot?: string
+  rendererRoot?: string
+}
 
 const forbiddenImportsByLayer: Partial<Record<Layer, Set<string>>> = {
   shared: new Set([
@@ -136,14 +149,63 @@ async function collectFiles(dirPath: string): Promise<string[]> {
   return files
 }
 
-function extractImports(source: string): string[] {
-  const matches = source.matchAll(
-    /(?:import\s+(?:[^'"`]+?\s+from\s+)?|import\s*\()\s*['"]([^'"]+)['"]/g
-  )
-  return [...matches].map((match) => match[1]).filter((s): s is string => s !== undefined)
+function readVueScripts(source: string, filePath: string): string {
+  const { descriptor, errors } = parseVueSfc(source, { filename: filePath })
+  if (errors.length > 0) {
+    throw new Error(`Unable to parse ${filePath}: ${errors.map(String).join(', ')}`)
+  }
+
+  return [descriptor.script?.content, descriptor.scriptSetup?.content].filter(Boolean).join('\n')
 }
 
-function resolveImportSpecifier(importerPath: string, specifier: string): string | null {
+function getCodeSource(source: string, filePath: string): string {
+  return path.extname(filePath) === '.vue' ? readVueScripts(source, filePath) : source
+}
+
+export function extractModuleSpecifiers(source: string, filePath = 'source.ts'): string[] {
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    getCodeSource(source, filePath),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  )
+  const specifiers = new Set<string>()
+
+  function addLiteral(node: ts.Expression | undefined): void {
+    if (node && ts.isStringLiteralLike(node)) {
+      specifiers.add(node.text)
+    }
+  }
+
+  function visit(node: ts.Node): void {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+      addLiteral(node.moduleSpecifier)
+    } else if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference)
+    ) {
+      addLiteral(node.moduleReference.expression)
+    } else if (ts.isCallExpression(node)) {
+      const isDynamicImport = node.expression.kind === ts.SyntaxKind.ImportKeyword
+      const isRequire = ts.isIdentifier(node.expression) && node.expression.text === 'require'
+      if (isDynamicImport || isRequire) {
+        addLiteral(node.arguments[0])
+      }
+    }
+
+    ts.forEachChild(node, visit)
+  }
+
+  visit(sourceFile)
+  return [...specifiers]
+}
+
+function resolveImportSpecifier(
+  importerPath: string,
+  specifier: string,
+  rendererRoot: string
+): string | null {
   if (specifier.startsWith('@/')) {
     return path.normalize(path.join(rendererRoot, specifier.slice(2)))
   }
@@ -155,34 +217,16 @@ function resolveImportSpecifier(importerPath: string, specifier: string): string
   return null
 }
 
-function classifyLayer(filePath: string): Layer | null {
+function classifyLayer(filePath: string, rendererRoot: string): Layer | null {
   const relativePath = toPosix(path.relative(rendererRoot, filePath))
   if (relativePath.startsWith('../')) {
     return null
   }
 
-  if (relativePath.startsWith('shared/')) {
-    return 'shared'
-  }
-
-  if (relativePath.startsWith('domains/')) {
-    return 'domains'
-  }
-
-  if (relativePath.startsWith('pages/')) {
-    return 'pages'
-  }
-
-  if (relativePath.startsWith('workflows/')) {
-    return 'workflows'
-  }
-
-  if (relativePath.startsWith('stores/')) {
-    return 'stores'
-  }
-
-  if (relativePath.startsWith('router/')) {
-    return 'router'
+  for (const layer of ['shared', 'domains', 'pages', 'router', 'stores', 'workflows'] as const) {
+    if (relativePath.startsWith(`${layer}/`)) {
+      return layer
+    }
   }
 
   const parts = relativePath.split('/')
@@ -206,35 +250,31 @@ function classifyLayer(filePath: string): Layer | null {
   }
 }
 
-function getRelativeRendererPath(filePath: string): string {
-  return toPosix(path.relative(rendererRoot, filePath))
-}
-
 function matchesAnyPrefix(value: string, prefixes: string[] = []): boolean {
   return prefixes.some((prefix) => value.startsWith(prefix))
 }
 
-async function main() {
+export async function checkImportBoundaries({
+  projectRoot = process.cwd(),
+  rendererRoot = path.join(projectRoot, 'src/renderer/src'),
+}: CheckImportBoundariesOptions = {}): Promise<BoundaryViolation[]> {
   const files = await collectFiles(rendererRoot)
-  const violations: {
-    filePath: string
-    sourceLayer: string
-    targetLayer: string
-    specifier: string
-  }[] = []
+  const violations: BoundaryViolation[] = []
+  const getRendererPath = (filePath: string) => toPosix(path.relative(rendererRoot, filePath))
 
   for (const filePath of files) {
-    const sourceLayer = classifyLayer(filePath)
+    const sourceLayer = classifyLayer(filePath, rendererRoot)
     if (!sourceLayer || !forbiddenImportsByLayer[sourceLayer]) {
       continue
     }
 
     const fileContent = await fs.readFile(filePath, 'utf8')
-    const relativeFilePath = getRelativeRendererPath(filePath)
+    const codeSource = getCodeSource(fileContent, filePath)
+    const relativeFilePath = getRendererPath(filePath)
 
     if (
       !relativeFilePath.startsWith('shared/persistence/') &&
-      /(localStorage|sessionStorage)/.test(fileContent)
+      /(localStorage|sessionStorage)/.test(codeSource)
     ) {
       violations.push({
         filePath: path.relative(projectRoot, filePath),
@@ -244,63 +284,64 @@ async function main() {
       })
     }
 
-    const imports = extractImports(fileContent)
-
-    for (const specifier of imports) {
-      const resolvedPath = resolveImportSpecifier(filePath, specifier)
+    for (const specifier of extractModuleSpecifiers(fileContent, filePath)) {
+      const resolvedPath = resolveImportSpecifier(filePath, specifier, rendererRoot)
       if (!resolvedPath) {
         continue
       }
 
-      const targetLayer = classifyLayer(resolvedPath)
+      const targetLayer = classifyLayer(resolvedPath, rendererRoot)
       if (!targetLayer) {
         continue
       }
 
-      if (!forbiddenImportsByLayer[sourceLayer].has(targetLayer)) {
-        const relativeTargetPath = getRelativeRendererPath(resolvedPath)
-
-        if (
-          sourceLayer === 'workflows' &&
-          matchesAnyPrefix(relativeTargetPath, [
-            'shared/platform/',
-            'shared/persistence/',
-            'shared/network/',
-            'shared/chain/',
-          ])
-        ) {
-          violations.push({
-            filePath: path.relative(projectRoot, filePath),
-            sourceLayer,
-            targetLayer: 'shared-infrastructure',
-            specifier,
-          })
-        }
-
-        if (
-          matchesAnyPrefix(relativeFilePath, ['shared/network/', 'shared/chain/']) &&
-          relativeTargetPath.startsWith('shared/ui/')
-        ) {
-          violations.push({
-            filePath: path.relative(projectRoot, filePath),
-            sourceLayer,
-            targetLayer: 'shared-ui',
-            specifier,
-          })
-        }
-
+      if (forbiddenImportsByLayer[sourceLayer].has(targetLayer)) {
+        violations.push({
+          filePath: path.relative(projectRoot, filePath),
+          sourceLayer,
+          targetLayer,
+          specifier,
+        })
         continue
       }
 
-      violations.push({
-        filePath: path.relative(projectRoot, filePath),
-        sourceLayer,
-        targetLayer,
-        specifier,
-      })
+      const relativeTargetPath = getRendererPath(resolvedPath)
+      if (
+        sourceLayer === 'workflows' &&
+        matchesAnyPrefix(relativeTargetPath, [
+          'shared/platform/',
+          'shared/persistence/',
+          'shared/network/',
+          'shared/chain/',
+        ])
+      ) {
+        violations.push({
+          filePath: path.relative(projectRoot, filePath),
+          sourceLayer,
+          targetLayer: 'shared-infrastructure',
+          specifier,
+        })
+      }
+
+      if (
+        matchesAnyPrefix(relativeFilePath, ['shared/network/', 'shared/chain/']) &&
+        relativeTargetPath.startsWith('shared/ui/')
+      ) {
+        violations.push({
+          filePath: path.relative(projectRoot, filePath),
+          sourceLayer,
+          targetLayer: 'shared-ui',
+          specifier,
+        })
+      }
     }
   }
 
+  return violations
+}
+
+export async function main(): Promise<void> {
+  const violations = await checkImportBoundaries()
   if (violations.length > 0) {
     console.error('Import boundary violations found:')
     for (const violation of violations) {
@@ -315,7 +356,9 @@ async function main() {
   console.log('Import boundaries passed')
 }
 
-main().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error)
+    process.exitCode = 1
+  })
+}

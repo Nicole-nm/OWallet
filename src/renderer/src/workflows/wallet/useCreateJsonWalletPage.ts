@@ -11,7 +11,7 @@ import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { createValidationErrors } from '../../shared/lib/formValidation'
 import { notifyError, notifySuccess, notifyWarning } from '../../shared/ui/feedback'
 import { useWalletsStore } from '../../stores/modules/Wallets'
-import { useWizardPage } from '../../shared/composables/useWizardPage'
+import { useBasicConfirmWizardPage } from '../../shared/composables/useWizardPage'
 import { ROUTE_NAMES } from '../../router/routes'
 import { applyWalletCollectionsResult } from '../support/walletCollectionsStoreSync'
 
@@ -22,7 +22,11 @@ export function useCreateJsonWalletPage() {
   const router = useRouter()
   const walletsStore = useWalletsStore()
   const loadingStore = useLoadingModalStore()
-  const currentStep = ref(0)
+  const wizard = useBasicConfirmWizardPage({
+    backRouteName: ROUTE_NAMES.WALLETS,
+    stepTitleKeys: ['createJsonWallet.basicInfo', 'createJsonWallet.confirmInfo'],
+  })
+  const { currentStep } = wizard
   const createdLabel = ref('')
   const createdAccount = ref<JsonWalletDraft | null>(null)
   const createdAddress = ref('')
@@ -42,7 +46,7 @@ export function useCreateJsonWalletPage() {
   }
 
   function resetCreateJsonWalletFlow() {
-    currentStep.value = 0
+    wizard.resetWizardStep()
     createdLabel.value = ''
     createdAccount.value = null
     createdAddress.value = ''
@@ -116,7 +120,7 @@ export function useCreateJsonWalletPage() {
     createdAddress.value = String(result.account?.address || '')
     createdPublicKey.value = String(result.account?.publicKey || '')
     createdWif.value = result.wif || ''
-    currentStep.value = 1
+    wizard.goToConfirmStep()
   }
 
   function cancelCreateJsonWalletBasicStep() {
@@ -172,11 +176,7 @@ export function useCreateJsonWalletPage() {
   })
 
   return {
-    ...useWizardPage({
-      currentStep,
-      backRouteName: ROUTE_NAMES.WALLETS,
-      stepTitleKeys: ['createJsonWallet.basicInfo', 'createJsonWallet.confirmInfo'],
-    }),
+    ...wizard,
     basicLabel,
     basicPassword,
     basicRePassword,

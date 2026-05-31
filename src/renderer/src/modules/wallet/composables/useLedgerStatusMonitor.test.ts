@@ -58,4 +58,51 @@ describe('useLedgerStatusMonitor', () => {
 
     expect(mocks.ledgerConnection.readLedgerConnectionSelection).toHaveBeenCalledTimes(2)
   })
+
+  it.each([
+    ['NOT_FOUND', 'ledgerStatus.NOT_FOUND'],
+    ['NOT_SUPPORT', 'ledgerStatus.NOT_SUPPORT'],
+    [{ statusCode: 0x6e00 }, 'ledgerStatus.NOT_OPEN'],
+    [{ message: ' transport failed ' }, ' transport failed '],
+    [' custom failure ', ' custom failure '],
+    [null, 'ledgerStatus.NO_DEVICE'],
+  ])('maps failed selections from %j to %s', async (error, expectedStatus) => {
+    mocks.ledgerConnection.readLedgerConnectionSelection.mockResolvedValueOnce({
+      ok: false,
+      error,
+    })
+    const monitor = useLedgerStatusMonitor()
+
+    await monitor.startMonitoring()
+
+    expect(monitor.ledgerConnectorStore.ledgerStatus).toBe(expectedStatus)
+    monitor.stopMonitoring()
+  })
+
+  it('normalizes empty successful selections and supports one-shot refreshes', async () => {
+    mocks.ledgerConnection.readLedgerConnectionSelection.mockResolvedValueOnce({
+      ok: true,
+      deviceInfo: null,
+      selection: null,
+    })
+    const monitor = useLedgerStatusMonitor({ interval: ref(undefined) })
+
+    monitor.startMonitoring()
+    await vi.runAllTicks()
+
+    expect(monitor.ledgerConnectorStore.ledgerStatus).toBe('ledgerStatus.READY')
+    expect(monitor.ledgerConnectorStore.publicKey).toBe('')
+    expect(monitor.ledgerConnectorStore.ledgerWallet).toEqual({
+      publicKey: '',
+      address: '',
+    })
+    monitor.stopMonitoring()
+  })
+
+  it('does not start polling while disabled', () => {
+    const monitor = useLedgerStatusMonitor({ shouldPoll: false })
+
+    expect(mocks.ledgerConnection.readLedgerConnectionSelection).not.toHaveBeenCalled()
+    monitor.stopMonitoring()
+  })
 })

@@ -5,7 +5,7 @@ import {
 } from '../../modules/governance/application/vote/voteTopicApplicationService'
 import { MY_VOTED, VOTE_STATUS_TEXT } from '../../stores/modules/Vote'
 import type { NetworkId, WalletSigner } from '../../shared/lib/types'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
+import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 
 interface VoteOperationTopic {
   [key: string]: unknown

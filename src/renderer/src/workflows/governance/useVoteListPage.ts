@@ -11,12 +11,19 @@ import { usePollingTask } from '../../shared/composables/usePollingTask'
 import { notifyWarning } from '../../shared/ui/feedback'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
-import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { VOTE_STATUS_TEXT, useVoteStore } from '../../stores/modules/Vote'
 import { useVoteAdminOperations } from './useVoteAdminOperations'
 import { formatVoteStatus } from './useVoteFormatting'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
+import { getVoteFailureMessage } from './voteFailureMessage'
+import { createVoteStatusMap } from './voteStatusLabels'
+import {
+  formatVoteDuration as formatVoteDurationForDisplay,
+  formatVoteListRow,
+  getVoteRowKey as getVoteRowKeyForDisplay,
+  sortVotesByNewest,
+} from './voteTableFormatters'
+import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 import type { VoteTopic } from '../../shared/types'
 
 type VoteRoleResult = Awaited<ReturnType<typeof loadVoteRole>>
@@ -44,50 +51,6 @@ interface TablePaginationChange {
 
 interface MenuSelectPayload {
   key: string
-}
-
-function formatDateTime(value: unknown) {
-  const date = new Date(
-    value instanceof Date || typeof value === 'string' || typeof value === 'number' ? value : 0
-  )
-  const pad = (num: number) => String(num).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-function getVoteTimestamp(value: unknown) {
-  const timestamp = Number(value)
-  return Number.isFinite(timestamp) ? timestamp : 0
-}
-
-function sortVotesByNewest<T extends { startTime?: unknown; endTime?: unknown }>(votes: T[]) {
-  return [...votes].sort((left, right) => {
-    const startDiff = getVoteTimestamp(right?.startTime) - getVoteTimestamp(left?.startTime)
-    if (startDiff !== 0) {
-      return startDiff
-    }
-
-    return getVoteTimestamp(right?.endTime) - getVoteTimestamp(left?.endTime)
-  })
-}
-
-function getVoteCount(vote: Record<string, unknown>, primaryKey: string, fallbackKey: string) {
-  return vote[primaryKey] ?? vote[fallbackKey] ?? 0
-}
-
-function toDisplayNumberInput(value: unknown) {
-  return typeof value === 'number' || typeof value === 'string' ? value : undefined
-}
-
-function formatVoteListRow<T extends Record<string, unknown>>(vote: T) {
-  return {
-    ...vote,
-    approvesDisplay: formatNumberForDisplay(
-      toDisplayNumberInput(getVoteCount(vote, 'approves', 'approve'))
-    ),
-    rejectsDisplay: formatNumberForDisplay(
-      toDisplayNumberInput(getVoteCount(vote, 'rejects', 'reject'))
-    ),
-  }
 }
 
 export function useVoteListPage() {
@@ -308,9 +271,7 @@ export function useVoteListPage() {
   }
 
   function formatVoteDuration(vote: Pick<VoteTopic, 'startTime' | 'endTime'>) {
-    const start = formatDateTime(vote.startTime)
-    const end = formatDateTime(vote.endTime)
-    return `${start} ~ ${end}`
+    return formatVoteDurationForDisplay(vote)
   }
 
   function openVoteDetail(vote: VoteTopic | Record<string, unknown>) {
@@ -326,7 +287,7 @@ export function useVoteListPage() {
   }
 
   function getVoteRowKey(vote: VoteTopic | Record<string, unknown>) {
-    return String(vote?.hash || vote?.topicHash || vote?.title || '')
+    return getVoteRowKeyForDisplay(vote)
   }
 
   function closeVoteListDialog() {
@@ -344,12 +305,7 @@ export function useVoteListPage() {
   }
 
   function createStatusMap() {
-    return {
-      [VOTE_STATUS_TEXT.NOT_START]: t('vote.notStart'),
-      [VOTE_STATUS_TEXT.IN_PROGRESS]: t('vote.inProgress'),
-      [VOTE_STATUS_TEXT.FINISHED]: t('vote.finished'),
-      [VOTE_STATUS_TEXT.CANCELED]: t('vote.canceled'),
-    }
+    return createVoteStatusMap(t)
   }
 
   function back() {
@@ -387,10 +343,7 @@ export function useVoteListPage() {
   async function onStopVote(vote: VoteTopic | Record<string, unknown>) {
     const result = await submitStopVote(vote, createStatusMap())
     if (!result.ok) {
-      const errorKey = 'errorKey' in result ? result.errorKey : 'common.networkErr'
-      notifyWarning(t(errorKey) + ('statusText' in result ? result.statusText : ''), {
-        literal: true,
-      })
+      notifyWarning(getVoteFailureMessage(result, t), { literal: true })
     }
     return result
   }

@@ -83,6 +83,47 @@ describe('httpClient.get caching and dedup', () => {
     await Promise.all([a, b])
     expect(fetchJson).toHaveBeenCalledTimes(1)
   })
+
+  it('does not deduplicate GET requests with different headers', async () => {
+    await httpClient.get('https://api.test/inflight', { headers: { Accept: 'application/json' } })
+    await httpClient.get('https://api.test/inflight', { headers: { Accept: 'text/plain' } })
+
+    expect(fetchJson).toHaveBeenCalledTimes(2)
+  })
+
+  it('retries a failed GET once by default', async () => {
+    vi.useFakeTimers()
+    fetchJson.mockRejectedValueOnce(new Error('network down')).mockResolvedValueOnce({ ok: true })
+
+    const pending = httpClient.get('https://api.test/retry', { retryDelayMs: 100 })
+    await vi.advanceTimersByTimeAsync(100)
+
+    await expect(pending).resolves.toEqual({ ok: true })
+    expect(fetchJson).toHaveBeenCalledTimes(2)
+  })
+
+  it('surfaces the last GET failure after retries are exhausted', async () => {
+    vi.useFakeTimers()
+    fetchJson.mockRejectedValue(new Error('still down'))
+
+    const pending = httpClient.get('https://api.test/retry', { retry: 2, retryDelayMs: 100 })
+    const assertion = expect(pending).rejects.toThrow('still down')
+    await vi.advanceTimersByTimeAsync(200)
+
+    await assertion
+    expect(fetchJson).toHaveBeenCalledTimes(3)
+  })
+
+  it('rejects a request that exceeds the configured timeout', async () => {
+    vi.useFakeTimers()
+    fetchJson.mockImplementationOnce(() => new Promise(() => undefined))
+
+    const pending = httpClient.get('https://api.test/slow', { timeoutMs: 500, retry: 0 })
+    const assertion = expect(pending).rejects.toThrow('timed out after 500ms')
+    vi.advanceTimersByTime(500)
+
+    await assertion
+  })
 })
 
 describe('httpClient.post', () => {
@@ -93,5 +134,14 @@ describe('httpClient.post', () => {
       method: 'POST',
       body: { value: 1 },
     })
+  })
+
+  it('does not retry POST requests by default', async () => {
+    fetchJson.mockRejectedValue(new Error('submit failed'))
+
+    await expect(httpClient.post('https://api.test/submit', { value: 1 })).rejects.toThrow(
+      'submit failed'
+    )
+    expect(fetchJson).toHaveBeenCalledTimes(1)
   })
 })

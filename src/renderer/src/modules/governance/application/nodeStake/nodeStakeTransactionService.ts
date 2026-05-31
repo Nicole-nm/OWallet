@@ -8,7 +8,7 @@ import {
   createWithdrawAuthorizationTransaction,
 } from '../../../../domains/governance/governanceDomainService'
 import { createLogger } from '../../../../shared/lib/logger'
-import { tryCreateTransaction } from '../../../../shared/lib/transactionHelper'
+import { tryCreateTransaction } from '../../../../domains/transaction/transactionHelper'
 import type { SdkTransactionLike } from '../../../../shared/chain/types'
 import { normalizeNodePublicKey } from '../../domain/nodeMapper'
 import type { TransactionDraftResult } from '../../../../shared/types'

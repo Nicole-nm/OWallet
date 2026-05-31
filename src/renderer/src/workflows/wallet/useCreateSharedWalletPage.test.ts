@@ -104,6 +104,59 @@ describe('useCreateSharedWalletPage', () => {
     ])
   })
 
+  it('keeps the shared wallet wizard on basic info when draft creation fails', async () => {
+    mocks.application.createSharedWalletDraft.mockResolvedValue({
+      ok: false,
+      errorKey: 'createSharedWallet.publicKeyErr',
+    })
+
+    const page = useCreateSharedWalletPage()
+    await page.submitCreateSharedWalletBasicStep()
+
+    expect(page.currentStep.value).toBe(0)
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('createSharedWallet.publicKeyErr')
+  })
+
+  it('guards shared wallet copayer removal and duplicate creation branches', async () => {
+    const page = useCreateSharedWalletPage()
+
+    page.removeCreateSharedWalletCopayer(0)
+
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('createSharedWallet.pksLte2')
+
+    mocks.application.createSharedWalletDraft.mockResolvedValue({
+      ok: true,
+      label: 'Core Team',
+      copayers: [
+        { name: 'Alice', publickey: 'A'.repeat(66), address: 'AQ111' },
+        { name: 'Bob', publickey: 'B'.repeat(66), address: 'AQ222' },
+      ],
+    })
+    mocks.application.submitSharedWalletCreation.mockResolvedValue({
+      ok: false,
+      errorKey: 'createSharedWallet.exist',
+      duplicate: true,
+    })
+
+    await page.submitCreateSharedWalletBasicStep()
+    await page.submitCreateSharedWalletConfirmStep()
+
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('createSharedWallet.exist')
+    expect(page.currentStep.value).toBe(0)
+    expect(page.createdLabel.value).toBe('')
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
+  })
+
+  it('does not submit shared wallet creation while already processing', async () => {
+    const page = useCreateSharedWalletPage()
+    page.processing.value = true
+
+    await page.submitCreateSharedWalletConfirmStep()
+
+    expect(mocks.application.submitSharedWalletCreation).not.toHaveBeenCalled()
+    expect(mocks.loading.showLoadingModals).not.toHaveBeenCalled()
+  })
+
   it('submits shared wallet creation in the workflow and refreshes wallet cache', async () => {
     mocks.application.createSharedWalletDraft.mockResolvedValue({
       ok: true,

@@ -5,7 +5,7 @@ import { createVoteTopicTransaction } from '../../modules/governance/application
 import { notifyWarning } from '../../shared/ui/feedback'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useVoteStore } from '../../stores/modules/Vote'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
+import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 
 interface VoteRoute {
   name: string

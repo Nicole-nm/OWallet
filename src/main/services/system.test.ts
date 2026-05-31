@@ -52,9 +52,9 @@ describe('system IPC service', () => {
     await expect(
       handlers['shell:openExternal']?.(null, 'https://github.com/ontio/OWallet/releases')
     ).resolves.toBeUndefined()
-    expect(() =>
+    await expect(
       handlers['shell:openExternal']?.(null, 'https://github.com.attacker.test/ontio/OWallet')
-    ).toThrow('disallowed URL')
+    ).rejects.toThrow('disallowed URL')
 
     expect(mocks.openExternal).toHaveBeenCalledTimes(1)
     expect(mocks.openExternal).toHaveBeenCalledWith('https://github.com/ontio/OWallet/releases')
@@ -93,8 +93,8 @@ describe('system IPC service', () => {
   it('reports whether the app is running in test mode', async () => {
     const handlers = await getSystemHandlers()
 
-    expect(handlers['system:isTest']?.(null)).toBe(false)
+    await expect(handlers['system:isTest']?.(null)).resolves.toBe(false)
     process.env.IS_TEST = '1'
-    expect(handlers['system:isTest']?.(null)).toBe(true)
+    await expect(handlers['system:isTest']?.(null)).resolves.toBe(true)
   })
 })

@@ -2,6 +2,7 @@ import i18n from '../../lang'
 import { message } from 'ant-design-vue'
 import { logger } from './logger'
 import { hideRuntimeLoading } from './runtimeFeedback'
+import { mapUnknownError } from './errors'
 
 interface ErrorHandlerOptions {
   i18nKey?: string
@@ -66,6 +67,7 @@ export { withErrorBoundary } from './result/errorBoundary'
 export function toResult<K extends string = string>(
   err: unknown,
   errorKey: K = 'common.networkErr' as K
-): { ok: false; errorKey: K; error: unknown } {
-  return { ok: false, errorKey, error: err }
+): { ok: false; errorKey: K; error: unknown; category?: string; code?: string; detail?: string } {
+  const appError = mapUnknownError(err)
+  return { ok: false, ...appError, errorKey, error: err }
 }

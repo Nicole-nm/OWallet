@@ -13,7 +13,10 @@ import { useSettingStore } from '../../stores/modules/Setting'
 import { MY_VOTED, VOTE_STATUS_TEXT, useVoteStore } from '../../stores/modules/Vote'
 import { formatVoteTime, formatVoteStatus, reverseVoteHash } from './useVoteFormatting'
 import { useVoteOperations } from './useVoteOperations'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
+import { getVoteFailureMessage, isSilentVoteFailure } from './voteFailureMessage'
+import { createVoteStatusMap } from './voteStatusLabels'
+import { formatVoteRecordRow, getVoteCount, toDisplayNumberInput } from './voteTableFormatters'
+import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 
 interface VoteRoute {
   name: string
@@ -33,40 +36,6 @@ interface RefreshVoteDetailOptions {
 }
 
 type VoteRecordRow = Record<string, unknown>
-
-function isSilentVoteFailure(result: unknown): result is { silent: true } {
-  return Boolean(result && typeof result === 'object' && 'silent' in result && result.silent)
-}
-
-function getVoteFailureMessage(result: unknown, translate: (key: string) => string) {
-  if (!result || typeof result !== 'object') {
-    return 'common.networkErr'
-  }
-
-  const errorKey =
-    'errorKey' in result && typeof result.errorKey === 'string'
-      ? result.errorKey
-      : 'common.networkErr'
-  const statusText =
-    'statusText' in result && typeof result.statusText === 'string' ? result.statusText : ''
-
-  return translate(errorKey) + statusText
-}
-
-function getVoteCount(voteItem: Record<string, unknown>, primaryKey: string, fallbackKey: string) {
-  return voteItem[primaryKey] ?? voteItem[fallbackKey] ?? 0
-}
-
-function toDisplayNumberInput(value: unknown) {
-  return typeof value === 'number' || typeof value === 'string' ? value : undefined
-}
-
-function formatVoteRecordRow(record: VoteRecordRow) {
-  return {
-    ...record,
-    weightDisplay: formatNumberForDisplay(toDisplayNumberInput(record.weight)),
-  }
-}
 
 export function useVoteDetailPage() {
   const { t } = useI18n()
@@ -231,12 +200,7 @@ export function useVoteDetailPage() {
   }
 
   function createStatusMap() {
-    return {
-      [VOTE_STATUS_TEXT.NOT_START]: t('vote.notStart'),
-      [VOTE_STATUS_TEXT.IN_PROGRESS]: t('vote.inProgress'),
-      [VOTE_STATUS_TEXT.FINISHED]: t('vote.finished'),
-      [VOTE_STATUS_TEXT.CANCELED]: t('vote.canceled'),
-    }
+    return createVoteStatusMap(t)
   }
 
   function back() {

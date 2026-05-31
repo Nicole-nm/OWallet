@@ -26,10 +26,17 @@ type FetchJsonMock = {
   response: unknown
 }
 
+type FetchJsonRequest = {
+  url: string
+  options?: IpcInvokePayload
+}
+
 type InternalIpcMain = {
   _invokeHandlers?: Map<string, InternalIpcHandler>
   _originalFetchHandler?: InternalIpcHandler
   _fetchJsonMocks?: FetchJsonMock[]
+  _fetchJsonRequests?: FetchJsonRequest[]
+  _fetchJsonFailClosed?: boolean
   removeHandler(channel: string): void
   handle(channel: string, listener: InternalIpcHandler): void
 }
@@ -125,16 +132,25 @@ export async function mockFetchJson(
           event,
           args?: {
             url?: string
+            options?: IpcInvokePayload
           }
         ) => {
           const mocks = mainIpc._fetchJsonMocks || []
+          const url = typeof args?.url === 'string' ? args.url : ''
+          mainIpc._fetchJsonRequests = [
+            ...(mainIpc._fetchJsonRequests || []),
+            { url, options: args?.options },
+          ]
           const matchedMock = mocks.find((mock) => {
-            const url = typeof args?.url === 'string' ? args.url : ''
             return url.includes(mock.pattern)
           })
 
           if (matchedMock) {
             return matchedMock.response
+          }
+
+          if (mainIpc._fetchJsonFailClosed) {
+            throw new Error(`[OWallet][e2e] Unexpected HTTP request: ${url}`)
           }
 
           // Fall through to original
@@ -162,6 +178,22 @@ export async function clearMocks(electronApp: ElectronApplication) {
     }
 
     delete mainIpc._fetchJsonMocks
+    delete mainIpc._fetchJsonRequests
+    delete mainIpc._fetchJsonFailClosed
+  })
+}
+
+/** Reject undeclared HTTP requests after all expected mocks have been installed. */
+export async function enableStrictFetchJsonMocks(electronApp: ElectronApplication) {
+  return electronApp.evaluate(async ({ ipcMain }: { ipcMain: unknown }) => {
+    ;(ipcMain as InternalIpcMain)._fetchJsonFailClosed = true
+  })
+}
+
+/** Return HTTP requests observed by the IPC mock wrapper. */
+export async function getFetchJsonRequests(electronApp: ElectronApplication) {
+  return electronApp.evaluate(async ({ ipcMain }: { ipcMain: unknown }) => {
+    return (ipcMain as InternalIpcMain)._fetchJsonRequests || []
   })
 }
 

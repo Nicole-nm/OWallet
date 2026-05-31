@@ -162,4 +162,84 @@ describe('useSettingsPage', () => {
 
     expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('common.updateCheckFailed')
   })
+
+  it('applies network, node, language, and theme preferences', async () => {
+    mocks.settingsService.changeNetworkPreference.mockReturnValue({
+      network: 'mainNet',
+      nodeAddress: 'http://node-2',
+      nodeList: ['http://node-2'],
+      message: 'network changed',
+    })
+    mocks.settingsService.changeNodeAddressPreference.mockReturnValue({
+      nodeAddress: 'http://node-3',
+      message: 'node changed',
+    })
+    mocks.settingsService.changeApplicationLanguage.mockReturnValue({ language: 'zh' })
+    mocks.settingsService.changeThemeModePreference.mockReturnValue({ themeMode: 'dark' })
+    const page = useSettingsPage()
+
+    page.changeNet()
+    expect(page.net.value).toBe('mainNet')
+    expect(page.nodeAddress.value).toBe('http://node-2')
+
+    page.changeNode()
+    expect(page.nodeAddress.value).toBe('http://node-3')
+
+    page.lang.value = 'zh'
+    await page.changeLanguage()
+    expect(page.lang.value).toBe('zh')
+
+    page.themeMode.value = 'dark'
+    page.changeThemeMode()
+    expect(page.themeMode.value).toBe('dark')
+  })
+
+  it('does not open an absent release URL and uses fallback update errors', async () => {
+    mocks.appUpdateRefresh.refreshAppUpdateStatus.mockResolvedValue({
+      ok: false,
+      errorKey: '',
+    })
+    const page = useSettingsPage()
+
+    page.openLatestRelease()
+    expect(mocks.navigation.openExternalUrl).not.toHaveBeenCalled()
+
+    await page.checkForUpdates()
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('common.updateCheckFailed')
+  })
+
+  it('warns on save-path selection failure and reloads after success', async () => {
+    const reload = vi.fn()
+    vi.stubGlobal('window', { location: { reload } })
+    mocks.settingsService.selectAndPersistSavePathPreference
+      .mockResolvedValueOnce({ ok: false })
+      .mockResolvedValueOnce({ ok: true, path: '/tmp/new-keystore' })
+    const page = useSettingsPage()
+
+    await page.setSavePath()
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('common.savedbFailed')
+
+    await page.setSavePath()
+    expect(page.savePath.value).toBe('/tmp/new-keystore')
+    expect(reload).toHaveBeenCalled()
+    vi.unstubAllGlobals()
+  })
+
+  it('formats checked timestamps and falls back to the current version after a successful check', () => {
+    const appUpdateStore = useAppUpdateStore()
+    appUpdateStore.setStatus({
+      ok: true,
+      currentVersion: 'v0.11.0',
+      latestVersion: null,
+      releaseUrl: '',
+      hasUpdate: false,
+      checkedAt: 1713052800000,
+      errorKey: null,
+    })
+
+    const page = useSettingsPage()
+
+    expect(page.displayedLatestVersion.value).toBe('v0.11.0')
+    expect(page.lastCheckedLabel.value).not.toBe('')
+  })
 })

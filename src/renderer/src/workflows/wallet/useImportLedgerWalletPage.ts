@@ -1,7 +1,7 @@
 import { computed, getCurrentInstance, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAMES } from '../../router/routes'
-import { useWizardPage } from '../../shared/composables/useWizardPage'
+import { useBasicConfirmWizardPage } from '../../shared/composables/useWizardPage'
 import { notifyWarning } from '../../shared/ui/feedback'
 import { openExternalUrl } from '../../modules/app/application/externalNavigationApplicationService'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
@@ -45,8 +45,15 @@ export function useImportLedgerWalletPage() {
   const router = useRouter()
   const currentWalletStore = useCurrentWalletStore()
   const walletsStore = useWalletsStore()
-  const currentStep = ref(0)
-  const step = ref(1)
+  const wizard = useBasicConfirmWizardPage({
+    backRouteName: ROUTE_NAMES.WALLETS,
+  })
+  const step = computed({
+    get: () => wizard.currentStep.value + 1,
+    set: (value: number) => {
+      wizard.currentStep.value = value > 1 ? 1 : 0
+    },
+  })
   const ledgerPollInterval = ref(1000)
   const form = reactive<ImportLedgerForm>({
     label: '',
@@ -66,11 +73,6 @@ export function useImportLedgerWalletPage() {
   const { ledgerStatus, ledgerPk: publicKey } = useLedgerStatusMonitor({
     shouldPoll: computed(() => step.value === 1),
     interval: ledgerPollInterval,
-  })
-  const wizard = useWizardPage({
-    currentStep,
-    backRouteName: ROUTE_NAMES.WALLETS,
-    stepCount: 2,
   })
   const addDisabled = computed(() => {
     if (!form.label) {
@@ -102,14 +104,12 @@ export function useImportLedgerWalletPage() {
   )
 
   async function nextStep() {
-    step.value = 2
-    currentStep.value = 1
+    wizard.goToConfirmStep()
   }
 
   function previousStep() {
     pagination.stopInitialLedgerPageLoading()
-    step.value = 1
-    currentStep.value = 0
+    wizard.goToBasicStep()
   }
 
   function openLedgerSupport() {

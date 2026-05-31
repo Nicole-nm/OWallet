@@ -13,9 +13,12 @@ import { useSettingStore } from '../../stores/modules/Setting'
 import { useWalletBalances } from './useWalletBalances'
 import { useWalletTransactions } from './useWalletTransactions'
 import { useOep4SelectionModal } from './useOep4SelectionModal'
-import { notifyError } from '../../shared/ui/feedback'
-import { logger } from '../../shared/lib/logger'
 import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
+import {
+  runWalletDashboardRefresh,
+  type WalletDashboardRefreshResult,
+  type WalletDashboardRefreshTask,
+} from './useWalletDashboardRefresh'
 
 export function useWalletDashboard(
   address: Ref<string>,
@@ -74,30 +77,16 @@ export function useWalletDashboard(
     getOep4Balances,
   })
 
-  function refresh(showLoading: boolean, extraPromises: Promise<unknown>[] = []) {
-    if (requestStart.value) {
-      return
-    }
-
-    if (showLoading) {
-      loadingStore.showLoadingModals()
-    }
-
-    requestStart.value = true
-    Promise.allSettled([getBalance(), getTransactions(), getOep4Balances(), ...extraPromises]).then(
-      (results) => {
-        requestStart.value = false
-        loadingStore.hideLoadingModals()
-
-        const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-        if (failures.length > 0) {
-          for (const failure of failures) {
-            logger.error('useWalletDashboard.refresh', failure.reason)
-          }
-          notifyError('common.networkErr')
-        }
-      }
-    )
+  function refresh(
+    showLoading: boolean,
+    extraTasks: WalletDashboardRefreshTask[] = []
+  ): Promise<WalletDashboardRefreshResult> {
+    return runWalletDashboardRefresh({
+      requestStart,
+      showLoading,
+      loadingStore,
+      tasks: [getBalance, getTransactions, getOep4Balances, ...extraTasks],
+    })
   }
 
   function handleModalOk() {

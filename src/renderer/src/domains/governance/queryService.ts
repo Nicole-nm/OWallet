@@ -104,9 +104,10 @@ export async function searchUserStakeHistory(
     const locked = item.withdrawPos + item.withdrawFreezePos
     const claimableVal = item.withdrawUnfreezePos
     if (inAuth > 0 || locked > 0 || claimableVal > 0) {
-      // We pass `item` to `formatAuthorizationInfo` because `item` contains the properties of `AuthorizationInfo`.
-      // The extra properties won't harm the result.
-      const record = formatAuthorizationInfo(item as unknown as AuthorizationInfo)
+      // `item` is a superset of `AuthorizationInfo` (it carries the same
+      // numeric pos fields plus node metadata); the extra properties are
+      // ignored by `formatAuthorizationInfo`.
+      const record = formatAuthorizationInfo(item)
       list.push({
         ...record,
         name: item.nodeName || 'Node_' + item.peerPubkey.substring(0, 6),

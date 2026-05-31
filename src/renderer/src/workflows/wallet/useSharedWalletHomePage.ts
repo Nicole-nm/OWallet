@@ -42,7 +42,7 @@ export function useSharedWalletHomePage() {
   })
 
   function refresh(showLoading: boolean) {
-    dashboard.refresh(showLoading, [getPendingTx()])
+    return dashboard.refresh(showLoading, [getPendingTx])
   }
 
   function handleBack() {

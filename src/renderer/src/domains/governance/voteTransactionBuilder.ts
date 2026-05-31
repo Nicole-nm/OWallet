@@ -6,6 +6,7 @@ import {
   NETWORKS,
 } from '../../shared/lib/constants'
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
+import { assertSdkTransactionLike } from '../../shared/chain/sdkBoundary'
 import {
   checkPublicKeyIsInTheConnectedLedger,
   legacySignWithLedger,
@@ -82,7 +83,7 @@ export async function handleSignTx(
   walletType: 'commonWallet' | string = 'commonWallet'
 ) {
   const { TransactionBuilder, Crypto, TxSignature } = await loadVoteSdk()
-  const txObj = tx as SdkTransactionLike
+  const txObj = assertSdkTransactionLike(tx, 'vote transaction')
 
   if (walletType === 'commonWallet') {
     const enc = new Crypto.PrivateKey(wallet.key || '')
@@ -141,14 +142,17 @@ export async function buildVoteTx(
     new Parameter('', ParameterType.Boolean, approve),
   ]
 
-  return TransactionBuilder.makeWasmVmInvokeTransaction(
-    'voteTopic',
-    params,
-    contract,
-    GAS_PRICE,
-    GAS_LIMIT_HIGH,
-    addr
-  ) as unknown as SdkTransactionLike
+  return assertSdkTransactionLike(
+    TransactionBuilder.makeWasmVmInvokeTransaction(
+      'voteTopic',
+      params,
+      contract,
+      GAS_PRICE,
+      GAS_LIMIT_HIGH,
+      addr
+    ),
+    'TransactionBuilder.makeWasmVmInvokeTransaction(voteTopic)'
+  )
 }
 
 /** Build an unsigned `cancelTopic` transaction. */
@@ -162,14 +166,17 @@ export async function buildCancelTopicTx(
   const addr = new Crypto.Address(address)
   const params = [new Parameter('', ParameterType.H256, hash)]
 
-  return TransactionBuilder.makeWasmVmInvokeTransaction(
-    'cancelTopic',
-    params,
-    contract,
-    GAS_PRICE,
-    GAS_LIMIT_HIGH,
-    addr
-  ) as unknown as SdkTransactionLike
+  return assertSdkTransactionLike(
+    TransactionBuilder.makeWasmVmInvokeTransaction(
+      'cancelTopic',
+      params,
+      contract,
+      GAS_PRICE,
+      GAS_LIMIT_HIGH,
+      addr
+    ),
+    'TransactionBuilder.makeWasmVmInvokeTransaction(cancelTopic)'
+  )
 }
 
 /** Build an unsigned `createTopic` transaction. */
@@ -189,14 +196,17 @@ export async function buildCreateTopicTx(
     new Parameter('', ParameterType.Integer, vote.endTime),
   ]
 
-  return TransactionBuilder.makeWasmVmInvokeTransaction(
-    'createTopic',
-    params,
-    contract,
-    GAS_PRICE,
-    GAS_LIMIT_HIGH,
-    addr
-  ) as unknown as SdkTransactionLike
+  return assertSdkTransactionLike(
+    TransactionBuilder.makeWasmVmInvokeTransaction(
+      'createTopic',
+      params,
+      contract,
+      GAS_PRICE,
+      GAS_LIMIT_HIGH,
+      addr
+    ),
+    'TransactionBuilder.makeWasmVmInvokeTransaction(createTopic)'
+  )
 }
 
 /** Expose the old contract-hash map for callers that query across generations. */

@@ -42,7 +42,10 @@ import {
   signWithWallet,
   signMessageWithWallet,
   signWithLedger,
+  signSharedTx,
   signSharedTxWithLedger,
+  sendTx,
+  preExecTx,
 } from './signingService'
 import {
   createFakeEncryptedWallet,
@@ -105,6 +108,18 @@ describe('signWithWallet()', () => {
     )
   })
 
+  it('throws when neither wallet nor private key exposes a public key', async () => {
+    const tx = createFakeTransaction()
+    const wallet = createFakeEncryptedWallet({ publicKey: '' })
+
+    mocks.tryDecryptWallet.mockResolvedValue(createFakePrivateKey({ publicKeyHex: '' }))
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
+
+    await expect(signWithWallet(tx, wallet, 'correct-password')).rejects.toThrow(
+      'Wallet public key is unavailable'
+    )
+  })
+
   it('handles ledger-cancelled path: signWithLedger rejects when ledger check throws', async () => {
     mocks.checkPublicKeyIsInTheConnectedLedger.mockRejectedValue(new Error('Ledger cancelled'))
     mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
@@ -129,6 +144,51 @@ describe('signWithWallet()', () => {
     expect((tx.gasPrice as unknown as { val: string }).val).toBe('2500')
     expect(tx.sigs).toHaveLength(1)
     expect(mocks.legacySignWithLedger).toHaveBeenCalledWith(tx.serializeUnsignedData(), false, 0)
+  })
+
+  it('normalizes nested legacy ledger metadata and rejects invalid account indexes', async () => {
+    mocks.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
+    mocks.legacySignWithLedger.mockResolvedValue('ledger-signature')
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
+
+    const tx = createFakeTransaction()
+    const wallet = createFakeLedgerWallet({
+      address: '',
+      publicKey: '',
+      wallet: {
+        address: 'nested-address',
+        publicKey: 'nested-public-key',
+        acct: 2,
+        neo: 1,
+      },
+    } as never)
+
+    await expect(signWithLedger(tx, wallet)).resolves.toBe(tx)
+    expect(mocks.checkPublicKeyIsInTheConnectedLedger).toHaveBeenCalledWith(
+      2,
+      true,
+      'nested-public-key'
+    )
+
+    await expect(
+      signWithLedger(createFakeTransaction(), createFakeLedgerWallet({ acct: -1 } as never))
+    ).rejects.toThrow('Ledger account index is invalid')
+  })
+
+  it('rejects ledger transactions without public keys or gas prices', async () => {
+    mocks.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
+
+    await expect(
+      signWithLedger(createFakeTransaction(), createFakeLedgerWallet({ publicKey: '' }))
+    ).rejects.toThrow('Ledger public key is unavailable')
+
+    await expect(
+      signWithLedger(
+        createFakeTransaction({ gasPrice: undefined }),
+        createFakeLedgerWallet({ publicKey: 'ledger-pk' })
+      )
+    ).rejects.toThrow('Transaction gas price is unavailable')
   })
 })
 
@@ -172,6 +232,67 @@ describe('signSharedTxWithLedger()', () => {
     expect(tx.sigs).toHaveLength(0)
     expect(mocks.legacySignWithLedger).not.toHaveBeenCalled()
   })
+
+  it('appends additional shared ledger signatures and rejects missing signature payloads', async () => {
+    mocks.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
+    mocks.legacySignWithLedger.mockResolvedValue('next-signature')
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
+    const wallet = createFakeSharedLedgerWallet({ publicKey: 'ledger-pk' })
+    const tx = createFakeTransaction({
+      sigs: [{ sigData: ['01first-signature'] }] as never,
+    })
+
+    await expect(signSharedTxWithLedger(tx, 2, ['pk-1', 'pk-2'], wallet, false)).resolves.toBe(tx)
+    expect(tx.sigs?.[0]?.sigData).toEqual(['01first-signature', '01next-signature'])
+
+    await expect(
+      signSharedTxWithLedger(createFakeTransaction(), 2, ['pk-1'], wallet, false)
+    ).rejects.toThrow('Shared transaction signature payload is missing')
+  })
+
+  it('initializes the shared signature array when the first signature is added', async () => {
+    mocks.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
+    mocks.legacySignWithLedger.mockResolvedValue('first-signature')
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
+    const tx = createFakeTransaction({ sigs: undefined })
+
+    await signSharedTxWithLedger(tx, 1, ['pk-1'], createFakeSharedLedgerWallet(), true)
+
+    expect(tx.sigs).toHaveLength(1)
+  })
+})
+
+describe('signSharedTx()', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns undefined when shared-wallet decryption fails', async () => {
+    mocks.tryDecryptWallet.mockResolvedValue(null)
+    mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
+
+    await expect(
+      signSharedTx(createFakeTransaction(), 2, ['pk-1'], createFakeEncryptedWallet(), 'bad')
+    ).resolves.toBeUndefined()
+  })
+
+  it('delegates shared-wallet signatures to the SDK', async () => {
+    const sdk = createFakeOntologySdk()
+    const privateKey = createFakePrivateKey()
+    const tx = createFakeTransaction()
+    mocks.tryDecryptWallet.mockResolvedValue(privateKey)
+    mocks.loadOntologySdk.mockResolvedValue(sdk)
+
+    await expect(
+      signSharedTx(tx, 2, ['pk-1', 'pk-2'], createFakeEncryptedWallet(), 'password')
+    ).resolves.toBe(tx)
+    expect(sdk.TransactionBuilder.signTx).toHaveBeenCalledWith(
+      tx,
+      2,
+      expect.arrayContaining([expect.objectContaining({ hex: 'pk-1' })]),
+      privateKey
+    )
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -204,5 +325,20 @@ describe('signMessageWithWallet()', () => {
     const result = await signMessageWithWallet('hello world', wallet, 'bad-password')
 
     expect(result).toBeUndefined()
+  })
+})
+
+describe('transaction broadcasting', () => {
+  it('serializes normal and pre-execution broadcasts', () => {
+    const sendRawTransaction = vi.fn()
+    const tx = createFakeTransaction()
+    mocks.getRestClient.mockReturnValue({ sendRawTransaction })
+    mocks.serializeTx.mockReturnValue('serialized-tx')
+
+    sendTx(tx)
+    preExecTx(tx)
+
+    expect(sendRawTransaction).toHaveBeenNthCalledWith(1, 'serialized-tx')
+    expect(sendRawTransaction).toHaveBeenNthCalledWith(2, 'serialized-tx', true)
   })
 })

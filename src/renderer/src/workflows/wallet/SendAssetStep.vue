@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <div class="send-step__asset-grid">
+      <div class="ow-flow-grid send-step__asset-grid">
         <div class="send-step__field-group">
           <label class="send-step__label">{{ $t('sharedWalletHome.asset') }}</label>
           <a-select v-model:value="scriptHash" @change="changeAsset" class="send-step__select">
@@ -115,7 +115,6 @@ const emit = defineEmits(['cancelEvent', 'sendAssetNext'])
 
 const {
   gas,
-  asset,
   scriptHash,
   amount,
   to,
@@ -193,9 +192,8 @@ const {
 }
 
 .send-step__asset-grid {
-  display: grid;
-  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
-  gap: var(--ow-space-2);
+  --ow-flow-grid-columns: minmax(180px, 220px) minmax(0, 1fr);
+  --ow-flow-grid-gap: var(--ow-space-2);
 }
 
 .send-step__field-group {

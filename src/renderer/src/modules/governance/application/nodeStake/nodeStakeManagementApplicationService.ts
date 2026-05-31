@@ -8,7 +8,7 @@ import {
 } from '../../../../domains/nodeStake/nodeStakeDomainService'
 import { submitWithAdapter } from '../../../../domains/transaction/submitWithAdapter'
 import { createLogger } from '../../../../shared/lib/logger'
-import { tryCreateTransaction } from '../../../../shared/lib/transactionHelper'
+import { tryCreateTransaction } from '../../../../domains/transaction/transactionHelper'
 import type { TransactionDraftResult } from '../../../../shared/types'
 import { NetworkId } from '../../../../shared/lib/types'
 import type {

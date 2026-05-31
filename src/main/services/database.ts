@@ -7,6 +7,7 @@ import { dirname, join } from 'path'
 import { createRequire } from 'module'
 import { isDevelopment } from '../config'
 import { clearConfiguredSavePath, getResolvedSavePath } from './preferences'
+import { registerIpcHandlerWithTimeout } from './ipcTimeout'
 import {
   WALLET_RECORD_TYPES,
   assertSafeDocument,
@@ -162,7 +163,8 @@ async function withDatabase(callback: (db: NedbDatastore) => Promise<unknown>) {
 }
 
 export function registerDatabaseIpc(ipcMain: IpcMain): void {
-  ipcMain.handle(
+  registerIpcHandlerWithTimeout(
+    ipcMain,
     'keystoreDb:find',
     (_event: IpcMainInvokeEvent, { query }: { query?: Record<string, unknown> }) => {
       assertSafeQuery(query || {})
@@ -170,7 +172,8 @@ export function registerDatabaseIpc(ipcMain: IpcMain): void {
     }
   )
 
-  ipcMain.handle(
+  registerIpcHandlerWithTimeout(
+    ipcMain,
     'keystoreDb:insert',
     (_event: IpcMainInvokeEvent, { doc }: { doc: Record<string, unknown> }) => {
       assertSafeDocument(doc)
@@ -178,7 +181,8 @@ export function registerDatabaseIpc(ipcMain: IpcMain): void {
     }
   )
 
-  ipcMain.handle(
+  registerIpcHandlerWithTimeout(
+    ipcMain,
     'keystoreDb:update',
     (
       _event: IpcMainInvokeEvent,
@@ -197,7 +201,8 @@ export function registerDatabaseIpc(ipcMain: IpcMain): void {
     }
   )
 
-  ipcMain.handle(
+  registerIpcHandlerWithTimeout(
+    ipcMain,
     'keystoreDb:remove',
     (
       _event: IpcMainInvokeEvent,

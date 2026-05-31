@@ -112,6 +112,31 @@ describe('useCreateJsonWalletPage', () => {
     })
   })
 
+  it('keeps the workflow on the basic step when validation or draft creation fails', async () => {
+    const page = useCreateJsonWalletPage()
+
+    await page.submitCreateJsonWalletBasicStep()
+
+    expect(page.currentStep.value).toBe(0)
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('validation.required', {
+      literal: true,
+    })
+    expect(mocks.application.createJsonWalletDraft).not.toHaveBeenCalled()
+
+    page.basicLabel.value = 'Alice'
+    page.basicPassword.value = 'secret123'
+    page.basicRePassword.value = 'secret123'
+    mocks.application.createJsonWalletDraft.mockResolvedValue({
+      ok: false,
+      errorKey: 'createJsonWallet.createFail',
+    })
+
+    await page.submitCreateJsonWalletBasicStep()
+
+    expect(page.currentStep.value).toBe(0)
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('createJsonWallet.createFail')
+  })
+
   it('persists created wallets, updates cache state, and routes back to wallets', async () => {
     const page = useCreateJsonWalletPage()
     page.basicLabel.value = 'Alice'
@@ -145,5 +170,37 @@ describe('useCreateJsonWalletPage', () => {
     expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
     expect(page.currentStep.value).toBe(0)
     expect(page.createdAddress.value).toBe('')
+  })
+
+  it('resets back to the basic step when WIF validation fails while persisting', async () => {
+    const page = useCreateJsonWalletPage()
+    page.basicLabel.value = 'Alice'
+    page.basicPassword.value = 'secret123'
+    page.basicRePassword.value = 'secret123'
+    mocks.application.createJsonWalletDraft.mockResolvedValue({
+      ok: true,
+      label: 'Alice',
+      account: {
+        address: 'AQ123',
+        publicKey: 'PUB-1',
+      },
+      content: { name: 'Alice' },
+      wif: 'WIF-1',
+    })
+    mocks.application.persistCreatedJsonWallet.mockResolvedValue({
+      ok: false,
+      errorKey: 'common.savedbFailed',
+      reason: 'invalid_wif',
+    })
+
+    await page.submitCreateJsonWalletBasicStep()
+    expect(page.currentStep.value).toBe(1)
+
+    await page.submitCreateJsonWalletConfirmStep()
+
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('common.savedbFailed')
+    expect(page.currentStep.value).toBe(0)
+    expect(page.createdAddress.value).toBe('')
+    expect(mocks.router.push).not.toHaveBeenCalled()
   })
 })

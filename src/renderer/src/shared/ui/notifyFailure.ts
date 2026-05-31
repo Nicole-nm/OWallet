@@ -1,8 +1,13 @@
 import { notifyError, notifyWarning } from './feedback'
+import { getDefaultErrorKeyForCategory } from '../lib/errors'
+import type { AppErrorCode, ErrorCategory } from '../lib/result/types'
 
 export type FailureLike = {
   ok?: boolean
   errorKey?: string
+  category?: ErrorCategory
+  code?: AppErrorCode
+  detail?: unknown
   level?: 'warning' | string
 }
 
@@ -22,7 +27,7 @@ export function notifyFailure<T extends FailureLike>(
 ): result is T & { ok: false } {
   if (!result) return false
   if (result.ok === true) return false
-  const key = result.errorKey ?? fallbackKey
+  const key = result.errorKey ?? fallbackKey ?? getDefaultErrorKeyForCategory(result.category)
   if (key === undefined) return true
   if (result.level === 'warning') {
     notifyWarning(key)

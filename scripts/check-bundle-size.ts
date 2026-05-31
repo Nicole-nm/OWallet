@@ -10,8 +10,8 @@
  * intentionally set a little above that so genuine regressions fail while routine
  * changes pass. Tighten `BUDGET_KB` whenever the baseline drops.
  *
- * Run `yarn build` (or `electron-vite build`) first; if no build output exists,
- * this check is a no-op so it never blocks environments that have not built yet.
+ * Run `yarn build:compile` (or `electron-vite build`) first. Missing output is
+ * an error: otherwise a stale or absent build could silently bypass the gate.
  */
 import { existsSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
@@ -35,7 +35,8 @@ function collectAssetBytes(dir: string): number {
 
 function main(): void {
   if (!existsSync(RENDERER_OUT)) {
-    console.log('bundle-size: out/renderer not found; skipping (run `yarn build` first).')
+    console.error('bundle-size: out/renderer not found; run `yarn build:compile` first.')
+    process.exitCode = 1
     return
   }
 

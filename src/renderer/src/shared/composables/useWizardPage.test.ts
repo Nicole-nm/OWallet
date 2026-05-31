@@ -18,7 +18,7 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-import { useWizardPage } from './useWizardPage'
+import { useBasicConfirmWizardPage, useWizardPage } from './useWizardPage'
 
 describe('useWizardPage', () => {
   beforeEach(() => {
@@ -54,5 +54,30 @@ describe('useWizardPage', () => {
       { key: 'step-0', title: '' },
       { key: 'step-1', title: '' },
     ])
+  })
+
+  it('drives the shared basic-to-confirm wizard state', () => {
+    const page = useBasicConfirmWizardPage({
+      backRouteName: 'Wallets',
+      stepTitleKeys: ['basic', 'confirm'],
+    })
+
+    expect(page.currentStep.value).toBe(0)
+    expect(page.isBasicStep.value).toBe(true)
+    expect(page.isConfirmStep.value).toBe(false)
+    expect(page.steps.value).toEqual([
+      { key: 'step-0', title: 'translated:basic' },
+      { key: 'step-1', title: 'translated:confirm' },
+    ])
+
+    page.goToConfirmStep()
+
+    expect(page.currentStep.value).toBe(1)
+    expect(page.isBasicStep.value).toBe(false)
+    expect(page.isConfirmStep.value).toBe(true)
+
+    page.resetWizardStep()
+
+    expect(page.currentStep.value).toBe(0)
   })
 })

@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     name: 'unit',
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       // Coverage is scoped to testable units. Declarative/config-only modules
@@ -14,6 +14,7 @@ export default defineConfig({
         '**/*.test.ts',
         '**/*.d.ts',
         '**/*.stories.{ts,js}',
+        'scripts/**',
         'src/**/types.ts',
         'src/shared-types/**',
         'src/main/index.ts',
@@ -28,13 +29,13 @@ export default defineConfig({
         'src/renderer/src/**/i18n/**',
       ],
       // Minimum enforced floors. Current actuals sit a little above these
-      // (statements/lines ~81%, functions ~80%, branches ~70%); the floors are
+      // (statements/lines ~90%, functions ~87%, branches ~80%); the floors are
       // set at the agreed targets so accidental regressions fail CI while leaving
       // headroom for unrelated edits. Residual uncovered branches are Vue page
       // orchestration and Ledger/SDK adapters, which are exercised by Playwright e2e.
       thresholds: {
         statements: 80,
-        branches: 70,
+        branches: 80,
         functions: 70,
         lines: 80,
       },

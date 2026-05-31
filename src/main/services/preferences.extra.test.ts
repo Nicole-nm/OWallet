@@ -127,7 +127,9 @@ describe('registerPreferencesIpc', () => {
       '/tmp/owallet-user-data'
     )
     await expect(handlers.get('preferences:hasConfiguredSavePath')!({})).resolves.toBe(false)
-    expect(() => handlers.get('preferences:setSavePath')!({}, '')).toThrow('non-empty string')
+    await expect(handlers.get('preferences:setSavePath')!({}, '')).rejects.toThrow(
+      'non-empty string'
+    )
     await expect(handlers.get('preferences:setSavePath')!({}, '/tmp/x')).resolves.toBe('/tmp/x')
   })
 })

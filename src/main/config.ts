@@ -3,52 +3,19 @@
 import { app } from 'electron'
 import { pathToFileURL } from 'node:url'
 import { join } from 'path'
+import {
+  ALLOWED_API_HOSTNAMES,
+  ALLOWED_DEVELOPMENT_NAVIGATION_HOSTNAMES,
+  ALLOWED_EXTERNAL_HOSTNAMES,
+  SECURE_NODE_HOSTNAMES,
+  SECURE_NODE_PORT,
+} from './constants'
 
 export const isDevelopment = !app.isPackaged
 export const electronMajorVersion = Number.parseInt(
   (process.versions.electron || '0').split('.')[0] ?? '0',
   10
 )
-
-const ALLOWED_DEVELOPMENT_NAVIGATION_HOSTNAMES = new Set(['localhost', '127.0.0.1'])
-const ALLOWED_API_HOSTNAMES = new Set([
-  'api.github.com',
-  'service.onto.app',
-  'service-test.onto.app',
-  'coincap.io',
-  'min-api.cryptocompare.com',
-  'explorer.ont.io',
-  'polarisexplorer.ont.io',
-  'polaris1.ont.io',
-  'polaris2.ont.io',
-  'polaris3.ont.io',
-  'polaris4.ont.io',
-  'dappnode1.ont.io',
-  'dappnode2.ont.io',
-  'dappnode3.ont.io',
-  'dappnode4.ont.io',
-])
-const SECURE_NODE_HOSTNAMES = new Set([
-  'polaris1.ont.io',
-  'polaris2.ont.io',
-  'polaris3.ont.io',
-  'polaris4.ont.io',
-  'dappnode1.ont.io',
-  'dappnode2.ont.io',
-  'dappnode3.ont.io',
-  'dappnode4.ont.io',
-])
-const SECURE_NODE_PORT = '10334'
-const ALLOWED_EXTERNAL_HOSTNAMES = new Set([
-  'github.com',
-  'medium.com',
-  'node.ont.io',
-  'support.ledgerwallet.com',
-  'widget.changelly.com',
-  'wallet.cryptonex.org',
-  'explorer.ont.io',
-  'polarisexplorer.ont.io',
-])
 
 function isRendererEntryFile(url: URL): boolean {
   if (url.protocol !== 'file:') {

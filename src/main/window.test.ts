@@ -8,13 +8,32 @@ interface CapturedWebPreferences {
   preload?: string
 }
 
+interface MockedMainWindow {
+  webContents: {
+    reload: ReturnType<typeof vi.fn>
+  }
+  loadURL: ReturnType<typeof vi.fn>
+  emitWebContents(event: string, ...args: unknown[]): void
+}
+
 const mocks = vi.hoisted(() => {
   const constructorOptions: { value: Record<string, unknown> | null } = { value: null }
+  const lastWindow: { value: MockBrowserWindow | null } = { value: null }
 
   class MockBrowserWindow {
+    private webContentsListeners = new Map<string, Array<(...args: unknown[]) => void>>()
+    private webContentsDestroyed = false
+
     webContents = {
-      on: vi.fn(),
+      on: vi.fn((event: string, listener: (...args: unknown[]) => void) => {
+        this.webContentsListeners.set(event, [
+          ...(this.webContentsListeners.get(event) || []),
+          listener,
+        ])
+      }),
       openDevTools: vi.fn(),
+      reload: vi.fn(),
+      isDestroyed: vi.fn(() => this.webContentsDestroyed),
     }
     once = vi.fn()
     show = vi.fn()
@@ -24,11 +43,19 @@ const mocks = vi.hoisted(() => {
 
     constructor(options: Record<string, unknown>) {
       constructorOptions.value = options
+      lastWindow.value = this
+    }
+
+    emitWebContents(event: string, ...args: unknown[]) {
+      for (const listener of this.webContentsListeners.get(event) || []) {
+        listener(...args)
+      }
     }
   }
 
   return {
     constructorOptions,
+    lastWindow,
     BrowserWindow: MockBrowserWindow,
     Menu: {
       buildFromTemplate: vi.fn(() => ({})),
@@ -97,6 +124,35 @@ describe('createMainWindow security configuration', () => {
     const window = await buildWindow()
 
     expect(window.loadFile).toHaveBeenCalledOnce()
+    expect(window.loadURL).not.toHaveBeenCalled()
+  })
+
+  it('reloads the renderer after recoverable renderer exits', async () => {
+    const window = (await buildWindow()) as unknown as MockedMainWindow
+
+    window.emitWebContents('render-process-gone', {}, { reason: 'crashed', exitCode: 1 })
+
+    expect(window.webContents.reload).toHaveBeenCalledOnce()
+    expect(window.loadURL).not.toHaveBeenCalled()
+  })
+
+  it('shows a local recovery page after repeated renderer exits', async () => {
+    const window = (await buildWindow()) as unknown as MockedMainWindow
+
+    window.emitWebContents('render-process-gone', {}, { reason: 'crashed', exitCode: 1 })
+    window.emitWebContents('render-process-gone', {}, { reason: 'crashed', exitCode: 1 })
+    window.emitWebContents('render-process-gone', {}, { reason: 'crashed', exitCode: 1 })
+
+    expect(window.webContents.reload).toHaveBeenCalledTimes(2)
+    expect(window.loadURL).toHaveBeenCalledWith(expect.stringContaining('data:text/html'))
+  })
+
+  it('does not recover clean renderer exits', async () => {
+    const window = (await buildWindow()) as unknown as MockedMainWindow
+
+    window.emitWebContents('render-process-gone', {}, { reason: 'clean-exit', exitCode: 0 })
+
+    expect(window.webContents.reload).not.toHaveBeenCalled()
     expect(window.loadURL).not.toHaveBeenCalled()
   })
 })

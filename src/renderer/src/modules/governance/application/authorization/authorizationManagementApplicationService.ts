@@ -6,7 +6,7 @@ import {
   createWithdrawPeerUnboundOngTransaction,
 } from '../../../../domains/governance/governanceDomainService'
 import { createLogger } from '../../../../shared/lib/logger'
-import { tryCreateTransaction } from '../../../../shared/lib/transactionHelper'
+import { tryCreateTransaction } from '../../../../domains/transaction/transactionHelper'
 import { varifyPositiveInt } from '../../../../shared/lib/validators'
 import { normalizeNodePublicKey } from '../../domain/nodeMapper'
 import type { SdkTransactionLike } from '../../../../shared/chain/types'

@@ -8,6 +8,7 @@ import { attachWindowIpc } from './ipc'
 import { attachNavigationGuards } from './navigationGuards'
 
 const STARTUP_BACKGROUND_COLOR = '#0f141a'
+const MAX_RENDERER_RECOVERY_ATTEMPTS = 2
 
 function attachDevelopmentLogging(window: BrowserWindow): void {
   window.webContents.on(
@@ -45,11 +46,98 @@ function attachDevelopmentLogging(window: BrowserWindow): void {
       })
     }
   )
+}
+
+function createRendererRecoveryHtml(details: Electron.RenderProcessGoneDetails): string {
+  const reason = String(details.reason || 'unknown')
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OWallet Recovery</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0f141a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      max-width: 520px;
+      padding: 32px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+    p {
+      margin: 0;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    code {
+      color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>OWallet needs to be restarted</h1>
+    <p>The renderer stopped repeatedly (<code>${reason}</code>). Please close and reopen OWallet.</p>
+  </main>
+</body>
+</html>`
+}
+
+function loadRendererRecoveryPage(
+  window: BrowserWindow,
+  details: Electron.RenderProcessGoneDetails
+): void {
+  const recoveryUrl = `data:text/html;charset=utf-8,${encodeURIComponent(
+    createRendererRecoveryHtml(details)
+  )}`
+
+  void Promise.resolve(window.loadURL(recoveryUrl)).catch((error: unknown) => {
+    console.error('[OWallet][renderer-recovery-page-failed]', error)
+  })
+}
+
+export function attachRendererRecovery(window: BrowserWindow): void {
+  let rendererFailureCount = 0
+
+  window.webContents.on('did-finish-load', () => {
+    rendererFailureCount = 0
+  })
 
   window.webContents.on(
     'render-process-gone',
     (_event: Electron.Event, details: Electron.RenderProcessGoneDetails) => {
-      console.error('[OWallet][render-process-gone]', details)
+      if (details.reason === 'clean-exit') {
+        return
+      }
+
+      rendererFailureCount += 1
+      console.error('[OWallet][render-process-gone]', {
+        ...details,
+        rendererFailureCount,
+      })
+
+      if (window.isDestroyed() || window.webContents.isDestroyed()) {
+        return
+      }
+
+      if (rendererFailureCount <= MAX_RENDERER_RECOVERY_ATTEMPTS) {
+        window.webContents.reload()
+        return
+      }
+
+      loadRendererRecoveryPage(window, details)
     }
   )
 }
@@ -109,6 +197,7 @@ export function createMainWindow() {
   attachWindowIpc(window)
   attachNavigationGuards(window)
   attachStartupShowBehavior(window)
+  attachRendererRecovery(window)
 
   const menu = Menu.buildFromTemplate(
     getApplicationMenuTemplate({ isDevelopment }) as MenuItemConstructorOptions[]

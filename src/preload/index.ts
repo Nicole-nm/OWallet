@@ -14,58 +14,84 @@ import type {
   OpenDirectoryOptions,
   OWalletPlatformApi,
 } from '../shared-types/ipc'
+import {
+  DEFAULT_IPC_TIMEOUT_MS,
+  FILE_DIALOG_IPC_TIMEOUT_MS,
+  NETWORK_IPC_TIMEOUT_MS,
+  withIpcTimeout,
+} from '../shared-types/ipcTimeout'
+
+function invokeWithTimeout<T = unknown>(
+  channel: string,
+  timeoutMs = DEFAULT_IPC_TIMEOUT_MS,
+  ...args: unknown[]
+): Promise<T> {
+  return withIpcTimeout(
+    channel,
+    timeoutMs,
+    () => ipcRenderer.invoke(channel, ...args) as Promise<T>
+  )
+}
 
 const platformApi: OWalletPlatformApi = {
   dialog: {
     openDirectory(options: OpenDirectoryOptions = {}) {
-      return ipcRenderer.invoke('dialog:openDirectory', options)
+      return invokeWithTimeout('dialog:openDirectory', FILE_DIALOG_IPC_TIMEOUT_MS, options)
     },
   },
   preferences: {
     getSavePath() {
-      return ipcRenderer.invoke('preferences:getSavePath')
+      return invokeWithTimeout('preferences:getSavePath')
     },
     hasConfiguredSavePath() {
-      return ipcRenderer.invoke('preferences:hasConfiguredSavePath')
+      return invokeWithTimeout('preferences:hasConfiguredSavePath')
     },
     setSavePath(savePath: string) {
-      return ipcRenderer.invoke('preferences:setSavePath', savePath)
+      return invokeWithTimeout('preferences:setSavePath', DEFAULT_IPC_TIMEOUT_MS, savePath)
     },
   },
   keystoreDb: {
     find<T = unknown>(query: KeystoreDbQuery = {}): Promise<T[]> {
-      return ipcRenderer.invoke('keystoreDb:find', { query })
+      return invokeWithTimeout('keystoreDb:find', DEFAULT_IPC_TIMEOUT_MS, { query })
     },
     insert<T extends KeystoreDbDocument = KeystoreDbDocument>(doc: T): Promise<T> {
-      return ipcRenderer.invoke('keystoreDb:insert', { doc })
+      return invokeWithTimeout('keystoreDb:insert', DEFAULT_IPC_TIMEOUT_MS, { doc })
     },
     update(
       query: KeystoreDbQuery,
       update: KeystoreDbDocument,
       options: KeystoreDbUpdateOptions = {}
     ): Promise<number> {
-      return ipcRenderer.invoke('keystoreDb:update', { query, update, options })
+      return invokeWithTimeout('keystoreDb:update', DEFAULT_IPC_TIMEOUT_MS, {
+        query,
+        update,
+        options,
+      })
     },
     remove(query: KeystoreDbQuery, options: KeystoreDbRemoveOptions = {}): Promise<number> {
-      return ipcRenderer.invoke('keystoreDb:remove', { query, options })
+      return invokeWithTimeout('keystoreDb:remove', DEFAULT_IPC_TIMEOUT_MS, { query, options })
     },
   },
   http: {
     fetchJson<T = unknown>(url: string, options: FetchJsonOptions = {}): Promise<T> {
-      return ipcRenderer.invoke('http:fetchJson', { url, options })
+      return invokeWithTimeout('http:fetchJson', NETWORK_IPC_TIMEOUT_MS, { url, options })
     },
   },
   shell: {
     openExternal(url: string) {
-      return ipcRenderer.invoke('shell:openExternal', url)
+      return invokeWithTimeout('shell:openExternal', DEFAULT_IPC_TIMEOUT_MS, url)
     },
   },
   system: {
     validateKeystorePath(targetPath: string) {
-      return ipcRenderer.invoke('system:validateKeystorePath', targetPath)
+      return invokeWithTimeout(
+        'system:validateKeystorePath',
+        FILE_DIALOG_IPC_TIMEOUT_MS,
+        targetPath
+      )
     },
     isTest() {
-      return ipcRenderer.invoke('system:isTest')
+      return invokeWithTimeout('system:isTest')
     },
   },
 }

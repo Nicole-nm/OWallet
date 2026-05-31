@@ -9,6 +9,12 @@ interface WizardPageOptions {
   stepCount?: number
 }
 
+interface BasicConfirmWizardPageOptions {
+  currentStep?: Ref<number>
+  backRouteName: string
+  stepTitleKeys?: string[]
+}
+
 export function useWizardPage({
   currentStep,
   backRouteName,
@@ -41,5 +47,35 @@ export function useWizardPage({
     currentStep: resolvedCurrentStep,
     steps,
     back,
+  }
+}
+
+export function useBasicConfirmWizardPage({
+  currentStep,
+  backRouteName,
+  stepTitleKeys = [],
+}: BasicConfirmWizardPageOptions) {
+  const wizard = useWizardPage({
+    currentStep,
+    backRouteName,
+    stepTitleKeys,
+    stepCount: stepTitleKeys.length > 0 ? 0 : 2,
+  })
+
+  function goToBasicStep() {
+    wizard.currentStep.value = 0
+  }
+
+  function goToConfirmStep() {
+    wizard.currentStep.value = 1
+  }
+
+  return {
+    ...wizard,
+    isBasicStep: computed(() => wizard.currentStep.value === 0),
+    isConfirmStep: computed(() => wizard.currentStep.value === 1),
+    goToBasicStep,
+    goToConfirmStep,
+    resetWizardStep: goToBasicStep,
   }
 }

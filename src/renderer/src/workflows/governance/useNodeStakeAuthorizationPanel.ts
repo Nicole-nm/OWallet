@@ -13,7 +13,7 @@ import {
   refreshNodeStakeAuthorizationDetails,
   validateStakeAuthorizationUnit,
 } from '../../modules/governance/application/nodeStake/nodeStakeManagementApplicationService'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
+import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 
 function applyNodeStakeAuthorizationDetails(
   nodeAuthStore: unknown,

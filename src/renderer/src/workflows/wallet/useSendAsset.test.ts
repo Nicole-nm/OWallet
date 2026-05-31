@@ -116,6 +116,21 @@ describe('useSendAsset', () => {
       const sendAsset = useSendAsset(createEmit())
       expect(sendAsset.availableBalance.value).toBe('100 ONT')
     })
+
+    it('restores selected OEP-4 assets from persisted transfer state', () => {
+      mocks.currentWalletStore.transfer = {
+        gas: 0.01,
+        asset: 'TKN',
+        scriptHash: '0xtoken',
+        decimal: 4,
+        amount: 2,
+        to: 'AQrecipient',
+      }
+
+      const sendAsset = useSendAsset(createEmit())
+
+      expect(sendAsset.availableBalance.value).toBe('25.5 TKN')
+    })
   })
 
   describe('changeAsset', () => {
@@ -181,6 +196,37 @@ describe('useSendAsset', () => {
       expect(sendAsset.validAmount.value).toBe(false)
       expect(mocks.feedback.notifyError).toHaveBeenCalledWith('transfer.exceedBalance')
     })
+
+    it('marks malformed and overdrawn OEP-4 amounts invalid', () => {
+      const sendAsset = useSendAsset(createEmit())
+      sendAsset.changeAsset('0xtoken')
+      mocks.validators.varifyOpe4Value.mockReturnValueOnce(false)
+      sendAsset.amount.value = 'invalid'
+      sendAsset.validateAmount()
+      expect(sendAsset.validAmount.value).toBe(false)
+
+      sendAsset.amount.value = 30
+      sendAsset.validateAmount()
+      expect(sendAsset.validAmount.value).toBe(false)
+      expect(mocks.feedback.notifyError).toHaveBeenCalledWith('transfer.exceedBalance')
+    })
+  })
+
+  describe('maxAmount', () => {
+    it('selects the maximum ONT, ONG, and OEP-4 amount', () => {
+      const sendAsset = useSendAsset(createEmit())
+
+      sendAsset.maxAmount()
+      expect(sendAsset.amount.value).toBe(100)
+
+      sendAsset.changeAsset('ONG')
+      sendAsset.maxAmount()
+      expect(sendAsset.amount.value).toBe('49.99')
+
+      sendAsset.changeAsset('0xtoken')
+      sendAsset.maxAmount()
+      expect(sendAsset.amount.value).toBe('25.5')
+    })
   })
 
   describe('next', () => {
@@ -230,6 +276,20 @@ describe('useSendAsset', () => {
       })
       expect(emit).toHaveBeenCalledWith('sendAssetNext')
     })
+
+    it('blocks ONG transfers whose amount plus gas exceeds the balance', () => {
+      const emit = createEmit()
+      const sendAsset = useSendAsset(emit)
+      sendAsset.changeAsset('ONG')
+      sendAsset.amount.value = 50
+      sendAsset.validAmount.value = true
+      sendAsset.to.value = 'AQrecipient'
+
+      sendAsset.next()
+
+      expect(mocks.feedback.notifyError).toHaveBeenCalledWith('transfer.ongBalanceNotEnough')
+      expect(emit).not.toHaveBeenCalled()
+    })
   })
 
   describe('cancel', () => {
@@ -263,6 +323,15 @@ describe('useSendAsset', () => {
       await sendAsset.validateToAddress()
 
       expect(sendAsset.validToAddress.value).toBe(false)
+    })
+
+    it('rejects empty addresses without calling the shared validator', async () => {
+      const sendAsset = useSendAsset(createEmit())
+
+      await sendAsset.validateToAddress()
+
+      expect(sendAsset.validToAddress.value).toBe(false)
+      expect(mocks.validateSharedTransferAddress).not.toHaveBeenCalled()
     })
   })
 })

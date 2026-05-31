@@ -13,7 +13,7 @@ import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useAuthorizationTransactions } from './useAuthorizationTransactions'
 import { getCancelAuthorizationUnitLabel } from './countLabels'
-import type { GovernanceSignablePayload } from './governanceSigningTypes'
+import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 
 function applyAuthorizationOverview(nodeAuthStore: unknown, result: Record<string, unknown>) {
   const store = nodeAuthStore as {

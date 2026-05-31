@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { OWalletPlatformApi } from '../shared-types/ipc'
 
 const mocks = vi.hoisted(() => ({
@@ -30,6 +30,10 @@ async function importPreload() {
 describe('preload platform bridge', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('exposes a frozen owalletPlatform bridge when context isolation is enabled', async () => {
@@ -94,6 +98,21 @@ describe('preload platform bridge', () => {
       query,
       options: { multi: false },
     })
+  })
+
+  it('rejects IPC calls that do not resolve before the timeout', async () => {
+    vi.useFakeTimers()
+    const api = await importPreload()
+    mocks.invoke.mockImplementationOnce(() => new Promise(() => undefined))
+
+    const pending = api.preferences.getSavePath()
+    vi.advanceTimersByTime(15000)
+
+    await expect(pending).rejects.toMatchObject({
+      name: 'OWalletIpcTimeoutError',
+      message: '[OWallet] IPC channel "preferences:getSavePath" timed out after 15000ms',
+    })
+    await expect(pending).rejects.toThrow('timed out after 15000ms')
   })
 
   it('throws during preload initialization when context isolation is disabled', async () => {

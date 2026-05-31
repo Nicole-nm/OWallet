@@ -4,6 +4,7 @@ import { createLogger } from '../../shared/lib/logger'
 import type { NativeBalance, WalletCollections } from '../../shared/lib/types'
 import type { Result } from '../../shared/lib/result'
 import { success, failure } from '../../shared/lib/result'
+import { mapNetworkError, mapStorageError } from '../../shared/lib/errors'
 import { getBalanceUrl } from '../../shared/lib/urlBuilder'
 import { findIdentityCollection, findWalletCollections } from './repository'
 
@@ -30,7 +31,7 @@ export async function fetchWalletCollections(): Promise<Result<WalletCollections
     return success(data)
   } catch (err: unknown) {
     logger.error('fetchWalletCollections', err)
-    return failure('common.networkErr')
+    return failure('common.savedbFailed', undefined, mapStorageError(err))
   }
 }
 
@@ -40,7 +41,7 @@ export async function fetchIdentityCollection(): Promise<Result<unknown[]>> {
     return success(data)
   } catch (err: unknown) {
     logger.error('fetchIdentityCollection', err)
-    return failure('common.networkErr')
+    return failure('common.savedbFailed', undefined, mapStorageError(err))
   }
 }
 
@@ -56,17 +57,17 @@ export async function fetchNativeBalance(address: string): Promise<Result<Native
     const res = await httpClient.get<{ result?: NativeBalanceItem[] }>(url)
     if (!res.result) return failure('common.networkErr')
 
-    const balance: Record<string, string> = {}
+    const balance: Partial<NativeBalance> = {}
     for (const item of res.result) {
       if (item.asset_name === 'ong') balance.ong = item.balance
       if (item.asset_name === 'waitboundong') balance.waitBoundOng = item.balance
       if (item.asset_name === 'unboundong') balance.unboundOng = item.balance
       if (item.asset_name === 'ont') balance.ont = item.balance
     }
-    return success(balance as unknown as NativeBalance)
+    return success(balance as NativeBalance)
   } catch (err: unknown) {
     logger.error('fetchNativeBalance', err)
-    return failure('common.networkErr')
+    return failure('common.networkErr', undefined, mapNetworkError(err))
   }
 }
 
@@ -81,7 +82,7 @@ export async function registerOep4Contract(
     return success(result)
   } catch (err: unknown) {
     logger.error('registerOep4Contract', err)
-    return failure('common.networkErr')
+    return failure('common.networkErr', undefined, mapNetworkError(err))
   }
 }
 
@@ -99,8 +100,8 @@ export async function queryOep4TransactionHistory(
       return success(res.Result)
     }
     return success(null)
-  } catch {
-    return failure('common.networkErr')
+  } catch (err: unknown) {
+    return failure('common.networkErr', undefined, mapNetworkError(err))
   }
 }
 
@@ -124,7 +125,7 @@ export async function fetchWalletTransactionGroups({
   try {
     const response = await httpClient.get<{ result?: unknown[] }>(url)
     return success(response?.result || [])
-  } catch {
-    return failure('common.networkErr')
+  } catch (err: unknown) {
+    return failure('common.networkErr', undefined, mapNetworkError(err))
   }
 }

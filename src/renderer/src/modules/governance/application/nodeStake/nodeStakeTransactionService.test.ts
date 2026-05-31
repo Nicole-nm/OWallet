@@ -18,7 +18,7 @@ const helper = vi.hoisted(() => ({
 const mapper = vi.hoisted(() => ({ normalizeNodePublicKey: vi.fn(() => 'pk') }))
 
 vi.mock('../../../../domains/governance/governanceDomainService', () => domain)
-vi.mock('../../../../shared/lib/transactionHelper', () => helper)
+vi.mock('../../../../domains/transaction/transactionHelper', () => helper)
 vi.mock('../../domain/nodeMapper', () => mapper)
 
 import {

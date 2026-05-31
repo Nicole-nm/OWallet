@@ -5,7 +5,8 @@
  * existing importers continue to work without changes.
  *
  * New code should import directly from:
- *   - authorizeTransactionBuilder  (authorization / staking / storage reads)
+ *   - authorizeTransactionBuilder  (authorization / staking transaction builders)
+ *   - governanceStorageReader      (governance state reads)
  *   - candidateTransactionBuilder  (candidate registration / node management)
  */
 
@@ -18,13 +19,16 @@ export {
   buildChangeAuthorization,
   buildWithdrawFee,
   buildWithdrawPeerUnboundOng,
+} from './authorizeTransactionBuilder'
+
+export {
   getPeerPoolMap,
   getAttributes,
   getAuthorizeInfo,
   getSplitFeeAddress,
   getGlobalParam,
   getPeerUnboundOng,
-} from './authorizeTransactionBuilder'
+} from './governanceStorageReader'
 
 export {
   buildUnregisterCandidate,

@@ -27,9 +27,9 @@ vi.mock('../../shared/chain/loadOntologySdk', () => ({
 }))
 
 vi.mock('../../shared/chain/ledgerSigner', () => ({
-  checkPublicKeyIsInTheConnectedLedger: (...args: any[]) =>
+  checkPublicKeyIsInTheConnectedLedger: (...args: unknown[]) =>
     mocks.checkPublicKeyIsInTheConnectedLedger(...args),
-  legacySignWithLedger: (...args: any[]) => mocks.legacySignWithLedger(...args),
+  legacySignWithLedger: (...args: unknown[]) => mocks.legacySignWithLedger(...args),
 }))
 
 import { handleSignTx } from './voteTransactionBuilder'
@@ -52,7 +52,7 @@ describe('voteTransactionBuilder.handleSignTx()', () => {
     }
     class FakeTxSignature {
       M = 0
-      pubKeys: any[] = []
+      pubKeys: unknown[] = []
       sigData: string[] = []
     }
 
@@ -104,7 +104,7 @@ describe('voteTransactionBuilder.handleSignTx()', () => {
     }
     class FakeTxSignature {
       M = 0
-      pubKeys: any[] = []
+      pubKeys: unknown[] = []
       sigData: string[] = []
     }
 

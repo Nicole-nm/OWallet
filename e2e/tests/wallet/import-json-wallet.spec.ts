@@ -19,21 +19,20 @@ test.describe('Import JSON Wallet', () => {
     await expect(appPage).toHaveURL(/importJsonWallet/i)
   })
 
-  test('should show WIF import tab by default', async ({ appPage }) => {
+  test('should show DAT import tab by default', async ({ appPage }) => {
     await openImportJsonWallet(appPage)
 
-    const wifTab = appPage.locator('.ant-tabs-tab-active')
-    await expect(wifTab).toContainText(/wif|private key/i)
+    const datTab = appPage.locator('.ant-tabs-tab-active')
+    await expect(datTab).toContainText(/keystore|dat/i)
   })
 
-  test('should show validation errors for empty WIF import', async ({ appPage }) => {
+  test('should reject an empty DAT import', async ({ appPage }) => {
     await openImportJsonWallet(appPage)
 
     const nextButton = appPage.getByRole('button', { name: /next|import/i }).first()
     await nextButton.click()
 
-    const errors = appPage.locator('.ant-form-item-explain-error')
-    await expect(errors).toHaveCount(4)
+    await expect(appPage.getByText(/please select the valid keystore/i)).toBeVisible()
   })
 
   test('should switch between supported import tabs', async ({ appPage }) => {
@@ -56,6 +55,7 @@ test.describe('Import JSON Wallet', () => {
     electronApp,
   }) => {
     await openImportJsonWallet(appPage)
+    await appPage.getByRole('tab', { name: /private key \(wif\)/i }).click()
 
     await appPage
       .getByRole('textbox', { name: /set a new name for the wallet/i })

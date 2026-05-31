@@ -5,6 +5,7 @@ import { app } from 'electron'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { validateKeystorePath } from './pathValidation'
+import { registerIpcHandlerWithTimeout } from './ipcTimeout'
 
 const PREFERENCES_FILENAME = 'owallet-preferences.json'
 
@@ -66,7 +67,7 @@ async function readPreferences() {
 async function writePreferences(preferences: Preferences): Promise<Preferences> {
   const filePath = getPreferencesPath()
   await mkdir(dirname(filePath), { recursive: true })
-  await writeFile(filePath, JSON.stringify(preferences, null, 2))
+  await writeFile(filePath, JSON.stringify(preferences, null, 2), { mode: 0o600 })
   preferencesCache = preferences
   return preferencesCache
 }
@@ -120,15 +121,21 @@ export async function clearConfiguredSavePath() {
 }
 
 export function registerPreferencesIpc(ipcMain: IpcMain): void {
-  ipcMain.handle('preferences:getSavePath', () => getResolvedSavePath())
+  registerIpcHandlerWithTimeout(ipcMain, 'preferences:getSavePath', () => getResolvedSavePath())
 
-  ipcMain.handle('preferences:hasConfiguredSavePath', () => hasConfiguredSavePath())
+  registerIpcHandlerWithTimeout(ipcMain, 'preferences:hasConfiguredSavePath', () =>
+    hasConfiguredSavePath()
+  )
 
-  ipcMain.handle('preferences:setSavePath', (_event: IpcMainInvokeEvent, savePath: unknown) => {
-    if (typeof savePath !== 'string' || !savePath) {
-      throw new Error('[OWallet] preferences:setSavePath requires a non-empty string path')
+  registerIpcHandlerWithTimeout(
+    ipcMain,
+    'preferences:setSavePath',
+    (_event: IpcMainInvokeEvent, savePath: unknown) => {
+      if (typeof savePath !== 'string' || !savePath) {
+        throw new Error('[OWallet] preferences:setSavePath requires a non-empty string path')
+      }
+
+      return setConfiguredSavePath(savePath).then((preferences) => preferences.savePath)
     }
-
-    return setConfiguredSavePath(savePath).then((preferences) => preferences.savePath)
-  })
+  )
 }

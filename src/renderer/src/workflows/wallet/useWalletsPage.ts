@@ -2,6 +2,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useWalletsStore } from '../../stores/modules/Wallets'
 import { hasConfiguredSavePathPreference } from '../../modules/settings/application/settingsPreferencesApplicationService'
 import { loadWalletCollectionsIntoStore } from '../support/walletCollectionsStoreSync'
+import { runRefreshTasks } from '../../shared/lib/refreshHelper'
 
 function sortHardwareWallets<T extends { timestamp?: number; acct?: number }>(wallets: T[] = []) {
   return wallets.slice().sort((left, right) => {
@@ -45,18 +46,33 @@ export function useWalletsPage() {
   }
 
   async function reloadWallets(options: { force?: boolean } = { force: true }) {
-    isLoadingWallets.value = true
     walletsErrorKey.value = ''
 
-    try {
-      const result = await loadWalletCollectionsIntoStore(walletsStore, options)
-      if (!result.ok) {
-        walletsErrorKey.value = result.errorKey || 'wallets.loadFailed'
-      }
-      return result
-    } finally {
-      isLoadingWallets.value = false
+    const refresh = await runRefreshTasks({
+      requestStart: isLoadingWallets,
+      tasks: [
+        {
+          name: 'wallets:reload',
+          run: () => loadWalletCollectionsIntoStore(walletsStore, options),
+        },
+      ],
+    })
+
+    if (refresh.skipped) {
+      return { ok: false as const, skipped: true, errorKey: 'wallets.loadInProgress' }
     }
+
+    const result = refresh.results[0]
+    if (!result || result.status === 'rejected') {
+      walletsErrorKey.value = 'wallets.loadFailed'
+      return { ok: false as const, errorKey: 'wallets.loadFailed', error: result?.reason }
+    }
+
+    if (!result.value.ok) {
+      walletsErrorKey.value = result.value.errorKey || 'wallets.loadFailed'
+    }
+
+    return result.value
   }
 
   onMounted(() => {

@@ -59,7 +59,8 @@ describe('preferences service', () => {
     expect(mocks.mkdir).toHaveBeenCalledWith('/tmp/owallet-user-data', { recursive: true })
     expect(mocks.writeFile).toHaveBeenCalledWith(
       '/tmp/owallet-user-data/owallet-preferences.json',
-      JSON.stringify({ savePath: '/tmp/custom-wallets' }, null, 2)
+      JSON.stringify({ savePath: '/tmp/custom-wallets' }, null, 2),
+      { mode: 0o600 }
     )
   })
 })
