@@ -56,6 +56,7 @@ function makeSharedWallet(overrides: Partial<SharedWallet> = {}): SharedWallet {
     label: 'Vault',
     publicKey: '',
     sharedWalletAddress: 'TSharedAddr',
+    sharedWalletName: 'Vault',
     requiredNumber: '2',
     totalNumber: '3',
     coPayers: [

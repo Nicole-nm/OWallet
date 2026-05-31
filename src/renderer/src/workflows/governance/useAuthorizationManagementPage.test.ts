@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
     stopPolling: vi.fn(),
   },
   nodeAuthStore: {
-    currentNode: { publicKey: 'pk-1' },
+    currentNode: { publicKey: 'pk-1' } as Record<string, unknown>,
     splitFee: { address: '', amount: 0 } as { address: string; amount: number | string },
     authorizationInfo: {} as Record<string, unknown>,
     peerAttributes: {} as Record<string, unknown>,
@@ -19,6 +19,8 @@ const mocks = vi.hoisted(() => ({
     setSplitFee: vi.fn(),
     setPeerAttributes: vi.fn(),
     setPeerUnboundOng: vi.fn(),
+    setCurrentPeer: vi.fn(),
+    setCurrentNode: vi.fn(),
   },
   nodeStakeStore: {
     stakeWallet: { address: 'AQ123' },
@@ -112,12 +114,14 @@ describe('useAuthorizationManagementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.managementService.canOpenNewAuthorization.mockReturnValue({ ok: true })
+    mocks.nodeAuthStore.currentNode = { publicKey: 'pk-1' }
     mocks.authorizationService.refreshAuthorizationOverview.mockResolvedValue({
       ok: true,
       authorizationInfo: { claimable: '7' },
       splitFee: { address: 'AQ123', amount: 1 },
-      peerAttributes: { maxAuthorize: 10 },
+      peerAttributes: { maxAuthorize: 10, maxAuthorizeStr: '10' },
       peerUnboundOng: 3,
+      currentPeer: { peerPubkey: 'pk-1', totalPos: 50, totalPosStr: '50' },
     })
   })
 
@@ -138,13 +142,50 @@ describe('useAuthorizationManagementPage', () => {
       splitFee: { address: 'AQ123', amount: 1 },
     })
     expect(mocks.nodeAuthStore.setPeerAttributes).toHaveBeenCalledWith({
-      peerAttributes: { maxAuthorize: 10 },
+      peerAttributes: { maxAuthorize: 10, maxAuthorizeStr: '10' },
     })
     expect(mocks.nodeAuthStore.setPeerUnboundOng).toHaveBeenCalledWith({
       peerUnboundOng: 3,
     })
+    expect(mocks.nodeAuthStore.setCurrentPeer).toHaveBeenCalledWith({
+      peer: { peerPubkey: 'pk-1', totalPos: 50, totalPosStr: '50' },
+    })
+    expect(mocks.nodeAuthStore.setCurrentNode).toHaveBeenCalledWith({
+      currentNode: {
+        publicKey: 'pk-1',
+        maxAuthorize: 10,
+        maxAuthorizeStr: '10',
+        totalPos: 50,
+        totalPosStr: '50',
+      },
+    })
     expect(mocks.loadingStore.hideLoadingModals).toHaveBeenCalled()
     expect(mocks.polling.startPolling).toHaveBeenCalledWith({ immediate: false })
+  })
+
+  it('repairs currentNode when the My Stake entry path leaves capacity fields empty', async () => {
+    mocks.nodeAuthStore.currentNode = {
+      publicKey: 'pk-1',
+      name: 'Node A',
+      pk: 'pk-1',
+      inAuthorization: '1',
+    }
+    const page = useAuthorizationManagementPage()
+
+    await page.initializeAuthorizationManagementPage()
+
+    expect(mocks.nodeAuthStore.setCurrentNode).toHaveBeenCalledWith({
+      currentNode: {
+        publicKey: 'pk-1',
+        name: 'Node A',
+        pk: 'pk-1',
+        inAuthorization: '1',
+        maxAuthorize: 10,
+        maxAuthorizeStr: '10',
+        totalPos: 50,
+        totalPosStr: '50',
+      },
+    })
   })
 
   it('shows a loading modal while manually refreshing authorization details', async () => {

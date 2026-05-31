@@ -29,6 +29,9 @@ export function useSharedWalletHomePage() {
     intervalMs: POLLING_INTERVAL_MS,
   })
 
+  dashboard.currentWalletStore.resetNativeBalance()
+  dashboard.tokensStore.resetOep4Balances()
+
   onMounted(() => {
     const wallet = {
       address: sharedWallet.value.sharedWalletAddress,

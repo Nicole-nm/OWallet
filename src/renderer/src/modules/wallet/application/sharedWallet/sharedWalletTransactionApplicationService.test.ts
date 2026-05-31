@@ -212,6 +212,7 @@ describe('sharedWalletTransactionApplicationService', () => {
           label: 'multi',
           publicKey: '',
           sharedWalletAddress: 'AS123',
+          sharedWalletName: 'multi',
           requiredNumber: '2',
           totalNumber: '3',
           coPayers: [

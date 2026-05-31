@@ -2,6 +2,11 @@
   <section class="ow-panel wallet-dashboard__panel">
     <h2 class="wallet-dashboard__panel-title">{{ $t('sharedWalletHome.completedTx') }}</h2>
     <div class="wallet-dashboard__tx-list">
+      <wallet-transaction-empty-state
+        v-if="completedTx.length === 0"
+        class="wallet-dashboard__empty wallet-dashboard__empty--completed"
+        :description="$t('sharedWalletHome.noCompletedTransactions')"
+      />
       <div
         v-for="(tx, index) in completedTx"
         :key="tx.txHash + index"
@@ -11,7 +16,11 @@
         <span class="wallet-dashboard__tx-hash">{{ tx.txHash.substring(0, 40) + '...' }}</span>
         <span class="wallet-dashboard__tx-amount">{{ tx.amount }} {{ tx.asset }}</span>
       </div>
-      <div v-if="completedTx.length > 6" class="wallet-dashboard__more-link" @click="$emit('more')">
+      <div
+        v-if="completedTx.length > moreThreshold"
+        class="wallet-dashboard__more-link"
+        @click="$emit('more')"
+      >
         {{ $t('sharedWalletHome.checkMore') }}
         <RightOutlined />
       </div>
@@ -21,14 +30,21 @@
 
 <script setup lang="ts">
 import { RightOutlined } from '@ant-design/icons-vue'
+import WalletTransactionEmptyState from './WalletTransactionEmptyState.vue'
 
-defineProps<{
-  completedTx: Array<{
-    amount: string | number
-    asset: string
-    txHash: string
-  }>
-}>()
+withDefaults(
+  defineProps<{
+    completedTx: Array<{
+      amount: string | number
+      asset: string
+      txHash: string
+    }>
+    moreThreshold?: number
+  }>(),
+  {
+    moreThreshold: 6,
+  }
+)
 
 defineEmits<{
   more: []
@@ -50,6 +66,10 @@ defineEmits<{
 
 .wallet-dashboard__tx-list {
   display: grid;
+}
+
+.wallet-dashboard__empty {
+  margin: var(--ow-space-3) 0 0;
 }
 
 .wallet-dashboard__tx-row {

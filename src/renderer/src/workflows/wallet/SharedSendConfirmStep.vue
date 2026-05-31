@@ -1,66 +1,40 @@
 <template>
-  <div class="ow-flow-panel clearfix">
-    <p class="ow-flow-title" v-if="transfer.isRedeem">{{ $t('sharedWalletHome.redeemOng') }}</p>
-    <send-asset-summary
-      v-if="transfer.isRedeem"
-      :amount="redeem.claimableOng"
-      asset="ONG"
-      :fee="TRANSFER_GAS_MIN"
-    />
+  <div class="shared-send-confirm">
+    <shared-transfer-review-panel
+      :amount="summary.amount"
+      :asset="summary.asset"
+      :editable="true"
+      :fee="summary.fee"
+      :payers="payers"
+      :recipient="summary.recipient"
+      :required-number="sharedWallet.requiredNumber"
+      :sponsor-address="sponsorAddress"
+      :sponsor-options="localCopayers"
+      :title-key="summary.titleKey"
+      :total-number="sharedWallet.totalNumber"
+      @reorder="handleReorder"
+      @sponsor-change="handleChangeSponsor"
+    ></shared-transfer-review-panel>
 
-    <p class="ow-flow-title" v-if="!transfer.isRedeem">{{ $t('sharedWalletHome.send') }}</p>
-    <send-asset-summary
-      v-if="!transfer.isRedeem"
-      :amount="transfer.amount"
-      :asset="transfer.asset"
-      :recipient="transfer.to"
-      :fee="transfer.gas"
-    />
-
-    <div>
-      <div class="ow-signer-header">
-        <span class="ow-flow-title">{{ $t('sharedWalletHome.sponsor') }}</span>
-        <span class="ow-flow-title"
-          >[{{ sharedWallet.requiredNumber }} - OF - {{ sharedWallet.totalNumber }} ]</span
-        >
-      </div>
-      <div class="ow-signer-select">
-        <span class="ow-step-circle ow-step-circle--bordered">1</span>
-        <a-select :options="localCopayers" @change="handleChangeSponsor"></a-select>
-      </div>
-
-      <p class="ow-flow-title">{{ $t('sharedWalletHome.dragDecide') }}</p>
-      <div ref="dragContainer" class="ow-signer-sequence">
-        <div class="ow-draggable" v-for="(payer, index) in payers" :key="payer.address">
-          <div class="ow-signer-row ow-signer-row--hover">
-            <span class="ow-step-circle ow-step-circle--bordered">{{ Number(index) + 2 }}</span>
-            <span class="ow-signer-name">{{ payer.name }}</span>
-            <span class="ow-signer-address">{{ payer.address }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <page-footer-actions align="between">
+    <page-footer-actions align="between" class="shared-send-confirm__actions">
       <a-button type="default" variant="secondary" @click="back">{{
         $t('sharedWalletHome.back')
       }}</a-button>
-      <a-button type="primary" variant="primary" @click="next">{{
-        $t('sharedWalletHome.next')
-      }}</a-button>
+      <a-button type="primary" variant="primary" :disabled="!sponsorPayer" @click="next">
+        {{ $t('sharedWalletHome.next') }}
+      </a-button>
     </page-footer-actions>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import Sortable from 'sortablejs'
+import { computed, onMounted, ref } from 'vue'
 import { TRANSFER_GAS_MIN } from '../../shared/lib/constants'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
 import { loadLocalSharedCopayers } from '../../modules/wallet/application/sharedWallet/sharedWalletOverviewApplicationService'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
-import SendAssetSummary from '../../shared/ui/cards/SendAssetSummary.vue'
+import SharedTransferReviewPanel from './SharedTransferReviewPanel.vue'
 import type { SharedCopayer } from '../../shared/types'
 defineOptions({
   name: 'SendConfirm',
@@ -70,7 +44,6 @@ const emit = defineEmits(['cancelEvent', 'sendConfirmBack', 'sendConfirmNext'])
 const currentWalletStore = useCurrentWalletStore()
 const sharedWalletSessionStore = useSharedWalletSessionStore()
 
-const dragContainer = ref<HTMLElement | null>(null)
 const sharedWallet = computed(() => sharedWalletSessionStore.wallet)
 const transfer = computed(() => currentWalletStore.transfer)
 const redeem = computed(() => currentWalletStore.redeem)
@@ -89,31 +62,27 @@ const localCopayers = computed(() => {
 
 const payers = ref<SharedCopayer[]>([...sharedWallet.value.coPayers])
 const sponsorPayer = ref<SharedCopayer | null>(null)
-let sortable: Sortable | null = null
+const sponsorAddress = ref('')
+const summary = computed(() =>
+  transfer.value.isRedeem
+    ? {
+        amount: redeem.value.claimableOng,
+        asset: 'ONG',
+        fee: TRANSFER_GAS_MIN,
+        recipient: '',
+        titleKey: 'sharedWalletHome.redeemOng',
+      }
+    : {
+        amount: transfer.value.amount,
+        asset: transfer.value.asset,
+        fee: transfer.value.gas,
+        recipient: transfer.value.to,
+        titleKey: 'sharedWalletHome.send',
+      }
+)
 
 onMounted(() => {
   loadLocalCopayers()
-  if (!dragContainer.value) {
-    return
-  }
-
-  sortable = Sortable.create(dragContainer.value, {
-    animation: 150,
-    onEnd: (evt: { oldIndex?: number; newIndex?: number }) => {
-      if (evt.oldIndex === undefined || evt.newIndex === undefined) {
-        return
-      }
-      const item = payers.value.splice(evt.oldIndex, 1)[0]
-      if (!item) {
-        return
-      }
-      payers.value.splice(evt.newIndex, 0, item)
-    },
-  })
-})
-
-onBeforeUnmount(() => {
-  sortable?.destroy()
 })
 
 async function loadLocalCopayers() {
@@ -127,6 +96,7 @@ async function loadLocalCopayers() {
 }
 
 function handleChangeSponsor(value: string) {
+  sponsorAddress.value = value
   const nextPayers: SharedCopayer[] = []
   for (const payer of sharedWallet.value.coPayers) {
     if (payer.address !== value) {
@@ -136,6 +106,14 @@ function handleChangeSponsor(value: string) {
     }
   }
   payers.value = nextPayers
+}
+
+function handleReorder(oldIndex: number, newIndex: number) {
+  const item = payers.value.splice(oldIndex, 1)[0]
+  if (!item) {
+    return
+  }
+  payers.value.splice(newIndex, 0, item)
 }
 
 function back() {
@@ -156,3 +134,23 @@ function next() {
   emit('sendConfirmNext')
 }
 </script>
+
+<style scoped>
+.shared-send-confirm {
+  width: min(100%, 880px);
+  margin: 0 auto;
+  padding-bottom: 96px;
+  display: grid;
+  gap: var(--ow-space-3);
+}
+
+.shared-send-confirm__actions {
+  height: 72px;
+  margin-top: 0;
+}
+
+.shared-send-confirm__actions :deep(.ow-footer-actions) {
+  margin: 12px auto;
+  gap: var(--ow-space-3);
+}
+</style>

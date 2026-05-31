@@ -110,6 +110,13 @@ describe('authorizationQueryApplicationService', () => {
       tStakeCost: 6,
     })
     queryServiceMocks.fetchPeerUnboundOng.mockResolvedValue(9)
+    queryServiceMocks.fetchPeerFromPool.mockResolvedValue({
+      peerPubkey: 'peer-1',
+      address: 'address-1',
+      status: 2,
+      initPos: 500,
+      totalPos: 1700,
+    })
 
     const result = await refreshAuthorizationOverview({
       address: 'wallet-address',
@@ -130,6 +137,11 @@ describe('authorizationQueryApplicationService', () => {
         maxAuthorizeStr: '10',
       }),
       peerUnboundOng: 9,
+      currentPeer: expect.objectContaining({
+        peerPubkey: 'peer-1',
+        totalPos: 1700,
+        totalPosStr: '1 700',
+      }),
     })
   })
 

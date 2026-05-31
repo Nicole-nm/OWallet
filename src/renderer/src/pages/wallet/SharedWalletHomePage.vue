@@ -1,134 +1,62 @@
 <template>
-  <div class="ow-page-shell">
+  <div class="ow-page-shell wallet-dashboard">
     <breadcrumb :current="sharedWallet.sharedWalletName" @backEvent="handleBack"></breadcrumb>
-    <div class="wallet-info">
-      <p class="wallet-info__copy">
-        {{ $t('sharedWalletHome.walletAddress') }}:
-        <span class="wallet-info__address">{{ sharedWallet.sharedWalletAddress }}</span>
-        <span class="common-icon copy-icon" @click="copy()"></span>
-      </p>
-    </div>
-    <div class="ow-page-columns">
-      <div class="ow-page-column">
-        <div class="ow-asset-header">
-          <div>
-            <span>{{ $t('sharedWalletHome.balance') }}</span>
-            <span class="common-icon refresh-icon" @click="refresh(true)"></span>
-          </div>
-          <span class="common-icon add-icon" @click="addOep4"></span>
-        </div>
-        <div class="ow-asset-list">
-          <div class="ow-asset-row">
-            <span class="ow-asset-label">ONT</span>
-            <span class="ow-asset-amount">{{ balanceDisplay.ont }}</span>
-          </div>
 
-          <div class="ow-asset-row">
-            <span class="ow-asset-label">ONG</span>
-            <span class="ow-asset-amount">{{ balanceDisplay.ong }}</span>
-          </div>
+    <wallet-address-toolbar
+      :address="sharedWallet.sharedWalletAddress"
+      :show-actions="hasLocalCopayer"
+      @copy="copy"
+      @receive="showReceive"
+      @send="showTransferBox"
+    >
+      <template #extra-actions>
+        <a-dropdown>
+          <template #overlay>
+            <a-menu>
+              <a-menu-item key="1" @click="showTxMgmt()">
+                <span>{{ $t('sharedWalletHome.txMgmt') }}</span>
+              </a-menu-item>
+              <a-menu-item key="2" @click="toCopayerDetail()">
+                <span>{{ $t('sharedWalletHome.copayers') }}</span>
+              </a-menu-item>
+            </a-menu>
+          </template>
+          <a-button class="wallet-dashboard__more-action">
+            {{ $t('common.more') }}
+            <DownOutlined />
+          </a-button>
+        </a-dropdown>
+      </template>
+    </wallet-address-toolbar>
 
-          <div class="ow-asset-row" v-for="item of oep4sDisplay" :key="item.contract_hash">
-            <span class="ow-asset-label">{{ item.symbol }}</span>
-            <span class="ow-asset-amount">{{ item.balanceDisplay }}</span>
-          </div>
-        </div>
+    <div class="wallet-dashboard__grid">
+      <div class="wallet-dashboard__column">
+        <wallet-balance-panel
+          :balance-display="balanceDisplay"
+          :oep4s-display="oep4sDisplay"
+          @add-oep4="addOep4"
+          @refresh="refresh(true)"
+        ></wallet-balance-panel>
 
-        <div class="left-footer">
-          <div class="claim-ong-container">
-            <div class="claim-ong">
-              <div class="claim-ong-item">
-                <span>{{ $t('commonWalletHome.claimableOng') }}:</span>
-                <span>{{ balanceDisplay.unboundOng }}</span>
-              </div>
-              <div class="claim-ong-item">
-                <span>{{ $t('commonWalletHome.unboundOng') }}:</span>
-                <span>{{ balanceDisplay.waitBoundOng }}</span>
-              </div>
-            </div>
-            <div class="redeem-container">
-              <redeem-info-icon></redeem-info-icon>
-              <a-button type="default" class="btn-redeem" @click="redeemOng">{{
-                $t('commonWalletHome.redeem')
-              }}</a-button>
-            </div>
-          </div>
-
-          <div v-if="hasLocalCopayer" class="left-btn-container">
-            <div>
-              <a-button class="ow-asset-action" type="primary" @click="showTransferBox">
-                <SendOutlined />
-                {{ $t('sharedWalletHome.send') }}
-              </a-button>
-              <a-button class="ow-asset-action" type="primary" @click="showReceive">
-                <QrcodeOutlined />
-                {{ $t('sharedWalletHome.receive') }}
-              </a-button>
-            </div>
-
-            <div class="left-btn-more">
-              <div class="vertical-line"></div>
-              <a-dropdown placement="topCenter">
-                <template #overlay>
-                  <a-menu>
-                    <a-menu-item key="1" @click="showTxMgmt()">
-                      <span>{{ $t('sharedWalletHome.txMgmt') }}</span>
-                    </a-menu-item>
-                    <a-menu-item key="2" @click="toCopayerDetail()">
-                      <span>{{ $t('sharedWalletHome.copayers') }}</span>
-                    </a-menu-item>
-                  </a-menu>
-                </template>
-                <a-button class="btn-dropdown">
-                  {{ $t('common.more') }}
-                  <DownOutlined class="icon-arrow" />
-                </a-button>
-              </a-dropdown>
-            </div>
-          </div>
-        </div>
+        <wallet-maintenance-panel
+          :balance-display="balanceDisplay"
+          @redeem="redeemOng"
+        ></wallet-maintenance-panel>
       </div>
 
-      <div class="ow-page-column">
-        <div class="pending-tx">
-          <div class="ow-tx-header">
-            <span>{{ $t('sharedWalletHome.pendingTx') }}</span>
-          </div>
-          <div class="pending-tx-container">
-            <div
-              v-for="tx in pendingTx"
-              :key="tx.transactionidhash"
-              class="ow-tx-row"
-              @click="pendingTxDetail(tx)"
-            >
-              <span>{{ tx.transactionidhash }}</span>
-              <span>
-                {{ tx.receiveaddress === sharedWallet.sharedWalletAddress ? '+' : '-' }}
-                {{ tx.amount }} {{ tx.assetName }}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="completed-tx">
-          <div class="ow-tx-header">
-            <span>{{ $t('sharedWalletHome.completedTx') }}</span>
-            <span class="transfer-icon"></span>
-          </div>
+      <div class="wallet-dashboard__column">
+        <shared-wallet-pending-transactions-panel
+          :pending-tx="pendingTx"
+          :shared-wallet-address="sharedWallet.sharedWalletAddress"
+          @show-detail="pendingTxDetail"
+        ></shared-wallet-pending-transactions-panel>
 
-          <div
-            v-for="tx in completedTx"
-            :key="tx.txHash"
-            class="ow-tx-row"
-            @click="showTxDetail(tx.txHash)"
-          >
-            <span>{{ tx.txHash.substring(0, 40) + '...' }}</span>
-            <span>{{ tx.amount }} {{ tx.asset }}</span>
-          </div>
-          <div class="ow-more-link" v-if="completedTx.length > 5" @click="checkMoreTx">
-            {{ $t('sharedWalletHome.checkMore') }}
-            <RightOutlined class="icon-arrow" />
-          </div>
-        </div>
+        <wallet-transactions-panel
+          :completed-tx="completedTx"
+          :more-threshold="5"
+          @more="checkMoreTx"
+          @show-detail="showTxDetail"
+        ></wallet-transactions-panel>
       </div>
     </div>
     <a-modal :title="$t('redeemInfo.info')" v-model:open="redeemInfoVisible" @ok="handleModalOk">
@@ -149,10 +77,14 @@
 
 <script setup lang="ts">
 import Breadcrumb from '../../shared/ui/navigation/Breadcrumb.vue'
-import RedeemInfoIcon from '../../shared/ui/feedback/RedeemInfoIcon.vue'
 import Oep4Selection from '../../modules/wallet/ui/Oep4Selection.vue'
+import SharedWalletPendingTransactionsPanel from '../../modules/wallet/ui/SharedWalletPendingTransactionsPanel.vue'
+import WalletAddressToolbar from '../../modules/wallet/ui/WalletAddressToolbar.vue'
+import WalletBalancePanel from '../../modules/wallet/ui/WalletBalancePanel.vue'
+import WalletMaintenancePanel from '../../modules/wallet/ui/WalletMaintenancePanel.vue'
+import WalletTransactionsPanel from '../../modules/wallet/ui/WalletTransactionsPanel.vue'
 import { useSharedWalletHomePage } from '../../workflows/wallet/useSharedWalletHomePage'
-import { SendOutlined, QrcodeOutlined, DownOutlined, RightOutlined } from '@ant-design/icons-vue'
+import { DownOutlined } from '@ant-design/icons-vue'
 
 defineOptions({
   name: 'SharedWalletHomePage',
@@ -190,87 +122,34 @@ const {
 </script>
 
 <style scoped>
-.wallet-info {
-  position: relative;
-  padding-top: var(--ow-space-3);
-  font-family: var(--ow-font-regular);
-  font-size: var(--ow-font-size-body);
-  line-height: var(--ow-line-height-body);
+.wallet-dashboard,
+.wallet-dashboard__column {
+  display: grid;
+  gap: var(--ow-space-3);
 }
 
-.wallet-info p {
-  margin-bottom: var(--ow-space-1);
-}
-
-.wallet-info__copy {
-  margin-bottom: var(--ow-space-1);
-}
-
-.wallet-info__address {
-  color: var(--ow-color-text-secondary);
+.wallet-dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ow-space-3);
+  align-items: start;
 }
 
 .shared-wallet-home__redeem-note {
-  font-family: var(--ow-font-regular);
   color: var(--ow-color-text-primary);
 }
 
-.redeem-container {
-  justify-content: flex-end;
-  gap: var(--ow-space-2);
-  margin-left: auto;
-}
-
-.redeem-container :deep(.redeem-info-icon) {
-  margin-left: 0;
-}
-
-.pending-tx {
-  margin-bottom: var(--ow-space-12);
-}
-
-.pending-tx-container {
-  height: 150px;
-  overflow-y: auto;
-}
-.pending-tx-container::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-.pending-tx-container::-webkit-scrollbar-thumb {
-  border-radius: var(--ow-radius-pill);
-  background: var(--ow-color-border-default);
-}
-
-.pending-tx-container::-webkit-scrollbar-track {
-  border-radius: var(--ow-radius-control);
-  background: var(--ow-color-surface-hover);
-}
-
-.btn-dropdown {
-  width: 120px;
+.wallet-dashboard__more-action {
+  min-width: 132px;
   height: var(--ow-button-height);
-  background: var(--ow-color-surface-muted);
-  font-size: var(--ow-font-size-body);
+  border-radius: var(--ow-radius-control);
   font-family: var(--ow-font-medium);
   color: var(--ow-color-brand);
-  border-radius: var(--ow-radius-control);
-  border: none;
 }
 
-.left-btn-container {
-  display: flex;
-  justify-content: space-between;
-}
-
-.left-btn-more {
-  display: flex;
-}
-
-.vertical-line {
-  width: 2px;
-  height: var(--ow-button-height);
-  background: var(--ow-color-surface-muted);
-  margin-right: var(--ow-space-7);
+@media (max-width: 960px) {
+  .wallet-dashboard__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

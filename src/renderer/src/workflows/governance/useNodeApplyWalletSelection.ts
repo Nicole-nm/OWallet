@@ -70,7 +70,7 @@ export function useNodeApplyWalletSelection(walletsStore: NodeApplyWalletsStoreL
     const ledgerWallets = mapOperationWalletOptions(walletsStore.hardwareWallets.slice())
       .map((wallet) => ({
         ...wallet,
-        label: wallet.label + ' ' + wallet.address + ' (Ledger)',
+        label: wallet.label + ' (Ledger)',
       }))
       .sort((left, right) => {
         const leftTime = left.timestamp || 0

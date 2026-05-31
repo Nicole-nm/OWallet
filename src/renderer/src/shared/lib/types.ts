@@ -35,6 +35,7 @@ export interface HardwareWallet extends WalletBase {
 
 export interface SharedWallet extends WalletBase {
   sharedWalletAddress: string
+  sharedWalletName: string
   coPayers: Copayer[]
   requiredNumber: string
   totalNumber: string

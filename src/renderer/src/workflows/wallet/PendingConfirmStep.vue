@@ -1,61 +1,17 @@
 <template>
-  <div class="ow-flow-panel ow-flow-panel--scroll clearfix">
-    <p class="ow-flow-title" v-if="!isRedeem">{{ $t('sharedWalletHome.send') }}</p>
-    <p class="ow-flow-title" v-if="isRedeem">{{ $t('sharedWalletHome.redeemOng') }}</p>
-
-    <send-asset-summary
+  <div class="pending-confirm">
+    <shared-transfer-review-panel
       :amount="pendingTx.amount"
       :asset="pendingTx.assetName"
-      :recipient="pendingTx.receiveaddress"
       :fee="gas"
-    />
+      :payers="pendingTx.coPayerSignDtos"
+      :recipient="pendingTx.receiveaddress"
+      :required-number="sharedWallet.requiredNumber"
+      :title-key="isRedeem ? 'sharedWalletHome.redeemOng' : 'sharedWalletHome.send'"
+      :total-number="sharedWallet.totalNumber"
+    ></shared-transfer-review-panel>
 
-    <div>
-      <div class="ow-signer-header">
-        <span class="ow-flow-title">{{ $t('sharedWalletHome.sponsor') }}</span>
-        <span class="ow-flow-title"
-          >[{{ sharedWallet.requiredNumber }} - OF - {{ sharedWallet.totalNumber }} ]</span
-        >
-      </div>
-      <div class="ow-signer-row ow-signer-row--sponsor">
-        <span
-          class="ow-step-circle"
-          :class="
-            pendingTx.coPayerSignDtos[0] && pendingTx.coPayerSignDtos[0].isSign
-              ? 'ow-step-circle--signed'
-              : 'ow-step-circle--unsigned'
-          "
-          >1</span
-        >
-        <span class="ow-signer-name">{{
-          pendingTx.coPayerSignDtos[0] && pendingTx.coPayerSignDtos[0].name
-        }}</span>
-        <span class="ow-signer-address">{{
-          pendingTx.coPayerSignDtos[0] && pendingTx.coPayerSignDtos[0].address
-        }}</span>
-      </div>
-
-      <p class="ow-flow-title">{{ $t('sharedWalletHome.signSequence') }}</p>
-      <div class="ow-signer-sequence">
-        <div
-          class="ow-draggable"
-          v-for="(payer, index) in pendingTx.coPayerSignDtos"
-          :key="payer.address"
-        >
-          <div class="ow-signer-row" v-if="index !== 0">
-            <span
-              class="ow-step-circle"
-              :class="payer.isSign ? 'ow-step-circle--signed' : 'ow-step-circle--unsigned'"
-              >{{ Number(index) + 1 }}</span
-            >
-            <span class="ow-signer-name">{{ payer.name }}</span>
-            <span class="ow-signer-address">{{ payer.address }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <page-footer-actions v-if="showSign" align="center">
+    <page-footer-actions v-if="showSign" align="center" class="pending-confirm__actions">
       <a-button type="primary" variant="primary" @click="next">{{
         $t('sharedWalletHome.sign')
       }}</a-button>
@@ -70,7 +26,7 @@ import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
 import { findLocalSharedSigner } from '../../modules/wallet/application/sharedWallet/sharedWalletOverviewApplicationService'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
-import SendAssetSummary from '../../shared/ui/cards/SendAssetSummary.vue'
+import SharedTransferReviewPanel from './SharedTransferReviewPanel.vue'
 defineOptions({
   name: 'PendingConfirm',
 })
@@ -82,7 +38,7 @@ const sharedWalletSessionStore = useSharedWalletSessionStore()
 
 const sharedWallet = computed(() => sharedWalletSessionStore.wallet)
 const pendingTx = computed(() => currentWalletStore.pendingTx)
-const isRedeem = computed(() => currentWalletStore.transfer)
+const isRedeem = computed(() => Boolean(currentWalletStore.transfer.isRedeem))
 const gas = computed(() => {
   const gasPrice = new BigNumber(currentWalletStore.pendingTx.gasprice)
   const gasLimit = new BigNumber(currentWalletStore.pendingTx.gaslimit)
@@ -114,3 +70,22 @@ function next() {
   emit('signEvent')
 }
 </script>
+
+<style scoped>
+.pending-confirm {
+  width: min(100%, 880px);
+  margin: 0 auto;
+  padding-bottom: 96px;
+  display: grid;
+  gap: var(--ow-space-3);
+}
+
+.pending-confirm__actions {
+  height: 72px;
+  margin-top: 0;
+}
+
+.pending-confirm__actions :deep(.ow-footer-actions) {
+  margin: 12px auto;
+}
+</style>

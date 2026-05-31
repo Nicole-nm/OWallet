@@ -112,6 +112,7 @@ describe('refreshAuthorizationOverview fallbacks', () => {
     if (!result.ok) {
       expect(result.peerUnboundOng).toBe(0)
       expect(result.splitFee).toEqual(expect.objectContaining({ amount: 0 }))
+      expect(result.currentPeer).toEqual(createEmptyAuthorizationPeer())
     }
   })
 
@@ -120,12 +121,14 @@ describe('refreshAuthorizationOverview fallbacks', () => {
     queryServiceMocks.fetchSplitFee.mockResolvedValue(undefined)
     queryServiceMocks.fetchPeerAttributes.mockResolvedValue(null)
     queryServiceMocks.fetchPeerUnboundOng.mockResolvedValue(undefined)
+    queryServiceMocks.fetchPeerFromPool.mockResolvedValue(null)
 
     const result = await refreshAuthorizationOverview({ address: 'AQ', pk: 'pk' })
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.peerUnboundOng).toBe(0)
       expect(result.authorizationInfo).toEqual(createEmptyAuthorizationInfo())
+      expect(result.currentPeer).toEqual(createEmptyAuthorizationPeer())
     }
   })
 })

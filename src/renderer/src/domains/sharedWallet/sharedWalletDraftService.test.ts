@@ -75,6 +75,7 @@ const makeSharedWallet = (requiredNumber: string, totalNumber: string, copayerCo
   label: 'Test Shared Wallet',
   publicKey: 'pk-shared',
   sharedWalletAddress: 'AShared123',
+  sharedWalletName: 'Test Shared Wallet',
   requiredNumber,
   totalNumber,
   coPayers: Array.from({ length: copayerCount }, (_, i) => ({

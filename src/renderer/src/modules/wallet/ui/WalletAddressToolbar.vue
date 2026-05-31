@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <div class="wallet-dashboard__toolbar-actions">
+    <div v-if="showActions" class="wallet-dashboard__toolbar-actions">
       <a-button class="wallet-dashboard__action" type="primary" @click="$emit('send')">
         <SendOutlined />
         {{ $t('sharedWalletHome.send') }}
@@ -29,6 +29,7 @@
         <QrcodeOutlined />
         {{ $t('sharedWalletHome.receive') }}
       </a-button>
+      <slot name="extra-actions"></slot>
     </div>
   </section>
 </template>
@@ -37,9 +38,15 @@
 import VueQrcode from 'qrcode.vue'
 import { CopyOutlined, QrcodeOutlined, SendOutlined } from '@ant-design/icons-vue'
 
-defineProps<{
-  address: string
-}>()
+withDefaults(
+  defineProps<{
+    address: string
+    showActions?: boolean
+  }>(),
+  {
+    showActions: true,
+  }
+)
 
 defineEmits<{
   copy: []

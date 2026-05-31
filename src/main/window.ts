@@ -18,7 +18,9 @@ function attachDevelopmentLogging(window: BrowserWindow): void {
 
       if (
         message.includes('Electron Security Warning (Insecure Content-Security-Policy)') ||
-        message.includes("The Content Security Policy directive 'frame-ancestors' is ignored")
+        message.includes("The Content Security Policy directive 'frame-ancestors' is ignored") ||
+        message.includes('ResizeObserver loop completed with undelivered notifications') ||
+        message.includes('ResizeObserver loop limit exceeded')
       ) {
         return
       }

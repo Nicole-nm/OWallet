@@ -6,6 +6,7 @@ import { notifyError } from '../../shared/ui/feedback'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useTokensStore } from '../../stores/modules/Tokens'
 import { TRANSFER_GAS_MIN } from '../../shared/lib/constants'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import type { TrackedOep4Token } from '../../shared/types'
 
 type SendAssetEmit = (event: 'cancelEvent' | 'sendAssetNext') => void
@@ -35,9 +36,13 @@ export function useSendAsset(emit: SendAssetEmit) {
   const oep4s = computed(() => tokensStore.oep4WithBalances)
 
   const availableBalance = computed(() => {
-    if (asset.value === NATIVE_ASSET_ONT) return `${balance.value.ont} ${NATIVE_ASSET_ONT}`
-    if (asset.value === NATIVE_ASSET_ONG) return `${balance.value.ong} ${NATIVE_ASSET_ONG}`
-    return `${selectedOep4.value?.balance ?? 0} ${asset.value}`
+    if (asset.value === NATIVE_ASSET_ONT) {
+      return `${formatNumberForDisplay(balance.value.ont)} ${NATIVE_ASSET_ONT}`
+    }
+    if (asset.value === NATIVE_ASSET_ONG) {
+      return `${formatNumberForDisplay(balance.value.ong)} ${NATIVE_ASSET_ONG}`
+    }
+    return `${formatNumberForDisplay(selectedOep4.value?.balance ?? 0)} ${asset.value}`
   })
 
   const oep4ByContractHash = computed(

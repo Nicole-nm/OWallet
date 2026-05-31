@@ -173,18 +173,22 @@ export async function refreshAuthorizationOverview({
 }: AuthorizationAddressPublicKeyParams) {
   return tryNetworkQuery(
     async () => {
-      const [authorizationInfo, splitFee, peerAttributes, peerUnboundOng] = await Promise.all([
-        fetchAuthorizationInfoFromService(pk, address),
-        fetchSplitFeeFromService(address),
-        fetchPeerAttributesFromService(pk),
-        fetchUnboundOngFromService(address),
-      ])
+      const [authorizationInfo, splitFee, peerAttributes, peerUnboundOng, peer] = await Promise.all(
+        [
+          fetchAuthorizationInfoFromService(pk, address),
+          fetchSplitFeeFromService(address),
+          fetchPeerAttributesFromService(pk),
+          fetchUnboundOngFromService(address),
+          fetchPeerFromPool(pk),
+        ]
+      )
 
       return {
         authorizationInfo: mapAuthorizationInfoRecord(authorizationInfo),
         splitFee: splitFee || createEmptySplitFee(),
         peerAttributes: mapAuthorizationPeerAttributes(peerAttributes),
         peerUnboundOng: peerUnboundOng ?? 0,
+        currentPeer: mapAuthorizationPeer(peer),
       }
     },
     {
@@ -194,6 +198,7 @@ export async function refreshAuthorizationOverview({
         splitFee: createEmptySplitFee(),
         peerAttributes: createEmptyAuthorizationPeerAttributes(),
         peerUnboundOng: 0,
+        currentPeer: createEmptyAuthorizationPeer(),
       }),
     }
   )

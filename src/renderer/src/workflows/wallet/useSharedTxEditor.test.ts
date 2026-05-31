@@ -40,6 +40,6 @@ describe('useSharedTxEditor', () => {
     expect(mocks.copyText).toHaveBeenCalledWith('0x123')
     expect(editor.visible.value).toBe(false)
     expect(editor.serializedTx.value).toBe('')
-    expect(editor.selectedSigner.value).toBe('')
+    expect(editor.selectedSigner.value).toBeNull()
   })
 })

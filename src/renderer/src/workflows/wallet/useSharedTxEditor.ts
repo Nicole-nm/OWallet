@@ -14,14 +14,14 @@ interface SignatureRequestInput {
 
 export function useSharedTxEditor(resolveSigner: unknown) {
   const signerResolver = resolveSigner as (address: unknown) => unknown
-  const selectedSigner = ref<unknown>('')
+  const selectedSigner = ref<unknown>(null)
   const signRequest = ref<SignatureRequest | null>(null)
   const visible = ref(false)
   const serializedTx = ref('')
   const { copyText } = useClipboardNotice()
 
   function handleSignerChange(address: unknown) {
-    selectedSigner.value = signerResolver(address) || ''
+    selectedSigner.value = signerResolver(address) || null
   }
 
   function requestSignature({ tx, isFirstSign }: SignatureRequestInput) {
@@ -43,7 +43,7 @@ export function useSharedTxEditor(resolveSigner: unknown) {
 
   function resetEditorState({ resetSigner = false } = {}) {
     if (resetSigner) {
-      selectedSigner.value = ''
+      selectedSigner.value = null
     }
 
     signRequest.value = null

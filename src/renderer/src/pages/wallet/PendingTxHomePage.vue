@@ -1,18 +1,42 @@
 <template>
-  <div>
+  <div class="ow-flow-shell-page">
     <breadcrumb
       :routes="routes"
       :current="$t('sharedWalletHome.pendingTx')"
       @backEvent="backToWallets"
     ></breadcrumb>
-    <div class="ow-send-flow pending-container">
-      <pending-confirm @signEvent="handleSignEvent" v-if="!showInputPass"></pending-confirm>
-      <pending-tx-sign
-        @backEvent="handleBackEvent"
-        @submitEvent="handleSubmitEvent"
-        v-if="showInputPass"
-      ></pending-tx-sign>
-    </div>
+    <section class="ow-panel ow-flow-shell pending-container">
+      <div
+        class="ow-flow-shell__progress"
+        role="list"
+        aria-label="Pending shared transaction progress"
+      >
+        <div
+          v-for="(step, index) in progressSteps"
+          :key="step.labelKey"
+          class="ow-flow-shell__step"
+          :class="{
+            'ow-flow-shell__step--active': currentStep === index,
+            'ow-flow-shell__step--complete': currentStep > index,
+          }"
+          role="listitem"
+        >
+          <span class="ow-flow-shell__step-index">{{ index + 1 }}</span>
+          <div class="ow-flow-shell__step-copy">
+            <span class="ow-flow-shell__step-label">{{ $t(step.labelKey) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ow-flow-shell__body">
+        <pending-confirm v-if="!showInputPass" @signEvent="handleSignEvent"></pending-confirm>
+        <pending-tx-sign
+          v-if="showInputPass"
+          @backEvent="handleBackEvent"
+          @submitEvent="handleSubmitEvent"
+        ></pending-tx-sign>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -29,17 +53,11 @@ defineOptions({
 const {
   routes,
   backToWallets,
+  currentStep,
+  progressSteps,
   showInputPass,
   handleSignEvent,
   handleBackEvent,
   handleSubmitEvent,
 } = usePendingTxHomePage()
 </script>
-
-<style scoped>
-.pending-container {
-  margin-top: 4rem;
-  margin-bottom: 4rem;
-  padding-bottom: 0;
-}
-</style>

@@ -18,32 +18,10 @@
           @refresh="refresh(true)"
         ></wallet-balance-panel>
 
-        <section class="ow-panel wallet-dashboard__panel wallet-dashboard__panel--maintenance">
-          <div class="wallet-dashboard__maintenance">
-            <div class="wallet-dashboard__maintenance-row">
-              <span class="wallet-dashboard__maintenance-label">{{
-                $t('commonWalletHome.claimableOng')
-              }}</span>
-              <span class="wallet-dashboard__maintenance-value">{{
-                balanceDisplay.unboundOng
-              }}</span>
-            </div>
-            <div class="wallet-dashboard__maintenance-row">
-              <span class="wallet-dashboard__maintenance-label">{{
-                $t('commonWalletHome.unboundOng')
-              }}</span>
-              <span class="wallet-dashboard__maintenance-value">{{
-                balanceDisplay.waitBoundOng
-              }}</span>
-            </div>
-            <div class="wallet-dashboard__maintenance-actions">
-              <redeem-info-icon></redeem-info-icon>
-              <a-button type="default" class="wallet-dashboard__redeem" @click="redeemOng">{{
-                $t('commonWalletHome.redeem')
-              }}</a-button>
-            </div>
-          </div>
-        </section>
+        <wallet-maintenance-panel
+          :balance-display="balanceDisplay"
+          @redeem="redeemOng"
+        ></wallet-maintenance-panel>
       </div>
 
       <wallet-transactions-panel
@@ -71,10 +49,10 @@
 
 <script setup lang="ts">
 import Breadcrumb from '../../shared/ui/navigation/Breadcrumb.vue'
-import RedeemInfoIcon from '../../shared/ui/feedback/RedeemInfoIcon.vue'
 import Oep4Selection from '../../modules/wallet/ui/Oep4Selection.vue'
 import WalletAddressToolbar from '../../modules/wallet/ui/WalletAddressToolbar.vue'
 import WalletBalancePanel from '../../modules/wallet/ui/WalletBalancePanel.vue'
+import WalletMaintenancePanel from '../../modules/wallet/ui/WalletMaintenancePanel.vue'
 import WalletTransactionsPanel from '../../modules/wallet/ui/WalletTransactionsPanel.vue'
 import { useWalletDashboardPage } from '../../workflows/wallet/useWalletDashboardPage'
 
@@ -121,47 +99,6 @@ const {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--ow-space-3);
   align-items: start;
-}
-
-.wallet-dashboard__panel {
-  min-width: 0;
-  padding: var(--ow-space-3);
-}
-
-.wallet-dashboard__maintenance {
-  display: grid;
-  gap: var(--ow-space-1);
-}
-
-.wallet-dashboard__maintenance-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ow-space-4);
-}
-
-.wallet-dashboard__maintenance-label {
-  font-family: var(--ow-font-medium);
-  font-size: var(--ow-font-size-caption);
-  color: var(--ow-color-text-secondary);
-}
-
-.wallet-dashboard__maintenance-value {
-  font-family: var(--ow-font-bold);
-  font-size: var(--ow-font-size-body);
-  color: var(--ow-color-text-primary);
-}
-
-.wallet-dashboard__maintenance-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--ow-space-2);
-}
-
-.wallet-dashboard__redeem {
-  min-width: 120px;
-  border-radius: var(--ow-radius-control);
 }
 
 .wallet-dashboard__redeem-note {

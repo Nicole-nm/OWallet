@@ -17,15 +17,31 @@ import type { GovernanceSignablePayload } from '../../modules/governance/applica
 
 function applyAuthorizationOverview(nodeAuthStore: unknown, result: Record<string, unknown>) {
   const store = nodeAuthStore as {
+    currentNode: Record<string, unknown>
     setAuthorizationInfo(payload: { authorizationInfo: unknown }): void
     setSplitFee(payload: { splitFee: unknown }): void
     setPeerAttributes(payload: { peerAttributes: unknown }): void
     setPeerUnboundOng(payload: { peerUnboundOng: unknown }): void
+    setCurrentPeer(payload: { peer: unknown }): void
+    setCurrentNode(payload: { currentNode: unknown }): void
   }
   store.setAuthorizationInfo({ authorizationInfo: result.authorizationInfo })
   store.setSplitFee({ splitFee: result.splitFee })
   store.setPeerAttributes({ peerAttributes: result.peerAttributes })
   store.setPeerUnboundOng({ peerUnboundOng: result.peerUnboundOng })
+  store.setCurrentPeer({ peer: result.currentPeer })
+
+  const peerAttributes = (result.peerAttributes ?? {}) as Record<string, unknown>
+  const currentPeer = (result.currentPeer ?? {}) as Record<string, unknown>
+  store.setCurrentNode({
+    currentNode: {
+      ...store.currentNode,
+      maxAuthorize: peerAttributes.maxAuthorize,
+      maxAuthorizeStr: peerAttributes.maxAuthorizeStr,
+      totalPos: currentPeer.totalPos,
+      totalPosStr: currentPeer.totalPosStr,
+    },
+  })
 }
 
 export function useAuthorizationManagementPage() {

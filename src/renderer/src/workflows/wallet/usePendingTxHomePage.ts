@@ -12,6 +12,11 @@ export function usePendingTxHomePage() {
   const routes = computed(() => [
     { name: sharedWallet.value.sharedWalletName, path: ROUTE_PATHS.sharedWalletHome },
   ])
+  const currentStep = computed(() => (showInputPass.value ? 1 : 0))
+  const progressSteps = [
+    { labelKey: 'sharedWalletHome.reviewTransaction' },
+    { labelKey: 'sharedWalletHome.signTransaction' },
+  ]
 
   function backToWallets() {
     router.push({ name: ROUTE_NAMES.WALLETS })
@@ -31,6 +36,8 @@ export function usePendingTxHomePage() {
 
   return {
     routes,
+    currentStep,
+    progressSteps,
     showInputPass,
     backToWallets,
     handleBackEvent,

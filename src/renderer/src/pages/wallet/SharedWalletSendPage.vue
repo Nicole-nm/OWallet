@@ -1,37 +1,54 @@
 <template>
-  <div>
+  <div class="ow-flow-shell-page">
     <breadcrumb
       :routes="routes"
       :current="$t('sharedWalletHome.send')"
       @backEvent="handleRouteBack"
     ></breadcrumb>
-    <div class="ow-send-flow ow-send-flow--scroll">
-      <div class="ow-flow-steps">
-        <a-steps :current="displayedStep">
-          <a-step v-if="!isRedeem" :title="$t('sharedWalletHome.transferDetails')" />
-          <a-step :title="$t('sharedWalletHome.reviewTransaction')" />
-          <a-step :title="$t('sharedWalletHome.signTransaction')" />
-        </a-steps>
+    <section class="ow-panel ow-flow-shell shared-wallet-send-shell">
+      <div
+        class="ow-flow-shell__progress"
+        :class="{ 'shared-wallet-send-shell__progress--triple': progressSteps.length === 3 }"
+        role="list"
+        aria-label="Shared wallet send progress"
+      >
+        <div
+          v-for="(step, index) in progressSteps"
+          :key="step.workflowStep"
+          class="ow-flow-shell__step"
+          :class="{
+            'ow-flow-shell__step--active': current === step.workflowStep,
+            'ow-flow-shell__step--complete': current > step.workflowStep,
+          }"
+          role="listitem"
+        >
+          <span class="ow-flow-shell__step-index">{{ index + 1 }}</span>
+          <div class="ow-flow-shell__step-copy">
+            <span class="ow-flow-shell__step-label">{{ $t(step.labelKey) }}</span>
+          </div>
+        </div>
       </div>
 
-      <send-asset
-        @cancelEvent="handleCancel"
-        @sendAssetNext="handleSendAssetNext"
-        v-if="current === 0 && !isRedeem"
-      >
-      </send-asset>
-      <send-confirm
-        v-if="current === 1"
-        @cancelEvent="handleCancel"
-        @sendConfirmNext="handleSendConfirmNext"
-        @sendConfirmBack="handleSendConfirmBack"
-      ></send-confirm>
-      <input-password
-        v-if="current === 2"
-        @inputPassBack="handleInputPassBack"
-        @inputPassNext="handleInputPassNext"
-      ></input-password>
-    </div>
+      <div class="ow-flow-shell__body">
+        <send-asset
+          v-if="current === 0 && !isRedeem"
+          @cancelEvent="handleCancel"
+          @sendAssetNext="handleSendAssetNext"
+        >
+        </send-asset>
+        <send-confirm
+          v-if="current === 1"
+          @cancelEvent="handleCancel"
+          @sendConfirmNext="handleSendConfirmNext"
+          @sendConfirmBack="handleSendConfirmBack"
+        ></send-confirm>
+        <input-password
+          v-if="current === 2"
+          @inputPassBack="handleInputPassBack"
+          @inputPassNext="handleInputPassNext"
+        ></input-password>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -50,8 +67,8 @@ const {
   routes,
   handleRouteBack,
   current,
-  displayedStep,
   isRedeem,
+  progressSteps,
   handleCancel,
   handleSendAssetNext,
   handleSendConfirmNext,
@@ -60,3 +77,15 @@ const {
   handleInputPassNext,
 } = useSharedWalletSendPage()
 </script>
+
+<style scoped>
+.shared-wallet-send-shell__progress--triple {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 700px) {
+  .shared-wallet-send-shell__progress--triple {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

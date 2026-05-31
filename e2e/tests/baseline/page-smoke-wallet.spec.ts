@@ -48,6 +48,12 @@ test.describe('Baseline Page Smoke: public and wallet routes', () => {
 
   test('should render current-wallet routes after selecting a wallet', async ({ appPage }) => {
     await openWalletDashboard(appPage)
+    await expect(appPage.locator('.wallet-dashboard__empty--completed')).toContainText(
+      'No completed transactions'
+    )
+    await expect(
+      appPage.locator('.wallet-dashboard__empty--completed svg[width="64"][height="41"]')
+    ).toBeVisible()
 
     await gotoHash(appPage, '#/oep4Home')
     await expect(appPage.locator('.oep4-container')).toBeVisible()

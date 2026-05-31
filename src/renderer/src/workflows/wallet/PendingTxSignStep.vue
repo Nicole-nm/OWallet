@@ -1,52 +1,19 @@
 <template>
-  <div class="ow-flow-panel clearfix">
-    <p class="ow-flow-title">{{ $t('sharedWalletHome.confirmation') }}</p>
-    <div class="ow-flow-content">
-      <div>
-        <a-checkbox @change="onChange" :checked="checked" class="ow-flow-check">{{
-          $t('sharedWalletHome.agreeToSend')
-        }}</a-checkbox>
-        <div v-if="currentSigner.type === 'CommonWallet'">
-          <a-input
-            type="password"
-            class="ow-flow-password"
-            :placeholder="$t('sharedWalletHome.inputPassToTransfer')"
-            v-model:value="password"
-          ></a-input>
-        </div>
-
-        <ledger-status-notice
-          class="ow-flow-ledger-status"
-          v-if="currentSigner.type === 'HardwareWallet'"
-          :status="ledgerStatus"
-        />
-      </div>
-      <div class="ow-flow-actions">
-        <a-button type="danger" variant="secondary" @click="back">{{
-          $t('sharedWalletHome.back')
-        }}</a-button>
-        <a-button
-          type="primary"
-          variant="primary"
-          @click="submit"
-          :disabled="
-            sending ||
-            !checked ||
-            (currentSigner.type === 'CommonWallet' && !password) ||
-            (currentSigner.type === 'HardwareWallet' && !ledgerPk)
-          "
-        >
-          {{ $t('sharedWalletHome.submit') }}
-        </a-button>
-      </div>
-    </div>
-  </div>
+  <shared-signature-approval-panel
+    v-model:checked="checked"
+    v-model:password="password"
+    :ledger-ready="Boolean(ledgerPk)"
+    :ledger-status="ledgerStatus"
+    :sending="sending"
+    :signer-type="currentSigner.type"
+    @back="back"
+    @submit="submit"
+  ></shared-signature-approval-panel>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { submitPendingSharedTransferSignature } from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
-import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import { notifyError, notifySuccess, showSuccessModal } from '../../shared/ui/feedback'
 import { formatTransactionHash } from '../../shared/lib/transactionFeedback'
 import { useSettingStore } from '../../stores/modules/Setting'
@@ -54,6 +21,7 @@ import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
+import SharedSignatureApprovalPanel from './SharedSignatureApprovalPanel.vue'
 
 defineOptions({
   name: 'PendingTxSign',
@@ -77,10 +45,6 @@ const { ledgerStatus, ledgerPk } = useLedgerStatusMonitor({
 
 function back() {
   emit('backEvent')
-}
-
-function onChange() {
-  checked.value = !checked.value
 }
 
 async function submit() {

@@ -32,7 +32,13 @@ export function useSharedTxManagementPage() {
     const copayers = sharedWallet.value.coPayers || []
     const result = await loadLocalSharedCopayers(copayers)
     if (result.ok && result.copayers.length > 0) {
-      localCopayers.value = result.copayers as unknown as SharedCopayer[]
+      localCopayers.value = result.copayers.map((copayer) => {
+        const item = copayer as unknown as SharedCopayer & { label?: string }
+        return {
+          ...item,
+          label: `${item.label || ''} ${item.address || ''}`.trim(),
+        }
+      }) as unknown as SharedCopayer[]
     }
   }
 
