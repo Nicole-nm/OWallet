@@ -190,6 +190,10 @@ export default {
     deleteIdentityFailed: '删除ONT ID失败',
     deleteIdentitySuccess: '删除ONT ID成功。',
     exportedWIF: '您的私钥（WIF）是：',
+    filterPlaceholder: '按名称或地址筛选',
+    filterAriaLabel: '筛选钱包',
+    filterNoResults: '没有匹配 "{query}" 的钱包。',
+    filterClear: '清除筛选',
   },
 
   dashboard: {

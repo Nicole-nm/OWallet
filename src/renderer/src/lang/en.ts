@@ -193,6 +193,10 @@ export default {
     deleteIdentityFailed: 'Delete ONT ID failed',
     deleteIdentitySuccess: 'Delete ONT ID successfully',
     exportedWIF: 'Your private key (WIF) is:',
+    filterPlaceholder: 'Press / to filter by name or address',
+    filterAriaLabel: 'Filter wallets',
+    filterNoResults: 'No wallets match "{query}".',
+    filterClear: 'Clear filter',
   },
 
   dashboard: {

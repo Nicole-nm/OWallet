@@ -1,6 +1,16 @@
 <template>
   <div class="negative-margin-top wallets-page">
     <a-tabs :activeKey="activeTab" @update:activeKey="activeTab = $event" class="ow-section-tabs">
+      <template #rightExtra>
+        <a-input
+          ref="filterInputRef"
+          v-model:value="filterQuery"
+          :placeholder="$t('wallets.filterPlaceholder')"
+          :aria-label="$t('wallets.filterAriaLabel')"
+          class="wallets-page__filter"
+          allow-clear
+        />
+      </template>
       <a-tab-pane key="1" :tab="$t('wallets.common')">
         <app-state
           :loading="isLoadingWallets"
@@ -26,6 +36,12 @@
             </template>
           </template>
 
+          <p v-if="normalFilteredEmpty" class="wallets-page__no-matches">
+            {{ $t('wallets.filterNoResults', { query: filterQuery }) }}
+            <button type="button" class="wallets-page__no-matches-clear" @click="filterQuery = ''">
+              {{ $t('wallets.filterClear') }}
+            </button>
+          </p>
           <div class="ow-card-grid ow-card-grid--padded">
             <div
               class="ow-list-card ow-list-card--wallet"
@@ -79,6 +95,12 @@
             </template>
           </template>
 
+          <p v-if="sharedFilteredEmpty" class="wallets-page__no-matches">
+            {{ $t('wallets.filterNoResults', { query: filterQuery }) }}
+            <button type="button" class="wallets-page__no-matches-clear" @click="filterQuery = ''">
+              {{ $t('wallets.filterClear') }}
+            </button>
+          </p>
           <div class="ow-card-grid ow-card-grid--padded">
             <div
               class="ow-list-card ow-list-card--wallet"
@@ -127,6 +149,12 @@
             </app-button>
           </template>
 
+          <p v-if="hardwareFilteredEmpty" class="wallets-page__no-matches">
+            {{ $t('wallets.filterNoResults', { query: filterQuery }) }}
+            <button type="button" class="wallets-page__no-matches-clear" @click="filterQuery = ''">
+              {{ $t('wallets.filterClear') }}
+            </button>
+          </p>
           <div class="ow-card-grid ow-card-grid--padded">
             <div
               class="ow-list-card ow-list-card--wallet"
@@ -160,6 +188,7 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import JsonWalletDetails from '../../workflows/wallet/JsonWalletDetailsCard.vue'
 import SharedWalletDetails from '../../workflows/wallet/SharedWalletDetailsCard.vue'
 import SetPathModal from '../../shared/ui/modals/SetPath.vue'
@@ -173,15 +202,39 @@ defineOptions({
   name: 'WalletsPage',
 })
 
+const filterInputRef = ref<{ focus: () => void } | null>(null)
+
+function isTextEntryTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  if (target.isContentEditable) return true
+  const tag = target.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+}
+
+function handleGlobalKey(event: KeyboardEvent) {
+  if (event.key !== '/') return
+  if (event.ctrlKey || event.metaKey || event.altKey) return
+  if (isTextEntryTarget(event.target)) return
+  event.preventDefault()
+  filterInputRef.value?.focus()
+}
+
+onMounted(() => window.addEventListener('keydown', handleGlobalKey))
+onBeforeUnmount(() => window.removeEventListener('keydown', handleGlobalKey))
+
 const {
   activeTab,
+  filterQuery,
+  hardwareFilteredEmpty,
   hardwareWalletEmpty,
   hardwareWalletSort,
   hasWalletLoadError,
   isLoadingWallets,
+  normalFilteredEmpty,
   normalWallet,
   normalWalletEmpty,
   reloadWallets,
+  sharedFilteredEmpty,
   sharedWallet,
   sharedWalletEmpty,
   showPathModal,
@@ -194,5 +247,39 @@ const {
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--ow-space-4);
+}
+
+.wallets-page__filter {
+  width: 20rem;
+  margin-left: var(--ow-space-3);
+  margin-right: var(--ow-space-10);
+}
+
+.wallets-page__no-matches {
+  margin: var(--ow-space-3) 0 0;
+  padding: 0 var(--ow-space-4);
+  color: var(--ow-color-text-subtle);
+  font-family: var(--ow-font-medium);
+}
+
+.wallets-page__no-matches-clear {
+  margin-left: var(--ow-space-2);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ow-color-brand);
+  font-family: var(--ow-font-medium);
+  cursor: pointer;
+}
+
+.wallets-page__no-matches-clear:hover,
+.wallets-page__no-matches-clear:focus-visible {
+  text-decoration: underline;
+}
+
+.wallets-page__no-matches-clear:focus-visible {
+  outline: none;
+  box-shadow: var(--ow-shadow-focus);
+  border-radius: var(--ow-radius-card);
 }
 </style>

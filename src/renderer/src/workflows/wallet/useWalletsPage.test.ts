@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { CommonWallet, SharedWallet } from '../../shared/lib/types'
 
 const mocks = vi.hoisted(() => ({
   walletsStore: {
-    normalWallets: [],
-    sharedWallets: [],
+    normalWallets: [] as Array<Partial<CommonWallet>>,
+    sharedWallets: [] as Array<Partial<SharedWallet>>,
     hardwareWallets: [
       { address: 'AQ-ledger-old', timestamp: 1, acct: 1 },
       { address: 'AQ-ledger-new', timestamp: 2, acct: 0 },
-    ] as Array<{ address: string; timestamp?: number; acct?: number }>,
+    ] as Array<{ address: string; label?: string; timestamp?: number; acct?: number }>,
     activeTab: 'normal',
     hasLoadedWallets: false,
     setActiveTab: vi.fn(),
@@ -136,5 +137,124 @@ describe('useWalletsPage', () => {
       'AQ-account',
       'AQ-no-metadata',
     ])
+  })
+})
+
+describe('useWalletsPage filter', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    mocks.hasConfiguredSavePathPreference.mockResolvedValue(true)
+    mocks.loadWalletCollectionsIntoStore.mockResolvedValue({ ok: true, collections: {} })
+
+    mocks.walletsStore.normalWallets = [
+      { address: 'AN5fHotAddr', label: 'Hot Wallet' },
+      { address: 'AN5fColdAddr', label: 'Cold Vault' },
+    ]
+    mocks.walletsStore.sharedWallets = [
+      { sharedWalletAddress: 'AS3Treasury', sharedWalletName: 'Treasury', label: '', address: '' },
+      {
+        sharedWalletAddress: 'AS3OpsAddr',
+        sharedWalletName: 'Ops Multisig',
+        label: '',
+        address: '',
+      },
+    ]
+    mocks.walletsStore.hardwareWallets = [
+      { address: 'AH9LedgerA', label: 'Ledger Alpha', timestamp: 1, acct: 0 },
+      { address: 'AH9LedgerB', label: 'Ledger Beta', timestamp: 1, acct: 1 },
+    ]
+  })
+
+  it('defaults filterQuery to empty and returns every wallet across all three tabs', () => {
+    const page = useWalletsPage()
+
+    expect(page.filterQuery.value).toBe('')
+    expect(page.normalWallet.value).toHaveLength(2)
+    expect(page.sharedWallet.value).toHaveLength(2)
+    expect(page.hardwareWalletSort.value).toHaveLength(2)
+  })
+
+  it('filters individual wallets by label and address case-insensitively', () => {
+    const page = useWalletsPage()
+
+    page.filterQuery.value = 'cold'
+    expect(page.normalWallet.value.map((w) => w.label)).toEqual(['Cold Vault'])
+
+    page.filterQuery.value = 'AN5FHOT'
+    expect(page.normalWallet.value.map((w) => w.address)).toEqual(['AN5fHotAddr'])
+  })
+
+  it('filters shared wallets by sharedWalletName and sharedWalletAddress, not label/address', () => {
+    const page = useWalletsPage()
+
+    page.filterQuery.value = 'treasury'
+    expect(page.sharedWallet.value.map((w) => w.sharedWalletName)).toEqual(['Treasury'])
+
+    page.filterQuery.value = 'OpsAddr'
+    expect(page.sharedWallet.value.map((w) => w.sharedWalletAddress)).toEqual(['AS3OpsAddr'])
+  })
+
+  it('filters ledger wallets by label and address', () => {
+    const page = useWalletsPage()
+
+    page.filterQuery.value = 'beta'
+    expect(page.hardwareWalletSort.value.map((w) => w.label)).toEqual(['Ledger Beta'])
+
+    page.filterQuery.value = 'LedgerA'
+    expect(page.hardwareWalletSort.value.map((w) => w.address)).toEqual(['AH9LedgerA'])
+  })
+
+  it('trims whitespace-only queries and treats them as no filter', () => {
+    const page = useWalletsPage()
+
+    page.filterQuery.value = '   '
+    expect(page.normalWallet.value).toHaveLength(2)
+    expect(page.sharedWallet.value).toHaveLength(2)
+    expect(page.hardwareWalletSort.value).toHaveLength(2)
+  })
+})
+
+describe('useWalletsPage filteredEmpty flags', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    mocks.hasConfiguredSavePathPreference.mockResolvedValue(true)
+    mocks.loadWalletCollectionsIntoStore.mockResolvedValue({ ok: true, collections: {} })
+
+    mocks.walletsStore.normalWallets = [{ address: 'AN5fHotAddr', label: 'Hot Wallet' }]
+    mocks.walletsStore.sharedWallets = [
+      { sharedWalletAddress: 'AS3Treasury', sharedWalletName: 'Treasury', label: '', address: '' },
+    ]
+    mocks.walletsStore.hardwareWallets = [
+      { address: 'AH9LedgerA', label: 'Ledger Alpha', timestamp: 1, acct: 0 },
+    ]
+  })
+
+  it('reports filteredEmpty as false on a tab that has no wallets at all', () => {
+    mocks.walletsStore.normalWallets = []
+    const page = useWalletsPage()
+
+    expect(page.normalWalletEmpty.value).toBe(true)
+    expect(page.normalFilteredEmpty.value).toBe(false)
+  })
+
+  it('reports filteredEmpty as true when wallets exist but the filter excludes all of them', () => {
+    const page = useWalletsPage()
+    page.filterQuery.value = 'no-such-wallet-anywhere'
+
+    expect(page.normalWalletEmpty.value).toBe(false)
+    expect(page.normalFilteredEmpty.value).toBe(true)
+    expect(page.sharedFilteredEmpty.value).toBe(true)
+    expect(page.hardwareFilteredEmpty.value).toBe(true)
+  })
+
+  it('reports filteredEmpty as false on tabs whose filter still matches at least one wallet', () => {
+    const page = useWalletsPage()
+    page.filterQuery.value = 'treasury'
+
+    expect(page.sharedFilteredEmpty.value).toBe(false)
+    expect(page.normalFilteredEmpty.value).toBe(true)
+    expect(page.hardwareFilteredEmpty.value).toBe(true)
   })
 })
