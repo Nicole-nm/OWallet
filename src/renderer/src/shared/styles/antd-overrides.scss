@@ -91,21 +91,17 @@
   overflow: hidden;
   border: 1px solid var(--ow-color-modal-border);
   border-radius: var(--ow-radius-modal) !important;
-  background: linear-gradient(
-    180deg,
-    var(--ow-color-surface-elevated) 0%,
-    var(--ow-color-surface-dialog) 100%
-  ) !important;
+  background: var(--ow-color-surface-elevated) !important;
   box-shadow: var(--ow-shadow-modal) !important;
 }
 
 .ant-modal .ant-modal-header,
 .ant-modal-confirm .ant-modal-header {
   margin-bottom: 0;
-  padding: var(--ow-modal-header-padding);
+  padding: var(--ow-space-5) var(--ow-space-6) var(--ow-space-2);
   padding-right: calc(var(--ow-space-6) + var(--ow-modal-close-size) + var(--ow-space-2));
-  border-bottom: 1px solid var(--ow-color-border-subtle);
-  background: var(--ow-color-modal-header) !important;
+  border-bottom: none;
+  background: transparent !important;
 }
 
 .ant-modal .ant-modal-title,
@@ -118,7 +114,7 @@
 
 .ant-modal .ant-modal-body,
 .ant-modal-confirm .ant-modal-body {
-  padding: var(--ow-modal-body-padding);
+  padding: var(--ow-space-3) var(--ow-space-6) var(--ow-space-5);
   color: var(--ow-color-text-primary);
 }
 
@@ -137,25 +133,21 @@
   right: 12px;
   width: var(--ow-modal-close-size);
   height: var(--ow-modal-close-size);
-  border: 1px solid color-mix(in srgb, var(--ow-color-modal-border) 90%, transparent);
+  border: none;
   border-radius: var(--ow-radius-elevated);
-  background: color-mix(in srgb, var(--ow-color-surface) 82%, var(--ow-color-modal-header));
+  background: transparent;
   color: var(--ow-color-text-secondary);
   transition:
     background-color 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
+    color 0.18s ease;
 }
 
 .ant-modal .ant-modal-close:hover,
 .ant-modal .ant-modal-close:focus-visible,
 .ant-modal-confirm .ant-modal-close:hover,
 .ant-modal-confirm .ant-modal-close:focus-visible {
-  border-color: color-mix(in srgb, var(--ow-color-brand) 24%, var(--ow-color-modal-border));
-  background: color-mix(in srgb, var(--ow-color-modal-close-hover) 88%, var(--ow-color-surface));
+  background: color-mix(in srgb, var(--ow-color-modal-close-hover) 60%, transparent);
   color: var(--ow-color-text-primary);
-  transform: translateY(-1px);
 }
 
 .ant-modal .ant-modal-close-x,
@@ -176,9 +168,9 @@
   flex-wrap: wrap;
   gap: var(--ow-space-3);
   margin-top: 0;
-  padding: var(--ow-modal-footer-padding);
-  border-top: 1px solid var(--ow-color-border-subtle);
-  background: color-mix(in srgb, var(--ow-color-modal-header) 50%, transparent);
+  padding: var(--ow-space-2) var(--ow-space-6) var(--ow-space-5);
+  border-top: none;
+  background: transparent;
 }
 
 .ant-modal .ant-modal-body > p,
