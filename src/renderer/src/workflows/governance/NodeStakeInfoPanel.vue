@@ -13,7 +13,10 @@
             <a-step></a-step>
             <a-step></a-step>
           </a-steps>
-          <div class="step-item-container">
+          <div
+            class="step-item-container"
+            :class="{ 'step-item-container--loading': !stakeStatusLoaded }"
+          >
             <div>
               {{ statusStep1 }}
             </div>
@@ -216,6 +219,7 @@ const {
   statusStep1,
   statusStep2,
   statusStep3,
+  stakeStatusLoaded,
   detail,
   nodePublicKey,
   currentPeer,
@@ -294,6 +298,10 @@ const {
   color: var(--ow-color-text-secondary);
   font-size: var(--ow-font-size-small);
   line-height: 1.25;
+}
+
+.step-item-container--loading div {
+  visibility: hidden;
 }
 
 .stake-progress :deep(.ant-steps) {

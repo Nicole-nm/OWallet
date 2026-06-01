@@ -207,6 +207,7 @@ describe('useNodeStakeInfoPanel', () => {
     expect(page.stakeQuantityDisplay.value).toBe('0')
     expect(page.lockedQuantityDisplay.value).toBe('0')
     expect(page.claimableQuantityDisplay.value).toBe('0')
+    expect(page.stakeStatusLoaded.value).toBe(false)
 
     resolveRefresh({
       ok: true,
@@ -223,6 +224,7 @@ describe('useNodeStakeInfoPanel', () => {
       },
     })
     await initialization
+    expect(page.stakeStatusLoaded.value).toBe(true)
 
     expect(mocks.nodeStakeStore.setStakeDetail).toHaveBeenNthCalledWith(1)
     expect(mocks.nodeStakeStore.setStakeDetail).toHaveBeenLastCalledWith({
@@ -238,5 +240,19 @@ describe('useNodeStakeInfoPanel', () => {
     expect(mocks.nodeAuthStore.authorizationInfo.claimable).toBe('321')
     expect(mocks.loadingStore.hideLoadingModals).toHaveBeenCalled()
     expect(mocks.polling.startPolling).toHaveBeenCalledWith({ immediate: false })
+  })
+
+  it('keeps the stake status hidden when the refresh fails', async () => {
+    mocks.nodeStakeService.refreshNodeStakeManagementDetails.mockResolvedValue({
+      ok: false,
+      errorKey: 'common.networkErr',
+    })
+
+    const page = useNodeStakeInfoPanel()
+    expect(page.stakeStatusLoaded.value).toBe(false)
+
+    await page.initializeStakeInfo()
+
+    expect(page.stakeStatusLoaded.value).toBe(false)
   })
 })

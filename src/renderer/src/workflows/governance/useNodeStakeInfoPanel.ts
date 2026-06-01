@@ -93,6 +93,7 @@ export function useNodeStakeInfoPanel() {
   const statusStep3 = ref(defaultStakeStatus.status3)
   const currentStep = ref(defaultStakeStatus.current)
   const statusTip = ref(defaultStakeStatus.statusTip)
+  const stakeStatusLoaded = ref(false)
 
   const stakeIdentity = computed(() => nodeStakeStore.stakeIdentity)
   const stakeWallet = computed(() => nodeStakeStore.stakeWallet)
@@ -236,6 +237,7 @@ export function useNodeStakeInfoPanel() {
       {},
       defaultStakeStatus
     )
+    stakeStatusLoaded.value = false
   }
 
   async function refreshStakeInfo() {
@@ -267,6 +269,7 @@ export function useNodeStakeInfoPanel() {
         result.stakeStatus,
         defaultStakeStatus
       )
+      stakeStatusLoaded.value = true
     }
 
     return result
@@ -317,6 +320,7 @@ export function useNodeStakeInfoPanel() {
     statusStep3,
     currentStep,
     statusTip,
+    stakeStatusLoaded,
     authorizationInfo,
     handleRouteBack,
     handleBack,
