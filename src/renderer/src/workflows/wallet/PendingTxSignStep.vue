@@ -39,7 +39,7 @@ const sharedWallet = computed(() => sharedWalletSessionStore.wallet)
 const password = ref('')
 const checked = ref(false)
 const sending = ref(false)
-const { ledgerStatus, ledgerPk } = useLedgerStatusMonitor({
+const { ledgerStatus, ledgerPk, pauseMonitoring, startMonitoring } = useLedgerStatusMonitor({
   shouldPoll: computed(() => currentSigner.value.type === 'HardwareWallet'),
 })
 
@@ -52,44 +52,58 @@ async function submit() {
     return
   }
 
+  const usingLedger = currentSigner.value.type === 'HardwareWallet'
   sending.value = true
   loadingStore.showLoadingModals()
-  const result = await submitPendingSharedTransferSignature({
-    network: settingStore.network,
-    pendingTx: pendingTx.value,
-    sharedWallet: sharedWallet.value,
-    currentSigner: currentSigner.value,
-    password: currentSigner.value.type === 'CommonWallet' ? password.value : undefined,
-  })
-  loadingStore.hideLoadingModals()
-  sending.value = false
 
-  if (!result.ok) {
-    if (result.cancelled) {
+  try {
+    if (usingLedger) {
+      await pauseMonitoring()
+    }
+
+    const result = await submitPendingSharedTransferSignature({
+      network: settingStore.network,
+      pendingTx: pendingTx.value,
+      sharedWallet: sharedWallet.value,
+      currentSigner: currentSigner.value,
+      password: currentSigner.value.type === 'CommonWallet' ? password.value : undefined,
+    })
+
+    if (!result.ok) {
+      if (result.cancelled) {
+        return
+      }
+      if (result.errorKey) {
+        notifyError(result.errorKey)
+      } else if (result.message) {
+        notifyError(result.message, { literal: true })
+      } else {
+        notifyError('common.txFailed')
+      }
       return
     }
-    if (result.errorKey) {
-      notifyError(result.errorKey)
-    } else if (result.message) {
-      notifyError(result.message, { literal: true })
-    } else {
-      notifyError('common.txFailed')
+
+    if (result.sentToChain) {
+      notifySuccess('common.transSentSuccess')
+      emit('submitEvent')
+      setTimeout(() => {
+        showSuccessModal({
+          title: 'common.transSentSuccess',
+          content: formatTransactionHash(result.txHash),
+        })
+      }, 100)
+      return
     }
-    return
-  }
 
-  if (result.sentToChain) {
-    notifySuccess('common.transSentSuccess')
     emit('submitEvent')
-    setTimeout(() => {
-      showSuccessModal({
-        title: 'common.transSentSuccess',
-        content: formatTransactionHash(result.txHash),
-      })
-    }, 100)
-    return
+  } catch {
+    notifyError(usingLedger ? 'ledgerWallet.signFailed' : 'common.networkErr')
+  } finally {
+    loadingStore.hideLoadingModals()
+    sending.value = false
+    if (usingLedger) {
+      startMonitoring()
+    }
   }
-
-  emit('submitEvent')
 }
 </script>

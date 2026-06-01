@@ -20,10 +20,11 @@ export function useCommonSendConfirmStep() {
   const currentWallet = computed(() => currentWalletStore.wallet)
   const isCommonWallet = computed(() => Boolean(currentWallet.value?.key))
   const transfer = computed(() => currentWalletStore.transfer)
-  const { ledgerConnectorStore, ledgerStatus, ledgerPk } = useLedgerStatusMonitor({
-    shouldPoll: computed(() => !isCommonWallet.value),
-    interval,
-  })
+  const { ledgerConnectorStore, ledgerStatus, ledgerPk, pauseMonitoring, startMonitoring } =
+    useLedgerStatusMonitor({
+      shouldPoll: computed(() => !isCommonWallet.value),
+      interval,
+    })
 
   function onChange() {
     checked.value = !checked.value
@@ -51,33 +52,44 @@ export function useCommonSendConfirmStep() {
       ledgerConnectorStore.setLedgerStatus('Please sign on Ledger')
     }
 
-    const adapter = WalletAdapterFactory.fromWalletSigner(currentWallet.value as WalletSigner)
-    if (!adapter) {
-      loadingStore.hideLoadingModals()
-      sending.value = false
-      notifyError('common.networkErr')
-      return { ok: false, errorKey: 'common.networkErr' }
-    }
-    const result = await submitCommonTransfer({
-      address: currentWallet.value.address,
-      adapter,
-      transfer: transfer.value,
-      password: isCommonWallet.value ? password.value : undefined,
-    })
-
-    loadingStore.hideLoadingModals()
-    sending.value = false
-
-    if (!result.ok) {
-      if (result.cancelled) {
-        return result
+    try {
+      if (!isCommonWallet.value) {
+        await pauseMonitoring()
       }
 
-      return handleTransactionFeedback(result, { prependErrorPrefix: false })
-    }
+      const adapter = WalletAdapterFactory.fromWalletSigner(currentWallet.value as WalletSigner)
+      if (!adapter) {
+        notifyError('common.networkErr')
+        return { ok: false, errorKey: 'common.networkErr' }
+      }
+      const result = await submitCommonTransfer({
+        address: currentWallet.value.address,
+        adapter,
+        transfer: transfer.value,
+        password: isCommonWallet.value ? password.value : undefined,
+      })
 
-    handleTransactionFeedback(result, { prependErrorPrefix: false })
-    return result
+      if (!result.ok) {
+        if (result.cancelled) {
+          return result
+        }
+
+        return handleTransactionFeedback(result, { prependErrorPrefix: false })
+      }
+
+      handleTransactionFeedback(result, { prependErrorPrefix: false })
+      return result
+    } catch {
+      const errorKey = isCommonWallet.value ? 'common.networkErr' : 'ledgerWallet.signFailed'
+      notifyError(errorKey)
+      return { ok: false, errorKey }
+    } finally {
+      loadingStore.hideLoadingModals()
+      sending.value = false
+      if (!isCommonWallet.value) {
+        startMonitoring()
+      }
+    }
   }
 
   return {

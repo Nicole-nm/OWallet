@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
     ledgerConnectorStore: { setLedgerStatus: vi.fn() },
     ledgerStatus: { value: '' },
     ledgerPk: { value: '' },
+    pauseMonitoring: vi.fn(),
+    startMonitoring: vi.fn(),
   },
   transactionFeedback: {
     handleTransactionFeedback: vi.fn((result: any) => result),
@@ -74,6 +76,8 @@ describe('useCommonSendConfirmStep', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.currentWalletStore.wallet = { label: 'TestWallet', key: 'key-1', address: 'AQ123' }
+    mocks.ledgerMonitor.ledgerPk = { value: '' }
+    mocks.ledgerMonitor.pauseMonitoring.mockResolvedValue(undefined)
   })
 
   it('warns when password missing for common wallet submit', async () => {
@@ -144,6 +148,20 @@ describe('useCommonSendConfirmStep', () => {
 
     expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('ledgerWallet.connectApp')
     expect(result).toEqual({ ok: false, errorKey: 'ledgerWallet.connectApp' })
+  })
+
+  it('pauses ledger polling while a ledger transfer is submitted', async () => {
+    mocks.currentWalletStore.wallet = { label: 'Ledger', key: '', address: 'AQ999' }
+    mocks.ledgerMonitor.ledgerPk = { value: 'ledger-pk' }
+    mocks.transferService.submitCommonTransfer.mockResolvedValue({ ok: true })
+    const { submit, checked } = useCommonSendConfirmStep()
+    checked.value = true
+
+    await submit()
+
+    expect(mocks.ledgerMonitor.pauseMonitoring).toHaveBeenCalledTimes(1)
+    expect(mocks.transferService.submitCommonTransfer).toHaveBeenCalledTimes(1)
+    expect(mocks.ledgerMonitor.startMonitoring).toHaveBeenCalledTimes(1)
   })
 
   it('toggles checked on onChange', () => {

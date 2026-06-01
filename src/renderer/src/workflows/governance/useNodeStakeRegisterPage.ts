@@ -39,7 +39,7 @@ export function useNodeStakeRegisterPage() {
   const stakeIdentity = computed(() => nodeStakeStore.stakeIdentity)
   const stakeWallet = computed(() => nodeStakeStore.stakeWallet)
   const detail = computed(() => nodeStakeStore.detail)
-  const { ledgerStatus, ledgerWallet } = useLedgerStatusMonitor({
+  const { ledgerStatus, ledgerWallet, pauseMonitoring, startMonitoring } = useLedgerStatusMonitor({
     shouldPoll: computed(() => Boolean(stakeWallet.value && !isCommonWallet(stakeWallet.value))),
   })
   const stakeDetail = computed(() => ({
@@ -147,6 +147,7 @@ export function useNodeStakeRegisterPage() {
     }
 
     loadingStore.showLoadingModals()
+    let ledgerMonitoringPaused = false
 
     try {
       const signerWallet = isCommonWallet(wallet) ? wallet : ledgerWallet.value
@@ -155,6 +156,10 @@ export function useNodeStakeRegisterPage() {
         notifyError('nodeStake.selectIndividualWallet')
         walletModalHandled.value = false
         return
+      }
+      if (!isCommonWallet(wallet)) {
+        await pauseMonitoring()
+        ledgerMonitoringPaused = true
       }
       const result = await submitNodeStakeRegistration({
         tx: tx.value,
@@ -193,6 +198,9 @@ export function useNodeStakeRegisterPage() {
     } finally {
       loadingStore.hideLoadingModals()
       walletModalHandled.value = false
+      if (ledgerMonitoringPaused) {
+        startMonitoring()
+      }
     }
   }
 

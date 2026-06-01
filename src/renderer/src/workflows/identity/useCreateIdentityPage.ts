@@ -45,9 +45,12 @@ export function useCreateIdentityPage() {
   const payerPassword = ref('')
   const basicValidationErrors = ref(createValidationErrors(CREATE_IDENTITY_VALIDATION_FIELDS))
 
-  const { ledgerStatus, ledgerPk, ledgerWallet } = useLedgerStatusMonitor({
-    shouldPoll: computed(() => currentStep.value === 0 && payerWalletType.value === 'ledgerWallet'),
-  })
+  const { ledgerStatus, ledgerPk, ledgerWallet, pauseMonitoring, startMonitoring } =
+    useLedgerStatusMonitor({
+      shouldPoll: computed(
+        () => currentStep.value === 0 && payerWalletType.value === 'ledgerWallet'
+      ),
+    })
 
   function resetBasicStep() {
     basicLabel.value = ''
@@ -161,6 +164,7 @@ export function useCreateIdentityPage() {
     }
 
     loadingStore.showLoadingModals()
+    let ledgerMonitoringPaused = false
 
     try {
       const draftResult = await createIdentityRegistrationDraft({
@@ -183,6 +187,10 @@ export function useCreateIdentityPage() {
         notifyError('createIdentity.selectOneWallet')
         return
       }
+      if (payerWalletType.value === 'ledgerWallet') {
+        await pauseMonitoring()
+        ledgerMonitoringPaused = true
+      }
       const submitResult = await submitIdentityRegistration({
         tx: draftResult.tx,
         adapter,
@@ -202,6 +210,9 @@ export function useCreateIdentityPage() {
       currentStep.value = 1
     } finally {
       loadingStore.hideLoadingModals()
+      if (ledgerMonitoringPaused) {
+        startMonitoring()
+      }
     }
   }
 

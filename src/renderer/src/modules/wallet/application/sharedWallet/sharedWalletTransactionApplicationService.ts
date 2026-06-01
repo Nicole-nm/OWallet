@@ -9,6 +9,7 @@ import {
   submitPendingSharedSignature as submitPendingSharedSignatureFromDomain,
 } from '../../../../domains/sharedWallet/sharedWalletDomainService'
 import { validateWalletAddress } from '../../../../domains/wallet/accountService'
+import { createLogger } from '../../../../shared/lib/logger'
 import { WalletAdapterFactory, type SharedCosignerInput } from '../adapter/WalletAdapterFactory'
 
 import type { CreatedSharedTransferResult } from '../../../../domains/sharedWallet/sharedWalletDraftService'
@@ -29,31 +30,49 @@ type SharedTransferPayload = Record<string, unknown> & {
 type SharedTransferFailure = { ok: false; errorKey?: string; cancelled?: boolean }
 type CreateSharedTransferResult = CreatedSharedTransferResult | SharedTransferFailure
 
-function buildCosigner(signer: SharedWalletSigner): SharedCosignerInput | null {
+const logger = createLogger('sharedWalletTransactionApplicationService')
+
+function getNestedSignerWallet(signer: SharedWalletSigner) {
+  return signer.wallet && typeof signer.wallet === 'object'
+    ? (signer.wallet as Record<string, unknown>)
+    : {}
+}
+
+function buildCosigner(
+  signer: SharedWalletSigner,
+  sharedWalletAddress: string
+): SharedCosignerInput | null {
   if (!signer.address) return null
+  const wallet = getNestedSignerWallet(signer)
+
   if (signer.type === 'CommonWallet') {
     return {
       type: 'common',
       wallet: {
+        ...wallet,
         address: signer.address,
-        label: signer.label ?? signer.name ?? '',
-        publicKey: signer.publicKey ?? '',
-        key: String(signer.key ?? ''),
-        salt: String(signer.salt ?? ''),
-        algorithm: '',
-        parameters: { curve: '' },
-        scrypt: {},
+        label: String(wallet.label ?? signer.label ?? signer.name ?? ''),
+        publicKey: String(wallet.publicKey ?? signer.publicKey ?? signer.publickey ?? ''),
+        key: String(wallet.key ?? signer.key ?? ''),
+        salt: String(wallet.salt ?? signer.salt ?? ''),
+        algorithm: String(wallet.algorithm ?? ''),
+        parameters: (wallet.parameters as CommonWallet['parameters']) ?? { curve: '' },
+        scrypt: (wallet.scrypt as CommonWallet['scrypt']) ?? {},
       } as CommonWallet,
     }
   }
-  if (!signer.publicKey) return null
+
+  const publicKey = String(wallet.publicKey ?? signer.publicKey ?? signer.publickey ?? '')
+  if (!publicKey) return null
   return {
     type: 'ledger',
     wallet: {
+      ...wallet,
       address: signer.address,
-      publicKey: signer.publicKey,
-      neo: signer.neo,
-      acct: signer.acct ?? 0,
+      publicKey,
+      neo: wallet.neo ?? signer.neo,
+      acct: Number(wallet.acct ?? signer.acct ?? 0),
+      sharedWalletAddress,
     } as HardwareWalletSigner & { publicKey: string; [key: string]: unknown },
   }
 }
@@ -62,13 +81,13 @@ function buildSharedAdapter(
   sharedWallet: SharedWallet | SharedWalletSession,
   signer: SharedWalletSigner
 ) {
-  const cosigner = buildCosigner(signer)
-  if (!cosigner) return null
-
   const sharedAddress =
     (sharedWallet as SharedWallet).sharedWalletAddress ??
     (sharedWallet as SharedWalletSession).sharedWalletAddress ??
     ''
+  const cosigner = buildCosigner(signer, sharedAddress)
+  if (!cosigner) return null
+
   const label =
     (sharedWallet as SharedWallet).label ??
     (sharedWallet as SharedWalletSession).sharedWalletName ??
@@ -110,34 +129,49 @@ export async function createAndSubmitSharedTransfer({
     return { ok: false, errorKey: 'common.networkErr' }
   }
 
-  const draft = await prepareSharedTransferDraft({
-    sharedWallet: sharedWallet as SharedWallet,
-    transfer,
-    redeem,
-  })
-  const signedTx = await signSharedTransactionDraft({
-    tx: draft.tx,
-    adapter,
-    password: sponsorWallet.type === 'CommonWallet' ? password : undefined,
-    isFirstSign: true,
-  })
+  try {
+    const draft = await prepareSharedTransferDraft({
+      sharedWallet: sharedWallet as SharedWallet,
+      transfer,
+      redeem,
+    })
+    let signedTx: Awaited<ReturnType<typeof signSharedTransactionDraft>>
+    try {
+      signedTx = await signSharedTransactionDraft({
+        tx: draft.tx,
+        adapter,
+        password: sponsorWallet.type === 'CommonWallet' ? password : undefined,
+        isFirstSign: true,
+      })
+    } catch (error: unknown) {
+      logger.error('createAndSubmitSharedTransfer.sign', error)
+      return {
+        ok: false,
+        errorKey:
+          sponsorWallet.type === 'HardwareWallet' ? 'ledgerWallet.signFailed' : 'common.networkErr',
+      }
+    }
 
-  if (!signedTx) {
-    return sponsorWallet.type === 'CommonWallet'
-      ? { ok: false, errorKey: 'common.pwdErr' }
-      : { ok: false, cancelled: true }
+    if (!signedTx) {
+      return sponsorWallet.type === 'CommonWallet'
+        ? { ok: false, errorKey: 'common.pwdErr' }
+        : { ok: false, cancelled: true }
+    }
+
+    return await submitCreatedSharedTransfer({
+      network,
+      sharedWallet: sharedWallet as SharedWallet,
+      transfer,
+      payers: (transfer.coPayers || []) as Record<string, unknown>[],
+      draft: {
+        ...draft,
+        tx: signedTx,
+      },
+    })
+  } catch (error: unknown) {
+    logger.error('createAndSubmitSharedTransfer', error)
+    return { ok: false, errorKey: 'common.networkErr' }
   }
-
-  return submitCreatedSharedTransfer({
-    network,
-    sharedWallet: sharedWallet as SharedWallet,
-    transfer,
-    payers: (transfer.coPayers || []) as Record<string, unknown>[],
-    draft: {
-      ...draft,
-      tx: signedTx,
-    },
-  })
 }
 
 export function submitPendingSharedTransferSignature({
@@ -161,6 +195,7 @@ export function submitPendingSharedTransferSignature({
     network,
     pendingTx,
     adapter,
+    signedAddress: currentSigner.address,
     password,
   })
 }

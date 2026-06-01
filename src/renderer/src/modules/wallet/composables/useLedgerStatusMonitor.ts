@@ -55,46 +55,82 @@ export function useLedgerStatusMonitor({
 } = {}) {
   const ledgerConnectorStore = useLedgerConnectorStore()
   let intervalId: ReturnType<typeof setInterval> | null = null
+  let monitoringGeneration = 0
+  let refreshRequest: { generation: number; promise: Promise<void> } | null = null
 
-  async function refreshLedgerStatus() {
-    const connectionResult = await readLedgerConnectionSelection()
-    if (!connectionResult.ok) {
-      ledgerConnectorStore.resetLedgerState()
-      ledgerConnectorStore.setLedgerStatus(getLedgerStatusFromError(connectionResult.error))
-      return
+  function clearMonitoringInterval() {
+    if (intervalId !== null) {
+      globalThis.clearInterval(intervalId)
+      intervalId = null
+    }
+  }
+
+  function refreshLedgerStatus(generation = monitoringGeneration): Promise<void> {
+    if (refreshRequest) {
+      return refreshRequest.generation === generation
+        ? refreshRequest.promise
+        : refreshRequest.promise.then(() => refreshLedgerStatus(generation))
     }
 
-    const selection = connectionResult.selection
-    ledgerConnectorStore.setLedgerDeviceInfo(String(connectionResult.deviceInfo || ''))
-    ledgerConnectorStore.setLedgerPublicKey(selection?.publicKey || '')
-    ledgerConnectorStore.setLedgerWallet({
-      publicKey: selection?.publicKey || '',
-      address: selection?.address || '',
+    const request = {
+      generation,
+      promise: Promise.resolve(),
+    }
+    request.promise = (async () => {
+      const connectionResult = await readLedgerConnectionSelection()
+      if (generation !== monitoringGeneration) {
+        return
+      }
+
+      if (!connectionResult.ok) {
+        ledgerConnectorStore.resetLedgerState()
+        ledgerConnectorStore.setLedgerStatus(getLedgerStatusFromError(connectionResult.error))
+        return
+      }
+
+      const selection = connectionResult.selection
+      ledgerConnectorStore.setLedgerDeviceInfo(String(connectionResult.deviceInfo || ''))
+      ledgerConnectorStore.setLedgerPublicKey(selection?.publicKey || '')
+      ledgerConnectorStore.setLedgerWallet({
+        publicKey: selection?.publicKey || '',
+        address: selection?.address || '',
+      })
+      ledgerConnectorStore.setLedgerStatus(translateLedgerStatus('READY'))
+    })().finally(() => {
+      if (refreshRequest === request) {
+        refreshRequest = null
+      }
     })
-    ledgerConnectorStore.setLedgerStatus(translateLedgerStatus('READY'))
+    refreshRequest = request
+    return request.promise
   }
 
   function startMonitoring() {
-    stopMonitoring()
+    clearMonitoringInterval()
+    monitoringGeneration += 1
+    const generation = monitoringGeneration
 
     const pollingInterval =
       interval === undefined ? DEFAULT_LEDGER_STATUS_POLL_INTERVAL_MS : unref(interval)
-    void refreshLedgerStatus()
+    void refreshLedgerStatus(generation)
 
     if (pollingInterval === undefined) {
       return
     }
 
     intervalId = globalThis.setInterval(() => {
-      void refreshLedgerStatus()
+      void refreshLedgerStatus(generation)
     }, pollingInterval)
   }
 
+  async function pauseMonitoring() {
+    clearMonitoringInterval()
+    await refreshRequest?.promise
+  }
+
   function stopMonitoring() {
-    if (intervalId !== null) {
-      globalThis.clearInterval(intervalId)
-      intervalId = null
-    }
+    clearMonitoringInterval()
+    monitoringGeneration += 1
     ledgerConnectorStore.resetLedgerState()
   }
 
@@ -125,6 +161,7 @@ export function useLedgerStatusMonitor({
     ledgerPk: computed(() => ledgerConnectorStore.publicKey),
     ledgerWallet: computed(() => ledgerConnectorStore.ledgerWallet),
     startMonitoring,
+    pauseMonitoring,
     stopMonitoring,
   }
 }

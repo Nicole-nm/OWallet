@@ -14,6 +14,10 @@ const mocks = vi.hoisted(() => ({
   walletAccountService: {
     validateWalletAddress: vi.fn(),
   },
+  signingService: {
+    signSharedTx: vi.fn(),
+    signSharedTxWithLedger: vi.fn(),
+  },
 }))
 
 vi.mock('../../../../domains/sharedWallet/sharedWalletDomainService', () => ({
@@ -38,6 +42,11 @@ vi.mock('../../../../domains/sharedWallet/sharedWalletDomainService', () => ({
 vi.mock('../../../../domains/wallet/accountService', () => ({
   validateWalletAddress: (...args: any[]) =>
     mocks.walletAccountService.validateWalletAddress(...args),
+}))
+
+vi.mock('../../../../domains/transaction/signingService', () => ({
+  signSharedTx: (...args: any[]) => mocks.signingService.signSharedTx(...args),
+  signSharedTxWithLedger: (...args: any[]) => mocks.signingService.signSharedTxWithLedger(...args),
 }))
 
 import {
@@ -167,6 +176,128 @@ describe('sharedWalletTransactionApplicationService', () => {
     ).resolves.toEqual({ ok: false, cancelled: true })
   })
 
+  it('preserves nested ledger metadata and the shared-wallet payer address', async () => {
+    mocks.sharedWalletService.prepareSharedTransferDraft.mockResolvedValue({ tx: 'draft-tx' })
+    mocks.sharedWalletService.signSharedTransactionDraft.mockImplementation(
+      ({ adapter, password }) =>
+        adapter.signTransaction('draft-tx', { isFirstSignature: true, password })
+    )
+    mocks.signingService.signSharedTxWithLedger.mockResolvedValue('signed-tx')
+    mocks.sharedWalletService.submitCreatedSharedTransfer.mockResolvedValue({
+      ok: true,
+      txHash: 'hash-ledger',
+    })
+
+    await expect(
+      createAndSubmitSharedTransfer({
+        network: 'testnet',
+        sharedWallet: makeSharedWallet(),
+        transfer: { coPayers: [] },
+        redeem: {},
+        sponsorWallet: makeSigner({
+          type: 'HardwareWallet',
+          publicKey: '',
+          wallet: {
+            label: 'Nested Ledger',
+            publicKey: 'nested-ledger-pk',
+            acct: 3,
+            neo: true,
+          },
+        }),
+      })
+    ).resolves.toMatchObject({ ok: true, txHash: 'hash-ledger' })
+
+    expect(mocks.signingService.signSharedTxWithLedger).toHaveBeenCalledWith(
+      'draft-tx',
+      1,
+      [],
+      expect.objectContaining({
+        address: 'AQ1',
+        publicKey: 'nested-ledger-pk',
+        acct: 3,
+        neo: true,
+        sharedWalletAddress: 'AS123',
+      }),
+      true
+    )
+  })
+
+  it('preserves nested common-wallet decryption fields', async () => {
+    mocks.sharedWalletService.prepareSharedTransferDraft.mockResolvedValue({ tx: 'draft-tx' })
+    mocks.sharedWalletService.signSharedTransactionDraft.mockImplementation(
+      ({ adapter, password }) =>
+        adapter.signTransaction('draft-tx', { isFirstSignature: true, password })
+    )
+    mocks.signingService.signSharedTx.mockResolvedValue('signed-tx')
+    mocks.sharedWalletService.submitCreatedSharedTransfer.mockResolvedValue({
+      ok: true,
+      txHash: 'hash-common',
+    })
+
+    await createAndSubmitSharedTransfer({
+      network: 'testnet',
+      sharedWallet: makeSharedWallet(),
+      transfer: { coPayers: [] },
+      redeem: {},
+      sponsorWallet: makeSigner({
+        key: '',
+        salt: '',
+        wallet: {
+          key: 'nested-key',
+          salt: 'nested-salt',
+        },
+      }),
+      password: 'secret123',
+    })
+
+    expect(mocks.signingService.signSharedTx).toHaveBeenCalledWith(
+      'draft-tx',
+      1,
+      [],
+      expect.objectContaining({
+        address: 'AQ1',
+        key: 'nested-key',
+        salt: 'nested-salt',
+      }),
+      'secret123'
+    )
+  })
+
+  it('maps thrown ledger signing errors to a ledger failure', async () => {
+    mocks.sharedWalletService.prepareSharedTransferDraft.mockResolvedValue({ tx: 'draft-tx' })
+    mocks.sharedWalletService.signSharedTransactionDraft.mockRejectedValue(
+      new Error('Ledger transport failed')
+    )
+
+    await expect(
+      createAndSubmitSharedTransfer({
+        network: 'testnet',
+        sharedWallet: makeSharedWallet(),
+        transfer: { coPayers: [] },
+        redeem: {},
+        sponsorWallet: makeSigner({ type: 'HardwareWallet' }),
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'ledgerWallet.signFailed' })
+  })
+
+  it('keeps post-signing ledger submission failures classified as network errors', async () => {
+    mocks.sharedWalletService.prepareSharedTransferDraft.mockResolvedValue({ tx: 'draft-tx' })
+    mocks.sharedWalletService.signSharedTransactionDraft.mockResolvedValue('signed-tx')
+    mocks.sharedWalletService.submitCreatedSharedTransfer.mockRejectedValue(
+      new Error('OntPass unavailable')
+    )
+
+    await expect(
+      createAndSubmitSharedTransfer({
+        network: 'testnet',
+        sharedWallet: makeSharedWallet(),
+        transfer: { coPayers: [] },
+        redeem: {},
+        sponsorWallet: makeSigner({ type: 'HardwareWallet' }),
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'common.networkErr' })
+  })
+
   it('delegates serialized transaction helpers to the shared wallet domain service', async () => {
     mocks.sharedWalletService.signSerializedSharedTransaction.mockResolvedValue({
       ok: true,
@@ -224,5 +355,8 @@ describe('sharedWalletTransactionApplicationService', () => {
         currentSigner: makeSigner({ address: 'AQ123' }),
       })
     ).resolves.toEqual({ ok: true })
+    expect(mocks.sharedWalletService.submitPendingSharedSignature).toHaveBeenCalledWith(
+      expect.objectContaining({ signedAddress: 'AQ123' })
+    )
   })
 })

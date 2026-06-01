@@ -105,4 +105,85 @@ describe('useLedgerStatusMonitor', () => {
     expect(mocks.ledgerConnection.readLedgerConnectionSelection).not.toHaveBeenCalled()
     monitor.stopMonitoring()
   })
+
+  it('pauses polling, waits for the active read, and preserves the connected wallet', async () => {
+    let resolveSelection: (value: unknown) => void = () => {}
+    mocks.ledgerConnection.readLedgerConnectionSelection.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSelection = resolve
+      })
+    )
+    const monitor = useLedgerStatusMonitor({ shouldPoll: true })
+
+    const paused = monitor.pauseMonitoring()
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(mocks.ledgerConnection.readLedgerConnectionSelection).toHaveBeenCalledTimes(1)
+
+    resolveSelection({
+      ok: true,
+      deviceInfo: 'Ledger Nano X',
+      selection: {
+        publicKey: 'paused-ledger-pk',
+        address: 'APausedLedger',
+      },
+    })
+    await paused
+
+    expect(monitor.ledgerConnectorStore.ledgerWallet).toEqual({
+      publicKey: 'paused-ledger-pk',
+      address: 'APausedLedger',
+    })
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(mocks.ledgerConnection.readLedgerConnectionSelection).toHaveBeenCalledTimes(1)
+
+    monitor.startMonitoring()
+    expect(mocks.ledgerConnection.readLedgerConnectionSelection).toHaveBeenCalledTimes(2)
+    monitor.stopMonitoring()
+  })
+
+  it('does not overlap slow ledger status reads', async () => {
+    let resolveSelection: (value: unknown) => void = () => {}
+    mocks.ledgerConnection.readLedgerConnectionSelection.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSelection = resolve
+      })
+    )
+    const monitor = useLedgerStatusMonitor({ shouldPoll: true })
+
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(mocks.ledgerConnection.readLedgerConnectionSelection).toHaveBeenCalledTimes(1)
+
+    resolveSelection({ ok: false, error: 'NOT_FOUND' })
+    await vi.runAllTicks()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(mocks.ledgerConnection.readLedgerConnectionSelection).toHaveBeenCalledTimes(2)
+    monitor.stopMonitoring()
+  })
+
+  it('ignores stale reads after monitoring stops', async () => {
+    let resolveSelection: (value: unknown) => void = () => {}
+    mocks.ledgerConnection.readLedgerConnectionSelection.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSelection = resolve
+      })
+    )
+    const monitor = useLedgerStatusMonitor({ shouldPoll: true })
+
+    monitor.stopMonitoring()
+    resolveSelection({
+      ok: true,
+      deviceInfo: 'Ledger Nano X',
+      selection: {
+        publicKey: 'stale-ledger-pk',
+        address: 'AStaleLedger',
+      },
+    })
+    await vi.runAllTicks()
+
+    expect(monitor.ledgerConnectorStore.publicKey).toBe('')
+    expect(monitor.ledgerConnectorStore.ledgerWallet).toEqual({
+      address: '',
+      publicKey: '',
+    })
+  })
 })

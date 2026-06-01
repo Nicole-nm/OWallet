@@ -97,9 +97,10 @@ export function useNodeStakeInfoPanel() {
   const stakeIdentity = computed(() => nodeStakeStore.stakeIdentity)
   const stakeWallet = computed(() => nodeStakeStore.stakeWallet)
   const nodePublicKey = computed(() => nodeStakeStore.nodePublicKey)
-  const { ledgerStatus, ledgerPk, ledgerWallet } = useLedgerStatusMonitor({
-    shouldPoll: computed(() => Boolean(stakeWallet.value && !isCommonWallet(stakeWallet.value))),
-  })
+  const { ledgerStatus, ledgerPk, ledgerWallet, pauseMonitoring, startMonitoring } =
+    useLedgerStatusMonitor({
+      shouldPoll: computed(() => Boolean(stakeWallet.value && !isCommonWallet(stakeWallet.value))),
+    })
   const detail = computed(() => nodeStakeStore.detail)
   const currentPeer = computed(() => nodeAuthStore.currentPeer)
   const posLimit = computed(() => nodeAuthStore.posLimit)
@@ -166,6 +167,8 @@ export function useNodeStakeInfoPanel() {
     authorizationInfo,
     stakeIdentity,
     ledgerWallet,
+    pauseLedgerMonitoring: pauseMonitoring,
+    startLedgerMonitoring: startMonitoring,
     resolveStakeWallet,
     resetSigningState,
     refreshStakeInfo: refreshStakeInfoProxy,

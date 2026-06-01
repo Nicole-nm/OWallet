@@ -54,7 +54,7 @@ const sharedWalletSessionStore = useSharedWalletSessionStore()
 
 const password = ref('')
 const sharedWallet = computed(() => sharedWalletSessionStore.wallet)
-const { ledgerStatus, ledgerPk } = useLedgerStatusMonitor({
+const { ledgerStatus, ledgerPk, pauseMonitoring, startMonitoring } = useLedgerStatusMonitor({
   shouldPoll: computed(() => props.wallet.type === 'HardwareWallet'),
 })
 
@@ -77,23 +77,37 @@ async function signSharedTx(isFirstSign: unknown, tx: unknown) {
     return
   }
 
-  const result = await signSerializedSharedTransaction({
-    serializedTx: String(tx || ''),
-    sharedWallet: sharedWallet.value,
-    wallet: props.wallet,
-    password: props.wallet.type === 'CommonWallet' ? password.value : undefined,
-    isFirstSign: Boolean(isFirstSign),
-  })
-
-  if (!result.ok) {
-    const cancelled = 'cancelled' in result && result.cancelled
-    if (!cancelled) {
-      loadingStore.hideLoadingModals()
-      notifyError('ledgerWallet.signFailed')
+  const usingLedger = props.wallet.type === 'HardwareWallet'
+  try {
+    if (usingLedger) {
+      await pauseMonitoring()
     }
-    return
-  }
 
-  emit('sharedTxSigned', 'serializedTx' in result ? result.serializedTx : '')
+    const result = await signSerializedSharedTransaction({
+      serializedTx: String(tx || ''),
+      sharedWallet: sharedWallet.value,
+      wallet: props.wallet,
+      password: props.wallet.type === 'CommonWallet' ? password.value : undefined,
+      isFirstSign: Boolean(isFirstSign),
+    })
+
+    if (!result.ok) {
+      const cancelled = 'cancelled' in result && result.cancelled
+      if (!cancelled) {
+        loadingStore.hideLoadingModals()
+        notifyError(result.errorKey || 'ledgerWallet.signFailed')
+      }
+      return
+    }
+
+    emit('sharedTxSigned', 'serializedTx' in result ? result.serializedTx : '')
+  } catch {
+    loadingStore.hideLoadingModals()
+    notifyError(usingLedger ? 'ledgerWallet.signFailed' : 'common.networkErr')
+  } finally {
+    if (usingLedger) {
+      startMonitoring()
+    }
+  }
 }
 </script>

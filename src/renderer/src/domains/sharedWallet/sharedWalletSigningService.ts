@@ -3,6 +3,7 @@ import httpClient from '../../shared/network/httpClient'
 import { deserializeTransaction } from '../../shared/chain/transactionSdk'
 import { reverseHex } from '../../shared/chain/sdkHex'
 import type { SdkTransactionLike } from '../../shared/chain/types'
+import { createLogger } from '../../shared/lib/logger'
 import { sendTx } from '../transaction/signingService'
 import { serializeTx } from '../transaction/serializationService'
 import type { WalletAdapter } from '../wallet/adapter'
@@ -38,6 +39,7 @@ export type PendingSharedSignatureResult =
 // ---------------------------------------------------------------------------
 
 type HttpBody = Record<string, unknown>
+const logger = createLogger('sharedWalletSigningService')
 
 interface PendingSharedTransaction extends HttpBody {
   transactionbodyhash: string
@@ -126,26 +128,42 @@ export async function signSerializedSharedTransaction({
   password?: string
   isFirstSign?: boolean
 }) {
-  const tx = await deserializeTransaction(serializedTx)
-  const signed = await signSharedTransactionDraft({
-    tx,
-    adapter,
-    password,
-    isFirstSign,
-  })
+  try {
+    const tx = await deserializeTransaction(serializedTx)
+    let signed: unknown
+    try {
+      signed = await signSharedTransactionDraft({
+        tx,
+        adapter,
+        password,
+        isFirstSign,
+      })
+    } catch (error: unknown) {
+      logger.error('signSerializedSharedTransaction.sign', error)
+      return {
+        ok: false,
+        errorKey: adapter.capabilities.requiresHardwareDevice
+          ? 'ledgerWallet.signFailed'
+          : 'common.networkErr',
+      }
+    }
 
-  if (!signed) {
-    return adapter.capabilities.requiresPassword
-      ? { ok: false, errorKey: 'common.pwdErr' }
-      : { ok: false, cancelled: true }
-  }
+    if (!signed) {
+      return adapter.capabilities.requiresPassword
+        ? { ok: false, errorKey: 'common.pwdErr' }
+        : { ok: false, cancelled: true }
+    }
 
-  return {
-    ok: true,
-    serializedTx: serializeTx(
-      asSdkTransaction(signed),
-      'sharedWallet.signSerializedSharedTransaction.serialize'
-    ),
+    return {
+      ok: true,
+      serializedTx: serializeTx(
+        asSdkTransaction(signed),
+        'sharedWallet.signSerializedSharedTransaction.serialize'
+      ),
+    }
+  } catch (error: unknown) {
+    logger.error('signSerializedSharedTransaction', error)
+    return { ok: false, errorKey: 'common.networkErr' }
   }
 }
 
@@ -172,11 +190,13 @@ export async function submitPendingSharedSignature({
   network,
   pendingTx,
   adapter,
+  signedAddress,
   password,
 }: {
   network: string
   pendingTx: PendingSharedTransaction
   adapter: WalletAdapter
+  signedAddress: string
   password?: string
 }): Promise<PendingSharedSignatureResult> {
   try {
@@ -185,10 +205,21 @@ export async function submitPendingSharedSignature({
       throw new Error('Shared transaction signature payload is missing')
     }
 
-    const signed = await adapter.addSignature(asSdkTransaction(tx), {
-      password,
-      isFirstSignature: false,
-    })
+    let signed: unknown
+    try {
+      signed = await adapter.addSignature(asSdkTransaction(tx), {
+        password,
+        isFirstSignature: false,
+      })
+    } catch (error: unknown) {
+      logger.error('submitPendingSharedSignature.sign', error)
+      return {
+        ok: false,
+        errorKey: adapter.capabilities.requiresHardwareDevice
+          ? 'ledgerWallet.signFailed'
+          : 'common.networkErr',
+      }
+    }
 
     if (!signed) {
       return adapter.capabilities.requiresPassword
@@ -198,7 +229,7 @@ export async function submitPendingSharedSignature({
 
     const signResponse = (await signSharedTransfer(network, {
       transactionIdHash: pendingTx.transactionidhash,
-      signedAddress: adapter.identity.address,
+      signedAddress,
       signedHash: serializeTx(
         asSdkTransaction(signed),
         'sharedWallet.submitPendingSharedSignature.serialize'
@@ -219,7 +250,8 @@ export async function submitPendingSharedSignature({
     }
 
     return { ok: true, sentToChain: false }
-  } catch {
+  } catch (error: unknown) {
+    logger.error('submitPendingSharedSignature', error)
     return { ok: false, errorKey: 'common.networkErr' }
   }
 }

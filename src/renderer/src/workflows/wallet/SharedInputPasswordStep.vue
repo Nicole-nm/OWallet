@@ -41,7 +41,7 @@ const password = ref('')
 const sponsorWallet = ref<SharedWalletSigner>({ type: '', address: '', publicKey: '' })
 const checked = ref(false)
 const sending = ref(false)
-const { ledgerStatus, ledgerPk } = useLedgerStatusMonitor({
+const { ledgerStatus, ledgerPk, pauseMonitoring, startMonitoring } = useLedgerStatusMonitor({
   shouldPoll: computed(() => sponsorWallet.value.type === 'HardwareWallet'),
 })
 
@@ -70,33 +70,43 @@ async function submit() {
     return
   }
 
+  const usingLedger = sponsorWallet.value.type === 'HardwareWallet'
   sending.value = true
   loadingStore.showLoadingModals()
-  const result = await createAndSubmitSharedTransfer({
-    network: settingStore.network,
-    sharedWallet: sharedWallet.value,
-    transfer: transfer.value,
-    redeem: redeem.value,
-    sponsorWallet: sponsorWallet.value,
-    password: password.value,
-  })
 
-  if (!result.ok) {
-    if ('cancelled' in result && result.cancelled) {
-      loadingStore.hideLoadingModals()
-      sending.value = false
+  try {
+    if (usingLedger) {
+      await pauseMonitoring()
+    }
+
+    const result = await createAndSubmitSharedTransfer({
+      network: settingStore.network,
+      sharedWallet: sharedWallet.value,
+      transfer: transfer.value,
+      redeem: redeem.value,
+      sponsorWallet: sponsorWallet.value,
+      password: password.value,
+    })
+
+    if (!result.ok) {
+      if ('cancelled' in result && result.cancelled) {
+        return
+      }
+
+      notifyError(result.errorKey || 'common.networkErr')
       return
     }
 
-    notifyError(result.errorKey || 'common.networkErr')
+    emit('inputPassNext')
+    notifySuccess('sharedWalletHome.createTransferSuccess')
+  } catch {
+    notifyError(usingLedger ? 'ledgerWallet.signFailed' : 'common.networkErr')
+  } finally {
     loadingStore.hideLoadingModals()
     sending.value = false
-    return
+    if (usingLedger) {
+      startMonitoring()
+    }
   }
-
-  sending.value = false
-  emit('inputPassNext')
-  notifySuccess('sharedWalletHome.createTransferSuccess')
-  loadingStore.hideLoadingModals()
 }
 </script>

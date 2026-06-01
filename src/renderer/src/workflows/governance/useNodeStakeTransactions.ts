@@ -15,7 +15,13 @@ import { notifyError } from '../../shared/ui/feedback'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 import { notifyGovernanceSigningFailure } from './governanceSigningFeedback'
-import type { CommonWallet, HardwareWallet, Identity, NetworkId } from '../../shared/lib/types'
+import {
+  isCommonWallet,
+  type CommonWallet,
+  type HardwareWallet,
+  type Identity,
+  type NetworkId,
+} from '../../shared/lib/types'
 import type {
   AuthorizationInfo,
   AuthorizationPeer,
@@ -48,6 +54,8 @@ interface NodeStakeTransactionsDeps {
   stakeIdentity: Ref<Identity>
   ledgerWallet: Ref<LedgerWalletSelection>
   // Callbacks
+  pauseLedgerMonitoring: () => Promise<void>
+  startLedgerMonitoring: () => void
   resolveStakeWallet: () => CommonWallet | HardwareWallet | null
   resetSigningState: () => void
   refreshStakeInfo: () => Promise<unknown>
@@ -81,6 +89,8 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
     authorizationInfo,
     stakeIdentity,
     ledgerWallet,
+    pauseLedgerMonitoring,
+    startLedgerMonitoring,
     resolveStakeWallet,
     resetSigningState,
     refreshStakeInfo,
@@ -92,14 +102,21 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
     const delegateMode = isDelegateSendTx.value
 
     refundClicked.value = true
-    loadingStore.showLoadingModals()
-
     const wallet = resolveStakeWallet()
     if (!wallet || !stakeIdentity.value) {
+      refundClicked.value = false
       return
     }
 
+    const usingLedger = !isCommonWallet(wallet)
+    let ledgerMonitoringPaused = false
+    loadingStore.showLoadingModals()
+
     try {
+      if (usingLedger) {
+        await pauseLedgerMonitoring()
+        ledgerMonitoringPaused = true
+      }
       const adapter = WalletAdapterFactory.fromWalletSigner(wallet)
       if (!adapter) {
         notifyError('nodeStake.selectIndividualWallet')
@@ -141,6 +158,9 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       return feedback
     } finally {
       loadingStore.hideLoadingModals()
+      if (ledgerMonitoringPaused) {
+        startLedgerMonitoring()
+      }
       if (delegateMode) {
         setTimeout(() => {
           refundClicked.value = false

@@ -128,10 +128,20 @@ describe('sharedWalletSigningService', () => {
           transactionidhash: 'tx-id-hash',
         },
         adapter: makeAdapter(commonCapabilities, partialTx),
+        signedAddress: 'ACosigner',
         password: 'correct-password',
       })
 
       expect(result).toEqual({ ok: true, sentToChain: false })
+      expect(mocks.httpClient.post).toHaveBeenCalledWith(
+        'https://node.example/sign',
+        {
+          transactionIdHash: 'tx-id-hash',
+          signedAddress: 'ACosigner',
+          signedHash: 'serialized-tx',
+        },
+        { silent: true }
+      )
       expect(mocks.signingService.sendTx).not.toHaveBeenCalled()
       // Reference to signedTx so TS doesn't complain about unused var
       void signedTx
@@ -161,6 +171,7 @@ describe('sharedWalletSigningService', () => {
           transactionidhash: 'tx-id-hash',
         },
         adapter: makeAdapter(commonCapabilities, completedTx),
+        signedAddress: 'ACosigner',
         password: 'correct-password',
       })
 
@@ -181,6 +192,7 @@ describe('sharedWalletSigningService', () => {
           transactionidhash: 'tx-id-hash',
         },
         adapter: makeAdapter(commonCapabilities, null),
+        signedAddress: 'ACosigner',
         password: 'wrong-password',
       })
 
@@ -201,6 +213,28 @@ describe('sharedWalletSigningService', () => {
           transactionidhash: 'tx-id-hash',
         },
         adapter: makeAdapter(ledgerCapabilities, null),
+        signedAddress: 'ACosigner',
+      })
+
+      expect(result).toEqual({ ok: false, errorKey: 'ledgerWallet.signFailed' })
+      expect(mocks.httpClient.post).not.toHaveBeenCalled()
+    })
+
+    it('maps thrown ledger signing errors without reporting them as network failures', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({
+        sigs: [{ M: 2, pubKeys: ['pk-1', 'pk-2'], sigData: [] as string[] }],
+      })
+      const adapter = makeAdapter(ledgerCapabilities, null)
+      adapter.addSignature = vi.fn().mockRejectedValue(new Error('Ledger public key mismatch'))
+
+      const result = await submitPendingSharedSignature({
+        network: 'testnet',
+        pendingTx: {
+          transactionbodyhash: 'serialized',
+          transactionidhash: 'tx-id-hash',
+        },
+        adapter,
+        signedAddress: 'ACosigner',
       })
 
       expect(result).toEqual({ ok: false, errorKey: 'ledgerWallet.signFailed' })
@@ -234,6 +268,7 @@ describe('sharedWalletSigningService', () => {
           transactionidhash: 'tx-id-hash',
         },
         adapter: makeAdapter(commonCapabilities, signedTx),
+        signedAddress: 'ACosigner',
         password: 'correct-password',
       })
 
@@ -303,6 +338,19 @@ describe('sharedWalletSigningService', () => {
         adapter,
       })
       expect(result).toEqual({ ok: false, cancelled: true })
+    })
+
+    it('maps thrown ledger signing errors to a ledger failure', async () => {
+      const adapter = makeAdapter(ledgerCapabilities, null)
+      adapter.addSignature = vi.fn().mockRejectedValue(new Error('Ledger transport failed'))
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({})
+
+      const result = await signSerializedSharedTransaction({
+        serializedTx: 'hex',
+        adapter,
+      })
+
+      expect(result).toEqual({ ok: false, errorKey: 'ledgerWallet.signFailed' })
     })
   })
 

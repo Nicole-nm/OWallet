@@ -74,7 +74,7 @@ const loadingStore = useLoadingModalStore()
 
 const walletPassword = ref('')
 const usesCommonWallet = computed(() => isCommonWallet(props.wallet))
-const { startMonitoring, stopMonitoring, ledgerStatus, ledgerWallet } = useLedgerStatusMonitor({
+const { startMonitoring, pauseMonitoring, ledgerStatus, ledgerWallet } = useLedgerStatusMonitor({
   shouldPoll: computed(() => props.open && !usesCommonWallet.value),
 })
 
@@ -117,8 +117,7 @@ async function handleWalletSignOK() {
     loadingStore.showLoadingModals()
 
     if (usingLedger) {
-      stopMonitoring()
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      await pauseMonitoring()
     }
 
     const adapter = WalletAdapterFactory.fromWalletSigner(wallet)

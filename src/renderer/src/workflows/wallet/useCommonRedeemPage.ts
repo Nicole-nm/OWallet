@@ -32,10 +32,11 @@ export function useCommonRedeemPage() {
     { name: currentWallet.value.label, path: ROUTE_PATHS.walletDashboard },
   ])
   const redeem = computed(() => currentWalletStore.redeem)
-  const { ledgerConnectorStore, ledgerStatus, ledgerPk } = useLedgerStatusMonitor({
-    shouldPoll: computed(() => type.value !== 'commonWallet'),
-    interval,
-  })
+  const { ledgerConnectorStore, ledgerStatus, ledgerPk, pauseMonitoring, startMonitoring } =
+    useLedgerStatusMonitor({
+      shouldPoll: computed(() => type.value !== 'commonWallet'),
+      interval,
+    })
 
   function goBackToWallets() {
     router.push({ name: ROUTE_NAMES.WALLETS })
@@ -61,51 +62,63 @@ export function useCommonRedeemPage() {
       ledgerConnectorStore.setLedgerStatus(i18n.global.t('common.waitForSign'))
     }
 
-    const adapter = WalletAdapterFactory.fromWalletSigner(currentWallet.value as WalletSigner)
-    if (!adapter) {
+    try {
+      if (type.value !== 'commonWallet') {
+        await pauseMonitoring()
+      }
+
+      const adapter = WalletAdapterFactory.fromWalletSigner(currentWallet.value as WalletSigner)
+      if (!adapter) {
+        notifyError('common.networkErr')
+        return { ok: false, errorKey: 'common.networkErr' }
+      }
+      const result = await submitWalletRedeem({
+        address: currentWallet.value.address,
+        adapter,
+        claimableOng: redeem.value.claimableOng,
+        password: type.value === 'commonWallet' ? password.value : undefined,
+      })
+
+      if (!result.ok) {
+        if (result.cancelled) {
+          return result
+        }
+
+        if (result.errorKey) {
+          notifyError(result.errorKey)
+        } else if (result.message) {
+          notifyError(result.message, { literal: true })
+        }
+
+        return {
+          ok: false,
+          cancelled: result.cancelled,
+          errorKey: result.errorKey,
+          message: result.message,
+        }
+      }
+
+      router.push({ path: ROUTE_PATHS.walletDashboard })
+      notifySuccess('common.transSentSuccess')
+      setTimeout(() => {
+        showSuccessModal({
+          title: 'common.transSentSuccess',
+          content: formatTransactionHash(result.txHash),
+        })
+      }, 100)
+      return { ok: true, txHash: result.txHash }
+    } catch {
+      const errorKey =
+        type.value === 'commonWallet' ? 'common.networkErr' : 'ledgerWallet.signFailed'
+      notifyError(errorKey)
+      return { ok: false, errorKey }
+    } finally {
       loadingStore.hideLoadingModals()
       sending.value = false
-      notifyError('common.networkErr')
-      return { ok: false, errorKey: 'common.networkErr' }
-    }
-    const result = await submitWalletRedeem({
-      address: currentWallet.value.address,
-      adapter,
-      claimableOng: redeem.value.claimableOng,
-      password: type.value === 'commonWallet' ? password.value : undefined,
-    })
-
-    loadingStore.hideLoadingModals()
-    sending.value = false
-
-    if (!result.ok) {
-      if (result.cancelled) {
-        return result
-      }
-
-      if (result.errorKey) {
-        notifyError(result.errorKey)
-      } else if (result.message) {
-        notifyError(result.message, { literal: true })
-      }
-
-      return {
-        ok: false,
-        cancelled: result.cancelled,
-        errorKey: result.errorKey,
-        message: result.message,
+      if (type.value !== 'commonWallet') {
+        startMonitoring()
       }
     }
-
-    router.push({ path: ROUTE_PATHS.walletDashboard })
-    notifySuccess('common.transSentSuccess')
-    setTimeout(() => {
-      showSuccessModal({
-        title: 'common.transSentSuccess',
-        content: formatTransactionHash(result.txHash),
-      })
-    }, 100)
-    return { ok: true, txHash: result.txHash }
   }
 
   return {
