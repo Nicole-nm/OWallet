@@ -107,11 +107,18 @@ export async function submitSharedWalletCreation({
   if (!network || !label || !Array.isArray(copayers) || copayers.length < 2) {
     return { ok: false, errorKey: 'createSharedWallet.createFailed' }
   }
-  const normalizedCopayers = copayers as Array<{
-    name: string
-    publickey: string
-    address?: string
-  }>
+  const normalizedCopayers = (
+    copayers as Array<{ name: string; publickey: string; address?: string }>
+  ).map((payer) => {
+    const plain: { name: string; publickey: string; address?: string } = {
+      name: String(payer.name || ''),
+      publickey: String(payer.publickey || ''),
+    }
+    if (payer.address) {
+      plain.address = String(payer.address)
+    }
+    return plain
+  })
   const normalizedRequiredSigNum = Number(requiredSigNum || normalizedCopayers.length)
 
   const built = await tryCatch(

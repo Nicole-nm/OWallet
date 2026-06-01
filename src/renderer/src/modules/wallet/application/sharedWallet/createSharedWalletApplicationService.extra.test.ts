@@ -177,4 +177,51 @@ describe('submitSharedWalletCreation branches', () => {
     })
     expect(result).toMatchObject({ ok: true, sharedWalletAddress: 'multi-addr' })
   })
+
+  it('strips non-cloneable fields from copayers so the body is structured-clone safe', async () => {
+    mocks.accountService.createMultiSigWalletAddress.mockResolvedValue('multi-addr')
+    mocks.sharedWalletService.createSharedWallet.mockResolvedValue({ Error: 0 })
+    mocks.walletPersistenceService.persistWallet.mockResolvedValue({
+      duplicate: false,
+      ok: true,
+      inserted: true,
+      collectionsResult: ['col'],
+    })
+
+    // Simulate a framework-wrapped input (Vue reactive proxy, etc.) by adding
+    // a function property that the structured-clone algorithm cannot serialize.
+    const pollutedCopayers = copayers.map((c) => ({
+      ...c,
+      [Symbol.for('__v_isReactive')]: true,
+      reactiveHook: () => 'noop',
+    }))
+    expect(() => structuredClone(pollutedCopayers)).toThrow()
+
+    const result = await submitSharedWalletCreation({
+      network: 'net',
+      label: 'team',
+      copayers: pollutedCopayers,
+      requiredSigNum: 2,
+    })
+
+    expect(result.ok).toBe(true)
+
+    const httpBody = mocks.sharedWalletService.createSharedWallet.mock.calls[0]?.[1] as {
+      coPayers: Array<{ name: string; publickey: string; address?: string }>
+    }
+    const persistBody = mocks.walletPersistenceService.persistWallet.mock.calls[0]?.[1] as {
+      coPayers: Array<{ name: string; publickey: string; address?: string }>
+    }
+
+    for (const body of [httpBody, persistBody]) {
+      expect(body.coPayers).toHaveLength(2)
+      for (const c of body.coPayers) {
+        expect(Object.getPrototypeOf(c)).toBe(Object.prototype)
+        expect(Object.keys(c).sort()).toEqual(['address', 'name', 'publickey'])
+      }
+      expect(body.coPayers[0]!.address).toBe('addr-a')
+      expect(body.coPayers[1]!.address).toBe('addr-b')
+      expect(() => structuredClone(body)).not.toThrow()
+    }
+  })
 })

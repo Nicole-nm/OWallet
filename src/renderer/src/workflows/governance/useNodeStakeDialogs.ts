@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 
 export function useNodeStakeDialogs() {
   const walletPassModal = ref(false)
@@ -7,7 +7,10 @@ export function useNodeStakeDialogs() {
   const redeemPosVisible = ref(false)
   const isQuit = ref(false)
   const isDelegateSendTx = ref(true)
-  const tx = ref<unknown>('')
+  // shallowRef: SDK Transaction class instances stored here must not be
+  // wrapped in a deep reactive proxy — identity-sensitive SDK serializers
+  // (PublicKey, Address) misbehave when accessed through one.
+  const tx = shallowRef<unknown>('')
   const walletPassword = ref('')
 
   function resetSigningState() {

@@ -61,7 +61,7 @@ describe('serializeTx()', () => {
     })
 
     expect(() => serializeTx(badTx, 'test.malformed')).toThrow('malformed hash: invalid payload')
-    expect(mocks.logger.error).toHaveBeenCalledWith('test.malformed', expect.any(Object))
+    expect(mocks.logger.error).toHaveBeenCalledWith('test.malformed', expect.any(String))
   })
 
   it('logs tx summary including sig count when serialize fails', () => {
@@ -77,7 +77,7 @@ describe('serializeTx()', () => {
 
     expect(() => serializeTx(badTx, 'ctx')).toThrow('bad hash')
 
-    const loggedSummary = mocks.logger.error.mock.calls[0]![1] as ReturnType<
+    const loggedSummary = JSON.parse(mocks.logger.error.mock.calls[0]![1] as string) as ReturnType<
       typeof import('./serializationService').summarizeTx
     >
     expect(loggedSummary.sigCount).toBe(2)

@@ -35,7 +35,7 @@ export function serializeTx(tx: SdkTransactionLike, context = 'transaction.seria
   try {
     return tx.serialize()
   } catch (err: unknown) {
-    logger.error(context, summarizeTx(tx))
+    logger.error(context, JSON.stringify(summarizeTx(tx)))
     throw err
   }
 }

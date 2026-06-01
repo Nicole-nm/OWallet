@@ -7,13 +7,14 @@ const logger = createLogger('governanceQueryApplicationService')
 
 type NodeRecord = Record<string, unknown>
 
-function indexOffChainNodesByAddress(records: unknown[]) {
-  const resultMap: Record<string, NodeRecord> = Object.create(null)
+function groupOffChainNodesByAddress(records: unknown[]) {
+  const resultMap: Record<string, NodeRecord[]> = Object.create(null)
 
   for (const record of records) {
     const node = mapOffChainNodeRecord(record as NodeRecord)
     if (node.nodeAddress) {
-      resultMap[node.nodeAddress] = node
+      const bucket = resultMap[node.nodeAddress] || (resultMap[node.nodeAddress] = [])
+      bucket.push(node)
     }
   }
 
@@ -30,26 +31,28 @@ export async function loadMyNodeCards({
   return tryCatch(
     async () => {
       const [peers, records] = await Promise.all([fetchPeerPoolMap(), fetchOffChainNodes(network)])
-      const offChainNodesByAddress = indexOffChainNodesByAddress(
+      const offChainNodesByAddress = groupOffChainNodesByAddress(
         Array.isArray(records) ? records : []
       )
       const peerMap = peers as Record<string, unknown>
       const myNodes: NodeRecord[] = []
 
       for (const wallet of wallets) {
-        const offChainNode = offChainNodesByAddress[String(wallet.address || '')]
+        const offChainNodes = offChainNodesByAddress[String(wallet.address || '')]
 
-        if (!offChainNode) {
+        if (!offChainNodes || offChainNodes.length === 0) {
           continue
         }
 
-        myNodes.push(
-          mapMyNodeCard({
-            wallet,
-            offChainNode,
-            peer: peerMap[String(offChainNode.publicKey || '')],
-          })
-        )
+        for (const offChainNode of offChainNodes) {
+          myNodes.push(
+            mapMyNodeCard({
+              wallet,
+              offChainNode,
+              peer: peerMap[String(offChainNode.publicKey || '')],
+            })
+          )
+        }
       }
 
       return { nodes: myNodes }
