@@ -3,12 +3,14 @@ import { useI18n } from 'vue-i18n'
 import { changeStoredWalletPassword } from '../../modules/wallet/application/dashboard/walletDetailApplicationService'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
+import { useWalletsStore } from '../../stores/modules/Wallets'
 import { notifyError, notifySuccess } from '../../shared/ui/feedback'
 
 export function usePasswordChange(wallet: () => Record<string, unknown>) {
   const { t } = useI18n()
   const loadingStore = useLoadingModalStore()
   const currentWalletStore = useCurrentWalletStore()
+  const walletsStore = useWalletsStore()
 
   const oldPassword = ref('')
   const newPassword = ref('')
@@ -75,6 +77,7 @@ export function usePasswordChange(wallet: () => Record<string, unknown>) {
       return
     }
 
+    walletsStore.updateCommonWallet(result.wallet.address, result.wallet)
     if (currentWalletStore.wallet.address === result.wallet.address) {
       currentWalletStore.mergeCurrentWallet({ wallet: result.wallet })
     }

@@ -38,6 +38,13 @@ export const useWalletsStore = defineStore('Wallets', {
       normalWallet.splice(index, 1)
       this.normalWallets = normalWallet
     },
+    updateCommonWallet(address: string, wallet: WalletCollections['normalWallets'][number]) {
+      const next = this.normalWallets.slice()
+      const index = next.findIndex((w) => w.address === address)
+      if (index < 0) return
+      next[index] = wallet
+      this.normalWallets = next
+    },
     deleteSharedWallet(address: string) {
       const normalWallet = this.sharedWallets.slice()
       const index = normalWallet.findIndex((w) => w.sharedWalletAddress === address)

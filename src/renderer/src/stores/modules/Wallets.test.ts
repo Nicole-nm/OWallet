@@ -46,6 +46,28 @@ describe('useWalletsStore', () => {
     expect(store.normalWallets).toEqual([{ address: 'b' }])
   })
 
+  it('replaces a common wallet by address and ignores unknown addresses', () => {
+    const store = useWalletsStore()
+    store.setWalletCollections({
+      normalWallets: [
+        { address: 'a', key: 'old-a' },
+        { address: 'b', key: 'old-b' },
+      ] as never,
+    })
+
+    store.updateCommonWallet('missing', { address: 'missing', key: 'new' } as never)
+    expect(store.normalWallets).toEqual([
+      { address: 'a', key: 'old-a' },
+      { address: 'b', key: 'old-b' },
+    ])
+
+    store.updateCommonWallet('a', { address: 'a', key: 'new-a' } as never)
+    expect(store.normalWallets).toEqual([
+      { address: 'a', key: 'new-a' },
+      { address: 'b', key: 'old-b' },
+    ])
+  })
+
   it('removes shared wallets keyed by sharedWalletAddress', () => {
     const store = useWalletsStore()
     store.setWalletCollections({
