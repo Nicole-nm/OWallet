@@ -43,4 +43,51 @@ describe('nodeMapper', () => {
       status: 1,
     })
   })
+
+  it('returns the input string for normalizeNodePublicKey when given a raw string', () => {
+    expect(normalizeNodePublicKey('hex-key')).toBe('hex-key')
+  })
+
+  it('returns an empty string for normalizeNodePublicKey when given null/undefined or no matching alias', () => {
+    expect(normalizeNodePublicKey(null)).toBe('')
+    expect(normalizeNodePublicKey(undefined)).toBe('')
+    expect(normalizeNodePublicKey({ unrelated: 'value' })).toBe('')
+  })
+
+  it('mapOffChainNodeRecord defaults to an empty record and produces empty name when no key is present', () => {
+    const mapped = mapOffChainNodeRecord()
+    expect(mapped.publicKey).toBe('')
+    expect(mapped.nodeAddress).toBe('')
+    expect(mapped.name).toBe('')
+  })
+
+  it('mapOffChainNodeRecord preserves an explicit name and falls back to nodeAddress over address', () => {
+    const mapped = mapOffChainNodeRecord({
+      publicKey: 'abcdef',
+      nodeAddress: 'AExplicit',
+      address: 'AFallback',
+      name: 'Custom',
+    })
+    expect(mapped.name).toBe('Custom')
+    expect(mapped.nodeAddress).toBe('AExplicit')
+  })
+
+  it('mapMyNodeCard defaults stakeAmount to 0 and status to EXITED when peer is missing', () => {
+    const result = mapMyNodeCard({
+      wallet: { address: 'wallet-address' },
+      offChainNode: { peerPubkey: 'peer-public-key' },
+    })
+    expect(result.stakeAmount).toBe(0)
+    expect(result.status).toBe(6)
+  })
+
+  it('mapMyNodeCard handles missing initPos and totalPos as 0', () => {
+    const result = mapMyNodeCard({
+      wallet: {},
+      offChainNode: { peerPubkey: 'pk' },
+      peer: { status: 2 },
+    })
+    expect(result.stakeAmount).toBe(0)
+    expect(result.status).toBe(2)
+  })
 })

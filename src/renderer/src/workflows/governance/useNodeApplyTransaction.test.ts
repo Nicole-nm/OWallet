@@ -132,4 +132,64 @@ describe('useNodeApplyTransaction', () => {
     })
     expect(router.push).toHaveBeenCalledWith({ name: 'NodeStakeManagement' })
   })
+
+  it('confirm exits early when the application service fails', async () => {
+    mocks.createNodeApplyTransactionDraft.mockResolvedValueOnce({ ok: false, errorKey: 'oops' })
+    mocks.notifyFailure.mockReturnValueOnce(true)
+
+    const { subject } = createSubject()
+    await subject.confirm()
+
+    expect(subject.tx.value).toBeNull()
+    expect(subject.signVisible.value).toBe(false)
+  })
+
+  it('persistPendingNodeInfo records the failure but leaves the persisted flag false', async () => {
+    mocks.createPendingNodeApplyInfo.mockResolvedValueOnce({ ok: false, errorKey: 'down' })
+    mocks.notifyFailure.mockReturnValueOnce(true)
+
+    const { subject } = createSubject()
+    await subject.handleTxSent()
+
+    expect(subject.pendingNodeInfoPersisted.value).toBe(false)
+  })
+
+  it('onComplete notifies an error when no node public key is available', async () => {
+    mocks.createPendingNodeApplyInfo.mockResolvedValue({ ok: true, nodePublicKey: '' })
+
+    const { subject } = createSubject()
+    subject.pendingNodePublicKey.value = ''
+    const router = { push: vi.fn() }
+    const subjectWithoutPk = useNodeApplyTransaction({
+      router: router as never,
+      settingStore: { network: 'testnet' } as never,
+      nodeStakeStore: {} as never,
+      nodeSessionStore: {} as never,
+      stakeWallet: ref({ address: 'AQ-stake' } as NodeApplyWallet),
+      stakeAmount: ref('1'),
+      getNodePublicKey: () => '',
+    })
+
+    await subjectWithoutPk.onComplete()
+    expect(mocks.notifyError).toHaveBeenCalledWith('common.networkErr')
+  })
+
+  it('onComplete persists pending info when the prior persistence failed', async () => {
+    mocks.createPendingNodeApplyInfo.mockResolvedValueOnce({ ok: false })
+    mocks.createPendingNodeApplyInfo.mockResolvedValueOnce({ ok: true, nodePublicKey: 'node-pk' })
+    mocks.notifyFailure.mockReturnValue(false)
+
+    const { subject } = createSubject()
+    await subject.handleTxSent()
+    expect(subject.pendingNodeInfoPersisted.value).toBe(false)
+
+    await subject.onComplete()
+    expect(mocks.createPendingNodeApplyInfo).toHaveBeenCalledTimes(2)
+  })
+
+  it('onLater routes to the my-node page', () => {
+    const { subject, router } = createSubject()
+    subject.onLater()
+    expect(router.push).toHaveBeenCalledWith({ name: 'MyNode' })
+  })
 })

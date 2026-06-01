@@ -341,6 +341,68 @@ describe('useVoteListPage', () => {
     expect(mocks.router.back).toHaveBeenCalled()
   })
 
+  it('defaults role, allVotes, and adminVotes to empty arrays when the store fields are absent', () => {
+    mocks.voteStore.role = undefined as never
+    mocks.voteStore.allVotes = undefined as never
+    mocks.voteStore.adminVotes = undefined as never
+    const page = useVoteListPage()
+    expect(page.role.value).toEqual([])
+    expect(page.allVotes.value).toEqual([])
+    expect(page.adminVotes.value).toEqual([])
+  })
+
+  it('passes the failure result through applyVoteRoleResult and applyVoteListResult', async () => {
+    mocks.voteService.loadVoteRole.mockResolvedValueOnce({
+      ok: false,
+      errorKey: 'common.networkErr',
+    })
+    mocks.voteService.loadVoteList.mockResolvedValueOnce({
+      ok: false,
+      errorKey: 'common.networkErr',
+    })
+    mocks.voteStore.voteWallet = { address: 'AQ123' } as WalletSigner
+    useVoteListPage()
+    await vi.waitFor(() => expect(mocks.voteService.loadVoteRole).toHaveBeenCalled())
+    expect(mocks.voteStore.setContractHash).not.toHaveBeenCalled()
+  })
+
+  it('does not call setContractHash when the role or list result has no contractHash', async () => {
+    mocks.voteService.loadVoteRole.mockResolvedValueOnce({
+      ok: true,
+      role: ['ADMIN'],
+      allVoters: [] as VoteRow[],
+      myWeight: 0,
+    })
+    mocks.voteService.loadVoteList.mockResolvedValueOnce({
+      ok: true,
+      votes: [] as VoteRow[],
+    })
+    mocks.voteStore.voteWallet = { address: 'AQ123' } as WalletSigner
+    useVoteListPage()
+    await vi.waitFor(() => expect(mocks.voteService.loadVoteList).toHaveBeenCalled())
+    expect(mocks.voteStore.setContractHash).not.toHaveBeenCalled()
+  })
+
+  it('does not duplicate the created menu when re-flipping isAdmin', async () => {
+    mocks.voteStore.role = ['ADMIN']
+    mocks.voteStore.voteWallet = { address: 'AQ123' } as WalletSigner
+    const page = useVoteListPage()
+    await vi.waitFor(() => expect(mocks.polling.startPolling).toHaveBeenCalled())
+    // Setting role to ADMIN again should keep menus stable, not add a second 'created'
+    expect(page.menus.value.filter((m: { key: string }) => m.key === 'created').length).toBe(1)
+  })
+
+  it('returns ok without notifyWarning when onStopVote succeeds', async () => {
+    const page = useVoteListPage()
+    await vi.waitFor(() => expect(mocks.polling.startPolling).toHaveBeenCalled())
+    vi.clearAllMocks()
+
+    await expect(page.onStopVote({ hash: 'vh', statusText: 'IN_PROGRESS' })).resolves.toMatchObject(
+      { ok: true }
+    )
+    expect(mocks.feedback.notifyWarning).not.toHaveBeenCalled()
+  })
+
   it('notifies when a stop-vote request fails and refreshes after sent transactions', async () => {
     mocks.voteService.createVoteStopTransaction.mockResolvedValue({
       ok: false,

@@ -127,6 +127,37 @@ describe('usePasswordChange', () => {
     expect(api.changePassErrors.value.reNewPassword).not.toBe('')
   })
 
+  it('reports a required error when every password field is empty', async () => {
+    const api = setup()
+    api.oldPassword.value = ''
+    api.newPassword.value = ''
+    api.reNewPassword.value = ''
+
+    await api.handleChangePassOk()
+
+    expect(api.changePassErrors.value.oldPassword).toContain('FormField.oldPassword')
+    expect(api.changePassErrors.value.oldPassword).toContain('is required')
+    expect(api.changePassErrors.value.newPassword).toContain('FormField.newPassword')
+    expect(api.changePassErrors.value.newPassword).toContain('is required')
+    expect(api.changePassErrors.value.reNewPassword).toContain('FormField.newPasswordConfirmation')
+    expect(api.changePassErrors.value.reNewPassword).toContain('is required')
+    expect(mocks.changeStoredWalletPassword).not.toHaveBeenCalled()
+  })
+
+  it('reports length errors when every password field is shorter than 6 characters', async () => {
+    const api = setup()
+    api.oldPassword.value = 'old'
+    api.newPassword.value = 'new'
+    api.reNewPassword.value = 'new'
+
+    await api.handleChangePassOk()
+
+    expect(api.changePassErrors.value.oldPassword).toContain('at least 6 characters')
+    expect(api.changePassErrors.value.newPassword).toContain('at least 6 characters')
+    expect(api.changePassErrors.value.reNewPassword).toContain('at least 6 characters')
+    expect(mocks.changeStoredWalletPassword).not.toHaveBeenCalled()
+  })
+
   it('handleChangePassword clears prior errors and opens the modal', () => {
     const api = setup()
     api.changePassErrors.value = {

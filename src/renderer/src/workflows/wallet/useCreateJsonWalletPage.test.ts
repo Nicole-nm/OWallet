@@ -172,6 +172,99 @@ describe('useCreateJsonWalletPage', () => {
     expect(page.createdAddress.value).toBe('')
   })
 
+  it('warns about short passwords and mismatched re-typed passwords in the basic step', async () => {
+    const page = useCreateJsonWalletPage()
+    page.basicLabel.value = 'Alice'
+    page.basicPassword.value = 'abc'
+    page.basicRePassword.value = 'abc'
+    await page.submitCreateJsonWalletBasicStep()
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('validation.minLength', {
+      literal: true,
+    })
+
+    page.basicPassword.value = 'secret123'
+    page.basicRePassword.value = 'short'
+    await page.submitCreateJsonWalletBasicStep()
+    expect(mocks.feedback.notifyWarning).toHaveBeenLastCalledWith('validation.minLength', {
+      literal: true,
+    })
+
+    page.basicRePassword.value = 'different123'
+    await page.submitCreateJsonWalletBasicStep()
+    expect(mocks.feedback.notifyWarning).toHaveBeenLastCalledWith('validation.mismatch', {
+      literal: true,
+    })
+  })
+
+  it('reports an empty re-typed password as required', async () => {
+    const page = useCreateJsonWalletPage()
+    page.basicLabel.value = 'Alice'
+    page.basicPassword.value = 'secret123'
+    page.basicRePassword.value = ''
+    await page.submitCreateJsonWalletBasicStep()
+    expect(mocks.feedback.notifyWarning).toHaveBeenLastCalledWith('validation.required', {
+      literal: true,
+    })
+  })
+
+  it('cancelCreateJsonWalletBasicStep routes back to the wallets list', () => {
+    const page = useCreateJsonWalletPage()
+    page.cancelCreateJsonWalletBasicStep()
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
+  })
+
+  it('downloadCreateJsonWalletBackup is a no-op when no draft account exists', async () => {
+    const page = useCreateJsonWalletPage()
+    await expect(page.downloadCreateJsonWalletBackup()).resolves.toEqual({ ok: false })
+    expect(mocks.application.downloadCreatedJsonWallet).not.toHaveBeenCalled()
+  })
+
+  it('does not branch back to basic step when persistence fails for a non-wif reason', async () => {
+    const page = useCreateJsonWalletPage()
+    page.basicLabel.value = 'Alice'
+    page.basicPassword.value = 'secret123'
+    page.basicRePassword.value = 'secret123'
+    mocks.application.createJsonWalletDraft.mockResolvedValue({
+      ok: true,
+      label: 'Alice',
+      account: { address: 'AQ123', publicKey: 'PUB-1' },
+      wif: 'WIF-1',
+    })
+    mocks.application.persistCreatedJsonWallet.mockResolvedValue({
+      ok: false,
+      errorKey: 'common.savedbFailed',
+    })
+
+    await page.submitCreateJsonWalletBasicStep()
+    expect(page.currentStep.value).toBe(1)
+
+    await page.submitCreateJsonWalletConfirmStep()
+    expect(page.currentStep.value).toBe(1)
+  })
+
+  it('falls back to default error keys when persistence and draft both fail without one', async () => {
+    const page = useCreateJsonWalletPage()
+    page.basicLabel.value = 'Alice'
+    page.basicPassword.value = 'secret123'
+    page.basicRePassword.value = 'secret123'
+    mocks.application.createJsonWalletDraft.mockResolvedValue({ ok: false })
+
+    await page.submitCreateJsonWalletBasicStep()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('createJsonWallet.createFail')
+
+    mocks.application.createJsonWalletDraft.mockResolvedValue({
+      ok: true,
+      label: 'Alice',
+      account: { address: 'AQ123', publicKey: 'PUB-1' },
+      wif: 'WIF-1',
+    })
+    await page.submitCreateJsonWalletBasicStep()
+
+    mocks.application.persistCreatedJsonWallet.mockResolvedValue({ ok: false })
+    await page.submitCreateJsonWalletConfirmStep()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('common.savedbFailed')
+  })
+
   it('resets back to the basic step when WIF validation fails while persisting', async () => {
     const page = useCreateJsonWalletPage()
     page.basicLabel.value = 'Alice'

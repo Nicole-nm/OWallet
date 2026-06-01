@@ -102,6 +102,70 @@ describe('useImportSharedWalletPage', () => {
     })
   })
 
+  it('reports an error and clears state when the query step fails', async () => {
+    mocks.application.queryImportableSharedWallet.mockResolvedValue({
+      ok: false,
+      errorKey: 'importSharedWallet.serverDown',
+    })
+    const page = useImportSharedWalletPage()
+    page.searchText.value = 'shared-address'
+
+    await page.submitImportSharedWalletQueryStep()
+
+    expect(page.sharedWallet.value).toBeNull()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('importSharedWallet.serverDown')
+    expect(page.currentStep.value).toBe(0)
+    expect(mocks.loading.hideLoadingModals).toHaveBeenCalledTimes(1)
+  })
+
+  it('falls back to a generic error key when the query step fails without one', async () => {
+    mocks.application.queryImportableSharedWallet.mockResolvedValue({ ok: false })
+    const page = useImportSharedWalletPage()
+    await page.submitImportSharedWalletQueryStep()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('importSharedWallet.notFound')
+  })
+
+  it('cancelImportSharedWalletQueryStep routes back to the wallets list', () => {
+    const page = useImportSharedWalletPage()
+    page.cancelImportSharedWalletQueryStep()
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
+  })
+
+  it('backImportSharedWalletConfirmStep returns to step 0', () => {
+    const page = useImportSharedWalletPage()
+    page.currentStep.value = 1
+    page.backImportSharedWalletConfirmStep()
+    expect(page.currentStep.value).toBe(0)
+  })
+
+  it('handles duplicate import warnings in the confirm step', async () => {
+    mocks.application.persistImportedSharedWallet.mockResolvedValue({
+      ok: false,
+      duplicate: true,
+      errorKey: 'importSharedWallet.duplicate',
+    })
+    const page = useImportSharedWalletPage()
+    await page.submitImportSharedWalletConfirmStep()
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('importSharedWallet.duplicate')
+  })
+
+  it('handles generic failures in the confirm step', async () => {
+    mocks.application.persistImportedSharedWallet.mockResolvedValue({
+      ok: false,
+      errorKey: 'common.savedbFailed',
+    })
+    const page = useImportSharedWalletPage()
+    await page.submitImportSharedWalletConfirmStep()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('common.savedbFailed')
+  })
+
+  it('falls back to common.savedbFailed when the failure has no errorKey', async () => {
+    mocks.application.persistImportedSharedWallet.mockResolvedValue({ ok: false })
+    const page = useImportSharedWalletPage()
+    await page.submitImportSharedWalletConfirmStep()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('common.savedbFailed')
+  })
+
   it('persists imported shared wallets in the workflow and refreshes wallet cache', async () => {
     mocks.application.queryImportableSharedWallet.mockResolvedValue({
       ok: true,

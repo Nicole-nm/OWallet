@@ -145,3 +145,54 @@ describe('httpClient.post', () => {
     expect(fetchJson).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('httpClient miscellaneous behaviors', () => {
+  it('omits the query string when params only contain null and undefined values', async () => {
+    await httpClient.get('https://api.test/np', { params: { a: undefined, b: null } })
+    expect(fetchJson).toHaveBeenCalledWith('https://api.test/np', { method: 'GET' })
+  })
+
+  it('does not attach a body when called with a string URL', async () => {
+    await httpClient('https://api.test/get-only')
+    expect(fetchJson).toHaveBeenCalledWith('https://api.test/get-only', { method: 'GET' })
+  })
+
+  it('returns the operation immediately when timeoutMs is zero or negative', async () => {
+    await httpClient.get('https://api.test/no-timeout', { timeoutMs: 0, retry: 0 })
+    expect(fetchJson).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses retryOn callback when supplied to decide whether to retry', async () => {
+    vi.useFakeTimers()
+    const retryOn = vi.fn(() => true)
+    fetchJson.mockRejectedValueOnce(new Error('x')).mockResolvedValueOnce({ ok: true })
+
+    const pending = httpClient.post('https://api.test/post-retry', undefined, {
+      retry: 1,
+      retryDelayMs: 50,
+      retryOn,
+    })
+    await vi.advanceTimersByTimeAsync(50)
+
+    await expect(pending).resolves.toEqual({ ok: true })
+    expect(retryOn).toHaveBeenCalled()
+  })
+
+  it('coerces retry count to a non-negative integer', async () => {
+    fetchJson.mockRejectedValue(new Error('once'))
+    await expect(httpClient.post('https://api.test/p', undefined, { retry: -3 })).rejects.toThrow(
+      'once'
+    )
+    expect(fetchJson).toHaveBeenCalledTimes(1)
+  })
+
+  it('evicts the oldest cache entry once the capacity is reached', async () => {
+    for (let i = 0; i < 130; i += 1) {
+      await httpClient.get(`https://api.test/cap/${i}`, { cacheTtlMs: 60_000 })
+    }
+    // The first entry should have been evicted and a re-fetch needed.
+    const callsBefore = fetchJson.mock.calls.length
+    await httpClient.get('https://api.test/cap/0', { cacheTtlMs: 60_000 })
+    expect(fetchJson.mock.calls.length).toBe(callsBefore + 1)
+  })
+})

@@ -88,14 +88,17 @@ vi.mock(
   })
 )
 
+const balanceRef = ref({ ont: 100, ong: 5, unboundOng: 1 })
+const redeemInfoVisibleRef = ref(false)
+
 vi.mock('./useWalletDashboard', () => ({
   useWalletDashboard: (address: Ref<string>, options: Record<string, unknown>) => {
     mocks.dashboard.address = address
     mocks.dashboard.options = options
     return {
-      balance: ref({ ont: 100, ong: 5, unboundOng: 1 }),
+      balance: balanceRef,
       currentWalletStore: mocks.currentWalletStore,
-      redeemInfoVisible: ref(false),
+      redeemInfoVisible: redeemInfoVisibleRef,
       refresh: (...args: unknown[]) => mocks.dashboard.refresh(...args),
       settingStore: mocks.settingStore,
       tokensStore: mocks.tokensStore,
@@ -155,5 +158,110 @@ describe('useSharedWalletHomePage', () => {
       network: 'MAIN_NET',
       sharedWalletAddress: 'AShared123',
     })
+  })
+
+  it('handleBack, showReceive, showTxMgmt, toCopayerDetail and checkMoreOep4 all push routes', () => {
+    const page = useSharedWalletHomePage()
+    page.handleBack()
+    page.showReceive()
+    page.showTxMgmt()
+    page.toCopayerDetail()
+    page.checkMoreOep4()
+    expect(mocks.router.push).toHaveBeenCalledTimes(5)
+  })
+
+  it('copy copies the shared wallet address', async () => {
+    const page = useSharedWalletHomePage()
+    await page.copy()
+    expect(mocks.clipboard.copyText).toHaveBeenCalledWith('AShared123')
+  })
+
+  it('showTransferBox warns when balance ong is below the gas minimum', () => {
+    balanceRef.value = { ont: 100, ong: 0, unboundOng: 1 }
+    const page = useSharedWalletHomePage()
+    page.showTransferBox()
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('common.ongNoEnough')
+  })
+
+  it('showTransferBox routes to the send transfer page when balance is sufficient', () => {
+    balanceRef.value = { ont: 100, ong: 1000, unboundOng: 1 }
+    const page = useSharedWalletHomePage()
+    page.showTransferBox()
+    expect(mocks.currentWalletStore.resetCurrentTransfer).toHaveBeenCalled()
+    expect(mocks.currentWalletStore.setTransferRedeemType).toHaveBeenCalledWith({ type: false })
+  })
+
+  it('redeemOng surfaces a redeem info dialog when there is no unbound ong', () => {
+    balanceRef.value = { ont: 100, ong: 1000, unboundOng: 0 }
+    redeemInfoVisibleRef.value = false
+    const page = useSharedWalletHomePage()
+    page.redeemOng()
+    expect(redeemInfoVisibleRef.value).toBe(true)
+  })
+
+  it('redeemOng warns when ong balance is below the gas minimum', () => {
+    balanceRef.value = { ont: 100, ong: 0, unboundOng: 2 }
+    const page = useSharedWalletHomePage()
+    page.redeemOng()
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('common.ongNoEnough')
+  })
+
+  it('redeemOng completes the redeem flow when balances allow it', () => {
+    balanceRef.value = { ont: 100, ong: 1000, unboundOng: 2 }
+    const page = useSharedWalletHomePage()
+    page.redeemOng()
+    expect(mocks.currentWalletStore.setCurrentRedeem).toHaveBeenCalledWith({
+      redeem: { claimableOng: 2, balanceOng: 1000 },
+    })
+    expect(mocks.currentWalletStore.setTransferRedeemType).toHaveBeenCalledWith({ type: true })
+  })
+
+  it('pendingTxDetail warns when the required number of signatures is already reached', () => {
+    const page = useSharedWalletHomePage()
+    page.pendingTxDetail({
+      coPayerSignDtos: [{ isSign: true }, { isSign: true }],
+      receiveaddress: 'AOther',
+      sendaddress: 'AShared123',
+      assetName: 'ONT',
+    } as never)
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('sharedWalletHome.txSendingTochain')
+  })
+
+  it('pendingTxDetail flips into redeem mode for self-redeem ONG transactions', () => {
+    const page = useSharedWalletHomePage()
+    page.pendingTxDetail({
+      coPayerSignDtos: [{ isSign: false }],
+      receiveaddress: 'AShared123',
+      sendaddress: 'AShared123',
+      assetName: 'ONG',
+    } as never)
+    expect(mocks.currentWalletStore.setPendingTx).toHaveBeenCalled()
+    expect(mocks.currentWalletStore.setTransferRedeemType).toHaveBeenCalledWith({ type: true })
+  })
+
+  it('reports an error when loadPendingSharedTransfers fails', async () => {
+    mocks.overview.loadPendingSharedTransfers.mockResolvedValueOnce({
+      ok: false,
+      errorKey: 'common.someError',
+    })
+    const page = useSharedWalletHomePage()
+    await page.refresh(false)
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('common.someError')
+  })
+
+  it('falls back to the default error key when loadPendingSharedTransfers fails without one', async () => {
+    mocks.overview.loadPendingSharedTransfers.mockResolvedValueOnce({ ok: false })
+    const page = useSharedWalletHomePage()
+    await page.refresh(false)
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('common.networkErr')
+  })
+
+  it('marks hasLocalCopayer false when the check returns ok=false', async () => {
+    mocks.overview.checkSharedWalletHasLocalCopayer.mockResolvedValueOnce({ ok: false })
+    const page = useSharedWalletHomePage()
+    // ifHasLocalCopayer is called during onMounted; we let microtasks settle.
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(page.hasLocalCopayer.value).toBe(false)
   })
 })

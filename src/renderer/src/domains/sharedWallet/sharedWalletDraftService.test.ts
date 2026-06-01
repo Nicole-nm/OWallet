@@ -213,6 +213,65 @@ describe('sharedWalletDraftService', () => {
       )
     })
 
+    it('defaults missing transfer fields to empty strings or zero', async () => {
+      const fakeTx = { id: 'tx-defaults' }
+      mocks.buildNativeTransfer.mockResolvedValue(fakeTx)
+
+      const result = await prepareSharedTransferDraft({
+        sharedWallet: makeSharedWallet('2', '3', 3),
+        transfer: { asset: 'ONT', isRedeem: false } as never,
+        redeem: {},
+      })
+
+      expect(result.amount).toBe('')
+      expect(mocks.buildNativeTransfer).toHaveBeenCalledWith(
+        'ONT',
+        'AShared123',
+        '',
+        0,
+        'AShared123',
+        expect.any(String),
+        '20000'
+      )
+    })
+
+    it('defaults missing OEP-4 fields to empty strings and zero decimal', async () => {
+      const fakeTx = { id: 'tx-oep4-default' }
+      mocks.buildOep4Transfer.mockResolvedValue(fakeTx)
+
+      const result = await prepareSharedTransferDraft({
+        sharedWallet: makeSharedWallet('2', '3', 3),
+        transfer: { asset: 'WING', isRedeem: false } as never,
+        redeem: {},
+      })
+
+      expect(result.amount).toBe('0')
+      expect(mocks.buildOep4Transfer).toHaveBeenCalledWith(
+        '',
+        'AShared123',
+        '',
+        0,
+        0,
+        'AShared123',
+        expect.any(String),
+        '20000'
+      )
+    })
+
+    it('defaults missing redeem claimableOng to 0', async () => {
+      const fakeTx = { id: 'tx-redeem-default' }
+      mocks.buildClaimOng.mockResolvedValue(fakeTx)
+
+      const result = await prepareSharedTransferDraft({
+        sharedWallet: makeSharedWallet('1', '1', 1),
+        transfer: { asset: 'ONG', isRedeem: true } as never,
+        redeem: {},
+      })
+
+      expect(result.amount).toBe('0')
+      expect(mocks.buildClaimOng).toHaveBeenCalledWith('AShared123', 0, '500', '20000')
+    })
+
     it('propagates errors thrown by the underlying asset builder', async () => {
       mocks.buildNativeTransfer.mockRejectedValue(new Error('Invalid address'))
 

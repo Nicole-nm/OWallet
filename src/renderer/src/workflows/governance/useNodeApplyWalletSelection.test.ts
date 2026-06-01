@@ -67,6 +67,91 @@ describe('useNodeApplyWalletSelection', () => {
     ])
   })
 
+  it('toNodeApplyWallet returns null when the address is missing', () => {
+    expect(
+      toNodeApplyWallet({
+        walletType: 'commonWallet',
+        wallet: { label: 'no-address' },
+      })
+    ).toBeNull()
+  })
+
+  it('toNodeApplyWallet falls back to empty strings for missing label/publicKey on ledger wallets', () => {
+    expect(
+      toNodeApplyWallet({
+        walletType: 'ledgerWallet',
+        wallet: { address: 'AQ-ledger' },
+      })
+    ).toMatchObject({ address: 'AQ-ledger', label: '', publicKey: '' })
+  })
+
+  it('getNodePublicKey returns operationPk when operationWallet is empty', () => {
+    const selection = useNodeApplyWalletSelection({
+      normalWallets: [],
+      hardwareWallets: [],
+    })
+
+    selection.operationPk.value = 'fallback-pk'
+    expect(selection.getNodePublicKey()).toBe('fallback-pk')
+
+    selection.operationWallet.value = 'primary-pk'
+    expect(selection.getNodePublicKey()).toBe('primary-pk')
+  })
+
+  it('onSelectOperationWallet exits early when stake wallet or operation pk is missing', async () => {
+    const selection = useNodeApplyWalletSelection({
+      normalWallets: [],
+      hardwareWallets: [],
+    })
+
+    await selection.onSelectOperationWallet()
+    expect(mocks.validateNodeApplyOperationWallet).not.toHaveBeenCalled()
+  })
+
+  it('onWalletSelected exits early when the selection has no address', () => {
+    const selection = useNodeApplyWalletSelection({
+      normalWallets: [],
+      hardwareWallets: [],
+    })
+    selection.onWalletSelected({
+      walletType: 'commonWallet',
+      wallet: { label: 'no-address' },
+    })
+    expect(selection.stakeWalletValue.value).toBeUndefined()
+  })
+
+  it('orders ledger wallets in normalWalletAndLedgerWallet by timestamp then acct', () => {
+    const selection = useNodeApplyWalletSelection({
+      normalWallets: [],
+      hardwareWallets: [
+        { address: 'AQ-l1', publicKey: 'pk1', timestamp: 5, acct: 1 },
+        { address: 'AQ-l2', publicKey: 'pk2', timestamp: 10, acct: 1 },
+        { address: 'AQ-l3', publicKey: 'pk3', timestamp: 10, acct: 5 },
+      ],
+    })
+
+    expect(selection.normalWalletAndLedgerWallet.value.map((wallet) => wallet.address)).toEqual([
+      'AQ-l3',
+      'AQ-l2',
+      'AQ-l1',
+    ])
+  })
+
+  it('falls back to common networkErr key when the validation result has no errorKey', async () => {
+    mocks.validateNodeApplyOperationWallet.mockResolvedValueOnce({ ok: false })
+    const selection = useNodeApplyWalletSelection({
+      normalWallets: [{ address: 'AQ-stake', publicKey: 'stake-pk' }],
+      hardwareWallets: [],
+    })
+    selection.onWalletSelected({
+      walletType: 'commonWallet',
+      wallet: { address: 'AQ-stake', publicKey: 'stake-pk' },
+    })
+    selection.operationWallet.value = 'operation-pk'
+    await selection.onSelectOperationWallet()
+    expect(mocks.notifyWarning).toHaveBeenCalledWith('common.networkErr')
+  })
+
   it('clears an invalid operation wallet and warns the user', async () => {
     mocks.validateNodeApplyOperationWallet.mockResolvedValueOnce({
       ok: false,

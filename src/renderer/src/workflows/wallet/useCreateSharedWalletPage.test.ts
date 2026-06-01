@@ -157,6 +157,110 @@ describe('useCreateSharedWalletPage', () => {
     expect(mocks.loading.showLoadingModals).not.toHaveBeenCalled()
   })
 
+  it('removes a copayer when more than two exist', () => {
+    const page = useCreateSharedWalletPage()
+    page.addCreateSharedWalletCopayer()
+    page.removeCreateSharedWalletCopayer(0)
+    expect(page.pks.value.length).toBe(2)
+  })
+
+  it('ignores copayer name/publicKey updates targeting an out-of-range index', () => {
+    const page = useCreateSharedWalletPage()
+    const before = page.pks.value.map((c) => ({ ...c }))
+    page.updateCreateSharedWalletCopayerName({ index: 99, value: 'X' })
+    page.updateCreateSharedWalletCopayerPublicKey({ index: 99, value: 'Y' })
+    expect(page.pks.value).toEqual(before)
+  })
+
+  it('validateCreateSharedWalletLabel rejects empty and oversized labels', () => {
+    const page = useCreateSharedWalletPage()
+
+    page.basicLabel.value = ''
+    page.validateCreateSharedWalletLabel()
+    expect(page.validLabel.value).toBe(false)
+
+    page.basicLabel.value = 'a'.repeat(13)
+    page.validateCreateSharedWalletLabel()
+    expect(page.validLabel.value).toBe(false)
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('createSharedWallet.walletNameErr')
+
+    page.basicLabel.value = 'Valid'
+    page.validateCreateSharedWalletLabel()
+    expect(page.validLabel.value).toBe(true)
+  })
+
+  it('validateCreateSharedWalletPublicKey flags non-66-character keys and ignores out-of-range indexes', () => {
+    const page = useCreateSharedWalletPage()
+    page.validateCreateSharedWalletPublicKey({ index: 99, value: 'x' })
+
+    page.validateCreateSharedWalletPublicKey({ index: 0, value: 'short' })
+    expect(page.pks.value[0]?.pkValid).toBe(false)
+
+    page.validateCreateSharedWalletPublicKey({ index: 0, value: 'a'.repeat(66) })
+    expect(page.pks.value[0]?.pkValid).toBe(true)
+
+    page.validateCreateSharedWalletPublicKey({ index: 1, value: '' })
+    expect(page.pks.value[1]?.pkValid).toBe(true)
+  })
+
+  it('clamps requiredSigNum to the count of copayers from the draft', async () => {
+    mocks.application.createSharedWalletDraft.mockResolvedValue({
+      ok: true,
+      label: 'Tiny',
+      copayers: [{ name: 'A', publickey: 'A'.repeat(66), address: 'AQ1' }],
+    })
+
+    const page = useCreateSharedWalletPage()
+    page.requiredSigNum.value = 5
+
+    await page.submitCreateSharedWalletBasicStep()
+    expect(page.requiredSigNum.value).toBe(1)
+  })
+
+  it('falls back to a generic error key when the submit step fails without one', async () => {
+    const page = useCreateSharedWalletPage()
+    mocks.application.createSharedWalletDraft.mockResolvedValue({
+      ok: true,
+      label: 'Core Team',
+      copayers: [
+        { name: 'Alice', publickey: 'A'.repeat(66), address: 'AQ111' },
+        { name: 'Bob', publickey: 'B'.repeat(66), address: 'AQ222' },
+      ],
+    })
+    mocks.application.submitSharedWalletCreation.mockResolvedValue({ ok: false })
+
+    await page.submitCreateSharedWalletBasicStep()
+    await page.submitCreateSharedWalletConfirmStep()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('createSharedWallet.createFailed')
+  })
+
+  it('does not flip notifyError for ok-but-no-copayers results without errorKey', async () => {
+    const page = useCreateSharedWalletPage()
+    mocks.application.createSharedWalletDraft.mockResolvedValue({ ok: false })
+    await page.submitCreateSharedWalletBasicStep()
+    expect(mocks.feedback.notifyError).not.toHaveBeenCalled()
+  })
+
+  it('cancelCreateSharedWalletBasicStep routes back to the wallets list', () => {
+    const page = useCreateSharedWalletPage()
+    page.cancelCreateSharedWalletBasicStep()
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
+  })
+
+  it('backCreateSharedWalletConfirmStep returns to the basic step', () => {
+    const page = useCreateSharedWalletPage()
+    page.currentStep.value = 1
+    page.backCreateSharedWalletConfirmStep()
+    expect(page.currentStep.value).toBe(0)
+  })
+
+  it('exposes selectable required-signature options based on copayer count', () => {
+    const page = useCreateSharedWalletPage()
+    expect(page.options.value).toEqual([{ value: 2, label: 2 }])
+    page.addCreateSharedWalletCopayer()
+    expect(page.options.value.map((o: { value: number }) => o.value)).toEqual([2, 3])
+  })
+
   it('submits shared wallet creation in the workflow and refreshes wallet cache', async () => {
     mocks.application.createSharedWalletDraft.mockResolvedValue({
       ok: true,

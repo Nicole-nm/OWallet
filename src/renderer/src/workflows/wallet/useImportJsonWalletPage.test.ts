@@ -363,6 +363,57 @@ describe('useImportJsonWalletPage', () => {
     expect(page.form.datPath).toBe('importJsonWallet.selectedDatFilewallet.dat')
   })
 
+  it('cancelImportJsonWallet routes to the wallets list', () => {
+    const page = useImportJsonWalletPage()
+    page.cancelImportJsonWallet()
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Wallets' })
+  })
+
+  it('handleImportJsonConfirmCancel resets the confirm modal state', () => {
+    const page = useImportJsonWalletPage()
+    page.form.confirmModal = true
+    page.handleImportJsonConfirmCancel()
+    expect(page.form.confirmModal).toBe(false)
+  })
+
+  it('handleImportJsonConfirmOk is a no-op when no duplicate wallet is pending', async () => {
+    const page = useImportJsonWalletPage()
+    await page.handleImportJsonConfirmOk()
+    expect(mocks.loading.showLoadingModals).not.toHaveBeenCalled()
+    expect(mocks.application.persistImportedJsonWallet).not.toHaveBeenCalled()
+  })
+
+  it('logs and notifies when the overwrite import fails', async () => {
+    const duplicateAccount = { address: 'AQ123', publicKey: 'PUB-1' }
+    mocks.application.buildImportedJsonWalletDraftFromWif.mockResolvedValue({
+      ok: true,
+      account: duplicateAccount,
+    })
+    mocks.application.persistImportedJsonWallet
+      .mockResolvedValueOnce({ ok: true, duplicate: true, account: duplicateAccount })
+      .mockResolvedValueOnce({ ok: false, status: 'oops' })
+
+    const page = useImportJsonWalletPage()
+    page.updateImportJsonField({ field: 'tabName', value: 'wif' })
+    page.updateImportJsonField({ field: 'wifLabel', value: 'Alice' })
+    page.updateImportJsonField({ field: 'wif', value: 'WIF-1' })
+    page.updateImportJsonField({ field: 'wifPassword', value: 'secret123' })
+    page.updateImportJsonField({ field: 'wifRePassword', value: 'secret123' })
+
+    await page.submitImportJsonWallet()
+    expect(page.form.confirmModal).toBe(true)
+
+    await page.handleImportJsonConfirmOk()
+    expect(mocks.feedback.notifyError).toHaveBeenCalled()
+  })
+
+  it('resetImportJsonValidationErrors clears prior validation errors', () => {
+    const page = useImportJsonWalletPage()
+    page.validationErrors.mnemonicLabel = 'oops'
+    page.resetImportJsonValidationErrors()
+    expect(page.validationErrors.mnemonicLabel).toBe('')
+  })
+
   it('resets DAT selection for missing and rejected wallet files', async () => {
     const page = useImportJsonWalletPage()
 

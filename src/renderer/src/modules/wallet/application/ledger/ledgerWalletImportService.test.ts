@@ -62,6 +62,92 @@ describe('ledgerWalletImportService', () => {
     )
   })
 
+  it('defaults neo to false and acct to 0 when buildLedgerWalletAccount omits them', async () => {
+    await expect(buildLedgerWalletAccount({ publicKey: 'pk-9', acct: 0 })).resolves.toEqual({
+      publicKey: 'pk-9',
+      address: 'address:pk-9',
+      neo: false,
+      acct: 0,
+      timestamp: 1700000000000,
+    })
+  })
+
+  it('treats missing neo as false when buildLedgerWalletLabel omits it', () => {
+    expect(buildLedgerWalletLabel({ label: 'Ledger', acct: 1 })).toBe('Ledger-1')
+  })
+
+  it('returns ok with no inserts and null collectionsResult when all selections are duplicates', async () => {
+    mocks.findByPublicKeys.mockResolvedValue([{ publicKey: 'pk-1' }])
+
+    const result = await importLedgerWalletSelections({
+      selections: [{ publicKey: 'pk-1', acct: 1 }],
+    })
+
+    expect(result).toMatchObject({
+      ok: true,
+      insertedAccounts: [],
+      duplicateCount: 1,
+      collectionsResult: null,
+    })
+    expect(mocks.persistWallet).not.toHaveBeenCalled()
+    expect(mocks.refreshWalletCollections).not.toHaveBeenCalled()
+  })
+
+  it('counts duplicates returned by persistWallet without aborting the import', async () => {
+    mocks.persistWallet
+      .mockResolvedValueOnce({ ok: true, inserted: true })
+      .mockResolvedValueOnce({ ok: false, duplicate: true })
+
+    const result = await importLedgerWalletSelections({
+      selections: [
+        { publicKey: 'pk-1', acct: 1 },
+        { publicKey: 'pk-2', acct: 2 },
+      ],
+    })
+
+    expect(result.ok).toBe(true)
+    expect(result.insertedAccounts).toHaveLength(1)
+    expect(result.duplicateCount).toBe(1)
+  })
+
+  it('surfaces persistWallet failures with their errorKey', async () => {
+    mocks.persistWallet.mockResolvedValueOnce({ ok: false, errorKey: 'common.savedbFailed' })
+    const result = await importLedgerWalletSelections({
+      selections: [{ publicKey: 'pk-1', acct: 1 }],
+    })
+    expect(result).toMatchObject({ ok: false, errorKey: 'common.savedbFailed' })
+  })
+
+  it('falls back to the default errorKey when persistWallet fails without one', async () => {
+    mocks.persistWallet.mockResolvedValueOnce({ ok: false })
+    const result = await importLedgerWalletSelections({
+      selections: [{ publicKey: 'pk-1', acct: 1 }],
+    })
+    expect(result).toMatchObject({ ok: false, errorKey: 'common.savedbFailed' })
+  })
+
+  it('catches and reports unexpected exceptions during import', async () => {
+    mocks.findByPublicKeys.mockRejectedValue(new Error('db is down'))
+    const result = await importLedgerWalletSelections({
+      selections: [{ publicKey: 'pk-1', acct: 1 }],
+    })
+    expect(result).toMatchObject({
+      ok: false,
+      errorKey: 'common.savedbFailed',
+      insertedAccounts: [],
+      duplicateCount: 0,
+      collectionsResult: null,
+    })
+  })
+
+  it('ignores selections without a publicKey', async () => {
+    const result = await importLedgerWalletSelections({
+      selections: [null, undefined, { publicKey: '' }, { publicKey: 'pk-x', acct: 4 }],
+    })
+    expect(mocks.persistWallet).toHaveBeenCalledTimes(1)
+    expect(result.ok).toBe(true)
+  })
+
   it('skips duplicates, persists new selections in account order, and refreshes once', async () => {
     mocks.findByPublicKeys.mockResolvedValue([{ publicKey: 'pk-2' }])
 

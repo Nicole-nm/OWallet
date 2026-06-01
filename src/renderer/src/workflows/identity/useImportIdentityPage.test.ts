@@ -73,6 +73,58 @@ describe('useImportIdentityPage', () => {
     expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Identities' })
   })
 
+  it('reports form validation errors before invoking the application service', async () => {
+    const page = useImportIdentityPage()
+    const result = await page.submitImportIdentity()
+    expect(result).toEqual({ ok: false, errorKey: 'importIdentity.invalidForm' })
+    expect(mocks.application.importIdentityFromKeystore).not.toHaveBeenCalled()
+    expect(page.validationErrors.keystore).toContain('importIdentity.keystore')
+    expect(page.validationErrors.keystorePassword).toContain('FormField.password')
+  })
+
+  it('marks short keystore passwords as invalid', async () => {
+    const page = useImportIdentityPage()
+    page.updateImportIdentityField({
+      field: 'keystore',
+      value: '{"key":"K","address":"A","salt":"S"}',
+    })
+    page.updateImportIdentityField({ field: 'keystorePassword', value: 'abc' })
+    await page.submitImportIdentity()
+    expect(page.validationErrors.keystorePassword).toContain('at least 6 characters')
+  })
+
+  it('reports a generic error when the application service fails without errorKey or duplicate flag', async () => {
+    mocks.application.importIdentityFromKeystore.mockResolvedValue({ ok: false })
+
+    const page = useImportIdentityPage()
+    page.updateImportIdentityField({
+      field: 'keystore',
+      value: '{"key":"K","address":"A","salt":"S"}',
+    })
+    page.updateImportIdentityField({ field: 'keystorePassword', value: 'secret123' })
+    await page.submitImportIdentity()
+    expect(mocks.feedback.notifyError).toHaveBeenCalledWith('importIdentity.importFailed')
+  })
+
+  it('falls back to importIdentity.duplicate when a duplicate has no errorKey', async () => {
+    mocks.application.importIdentityFromKeystore.mockResolvedValue({ ok: false, duplicate: true })
+
+    const page = useImportIdentityPage()
+    page.updateImportIdentityField({
+      field: 'keystore',
+      value: '{"key":"K","address":"A","salt":"S"}',
+    })
+    page.updateImportIdentityField({ field: 'keystorePassword', value: 'secret123' })
+    await page.submitImportIdentity()
+    expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('importIdentity.duplicate')
+  })
+
+  it('cancelImportIdentity routes to the identities list', () => {
+    const page = useImportIdentityPage()
+    page.cancelImportIdentity()
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: 'Identities' })
+  })
+
   it('surfaces duplicate identity imports as warnings in the workflow', async () => {
     mocks.application.importIdentityFromKeystore.mockResolvedValue({
       ok: false,

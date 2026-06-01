@@ -181,4 +181,146 @@ describe('authorizationManagementApplicationService', () => {
       })
     ).resolves.toEqual({ ok: true, tx: 'tx' })
   })
+
+  it('rejects blank or missing input in resolveNewAuthorizationInput', () => {
+    expect(resolveNewAuthorizationInput({ units: '' })).toEqual({
+      ok: false,
+      validInput: false,
+      amount: 0,
+      errorKey: 'nodeMgmt.invalidInput',
+    })
+
+    expect(
+      resolveNewAuthorizationInput({
+        units: '   ',
+        currentNode: { maxAuthorize: 20, totalPos: 5 },
+      })
+    ).toMatchObject({ ok: false, validInput: false })
+  })
+
+  it('accepts input within the remaining capacity for resolveNewAuthorizationInput', () => {
+    expect(
+      resolveNewAuthorizationInput({
+        units: '10',
+        currentNode: { maxAuthorize: 20, totalPos: 5 },
+      })
+    ).toEqual({ ok: true, validInput: true, amount: 10 })
+  })
+
+  it('uses 0 capacity when currentNode is missing', () => {
+    expect(resolveNewAuthorizationInput({ units: '1' })).toMatchObject({
+      ok: false,
+      validInput: false,
+      amount: 1,
+      errorKey: 'nodeMgmt.invalidInput',
+    })
+  })
+
+  it('canOpenNewAuthorization passes when maxAuthorize > 0 and rejects when undefined', () => {
+    expect(canOpenNewAuthorization({ peerAttrs: { maxAuthorize: 5 } })).toEqual({ ok: true })
+    expect(canOpenNewAuthorization({})).toMatchObject({ ok: false, level: 'warning' })
+  })
+
+  it('createNewAuthorizationTransaction rejects zero amount and invalid pubkey', async () => {
+    await expect(
+      createNewAuthorizationTransaction({
+        currentNode: makeGovernanceNode({ public_key: 'pk-1' }),
+        stakeWalletAddress: 'AQ123',
+        amount: 0,
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'nodeMgmt.invalidInput' })
+
+    await expect(
+      createNewAuthorizationTransaction({
+        currentNode: makeGovernanceNode({
+          public_key: '',
+          publickey: '',
+          publicKey: '',
+          peerPubkey: '',
+          pk: '',
+          nodePublicKey: '',
+        }),
+        stakeWalletAddress: 'AQ123',
+        amount: 10,
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'createSharedWallet.invalidPk' })
+  })
+
+  it('validateCancelAuthorizationAmount accepts valid input and rejects blank input', () => {
+    expect(
+      validateCancelAuthorizationAmount({
+        cancelAmount: '20',
+        authorizationInfo: { consensusPos: 10, freezePos: 10, newPos: 10 },
+      })
+    ).toEqual({ ok: true, validCancelAmount: true, amount: 20 })
+
+    expect(validateCancelAuthorizationAmount({ cancelAmount: '' })).toEqual({
+      ok: false,
+      validCancelAmount: false,
+      errorKey: 'nodeMgmt.invalidInput',
+    })
+
+    expect(validateCancelAuthorizationAmount({ cancelAmount: '5' })).toMatchObject({
+      ok: false,
+      validCancelAmount: false,
+    })
+  })
+
+  it('createCancelAuthorizationTransaction surfaces validation failures and invalid-pubkey errors', async () => {
+    await expect(
+      createCancelAuthorizationTransaction({
+        currentNode: makeGovernanceNode(),
+        stakeWalletAddress: 'AQ123',
+        cancelAmount: '',
+        authorizationInfo: { consensusPos: 5, freezePos: 5, newPos: 5 },
+      })
+    ).resolves.toMatchObject({ ok: false, validCancelAmount: false })
+
+    await expect(
+      createCancelAuthorizationTransaction({
+        currentNode: makeGovernanceNode({
+          public_key: '',
+          publickey: '',
+          publicKey: '',
+          peerPubkey: '',
+          pk: '',
+          nodePublicKey: '',
+        }),
+        stakeWalletAddress: 'AQ123',
+        cancelAmount: '5',
+        authorizationInfo: { consensusPos: 5, freezePos: 5, newPos: 5 },
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'createSharedWallet.invalidPk' })
+  })
+
+  it('createAuthorizationRewardsRedeemTransaction succeeds when an amount is provided', async () => {
+    mocks.governanceService.createWithdrawFeeTransaction.mockResolvedValue('tx')
+    await expect(
+      createAuthorizationRewardsRedeemTransaction({ stakeWalletAddress: 'AQ123', amount: 5 })
+    ).resolves.toEqual({ ok: true, tx: 'tx' })
+  })
+
+  it('createAuthorizationClaimableOntRedeemTransaction rejects when the node has no usable pubkey', async () => {
+    await expect(
+      createAuthorizationClaimableOntRedeemTransaction({
+        currentNode: makeGovernanceNode({
+          public_key: '',
+          publickey: '',
+          publicKey: '',
+          peerPubkey: '',
+          pk: '',
+          nodePublicKey: '',
+        }),
+        stakeWalletAddress: 'AQ123',
+        authorizationInfo: { withdrawUnfreezePos: 10, claimableVal: 8 },
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'createSharedWallet.invalidPk' })
+  })
+
+  it('createAuthorizationUnboundOngRedeemTransaction succeeds when an amount is provided', async () => {
+    mocks.governanceService.createWithdrawPeerUnboundOngTransaction.mockResolvedValue('tx')
+    await expect(
+      createAuthorizationUnboundOngRedeemTransaction({ stakeWalletAddress: 'AQ123', amount: 4 })
+    ).resolves.toEqual({ ok: true, tx: 'tx' })
+  })
 })

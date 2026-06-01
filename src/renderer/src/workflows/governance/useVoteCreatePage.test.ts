@@ -191,6 +191,64 @@ describe('useVoteCreatePage', () => {
     expect(mocks.feedback.notifyWarning).toHaveBeenLastCalledWith('common.networkErr')
   })
 
+  it('leaves short titles untouched in sanitizeVoteTitle and sanitizeVoteContent', () => {
+    const page = useVoteCreatePage()
+    page.titleLimit.value = 20
+    page.detailLimit.value = 20
+    page.title.value = 'short'
+    page.content.value = 'short'
+
+    expect(page.sanitizeVoteTitle('short')).toEqual({ ok: true })
+    expect(page.title.value).toBe('short')
+    expect(page.sanitizeVoteContent('short')).toEqual({ ok: true })
+    expect(page.content.value).toBe('short')
+  })
+
+  it('onTitleInput and onDetailInput return ok without notifying when the input is valid', () => {
+    const page = useVoteCreatePage()
+    page.titleLimit.value = 20
+    page.detailLimit.value = 20
+    page.title.value = 'short'
+    page.content.value = 'short'
+
+    expect(page.onTitleInput({ target: { value: 'short' } })).toEqual({ ok: true })
+    expect(page.onDetailInput({ target: { value: 'short' } })).toEqual({ ok: true })
+    expect(mocks.feedback.notifyWarning).not.toHaveBeenCalled()
+  })
+
+  it('submit returns ok and skips notifyWarning on success', async () => {
+    const page = useVoteCreatePage()
+    page.title.value = 'Topic'
+    page.content.value = 'Details'
+
+    const start = new Date(Date.now() + 60 * 60 * 1000)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    page.startDate.value = start
+    page.startTime.value = start
+    page.endDate.value = end
+    page.endTime.value = end
+
+    await expect(page.submit()).resolves.toEqual({ ok: true })
+    expect(mocks.feedback.notifyWarning).not.toHaveBeenCalled()
+  })
+
+  it('submitVoteCreateForm does not call setContractHash when none is returned', async () => {
+    mocks.voteService.createVoteTopicTransaction.mockResolvedValueOnce({ ok: true, tx: 't' })
+
+    const page = useVoteCreatePage()
+    page.title.value = 'Topic'
+    page.content.value = 'Details'
+    const start = new Date(Date.now() + 60 * 60 * 1000)
+    const end = new Date(start.getTime() + 60 * 60 * 1000)
+    page.startDate.value = start
+    page.startTime.value = start
+    page.endDate.value = end
+    page.endTime.value = end
+
+    await page.submitVoteCreateForm()
+    expect(mocks.voteStore.setContractHash).not.toHaveBeenCalled()
+  })
+
   it('supports route overrides and resets dialog state during navigation', async () => {
     mocks.voteService.createVoteTopicTransaction.mockResolvedValue({
       ok: true,

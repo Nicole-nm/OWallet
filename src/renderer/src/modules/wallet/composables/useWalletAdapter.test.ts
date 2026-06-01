@@ -160,6 +160,84 @@ describe('useWalletAdapter', () => {
     expect(adapter.value).toBeNull()
   })
 
+  it('returns null when current wallet address is empty', () => {
+    const currentStore = useCurrentWalletStore()
+    currentStore.wallet = { ...currentStore.wallet, address: '' }
+    const { adapter } = useWalletAdapter()
+    expect(adapter.value).toBeNull()
+  })
+
+  it('returns null when current wallet address matches no stored wallet', () => {
+    const currentStore = useCurrentWalletStore()
+    currentStore.wallet = { ...currentStore.wallet, address: 'AUnknown' }
+    const { adapter } = useWalletAdapter()
+    expect(adapter.value).toBeNull()
+  })
+
+  it('returns null when a matching hardware wallet has no publicKey', () => {
+    const stored = makeHardwareWallet({ address: 'ANoKey', publicKey: '' as never })
+    const walletsStore = useWalletsStore()
+    walletsStore.hardwareWallets = [stored]
+    const currentStore = useCurrentWalletStore()
+    currentStore.wallet = {
+      ...currentStore.wallet,
+      address: 'ANoKey',
+      label: 'no-key',
+      publicKey: '',
+    }
+    const { adapter } = useWalletAdapter()
+    expect(adapter.value).toBeNull()
+  })
+
+  it('returns a shared adapter when the cosigner is a ledger wallet', () => {
+    const shared = makeSharedWallet()
+    const hwCosigner = makeHardwareWallet({ address: 'AQ1', publicKey: 'cp-1' })
+    const walletsStore = useWalletsStore()
+    walletsStore.sharedWallets = [shared]
+    walletsStore.hardwareWallets = [hwCosigner]
+
+    const currentStore = useCurrentWalletStore()
+    currentStore.wallet = {
+      ...currentStore.wallet,
+      address: shared.sharedWalletAddress!,
+      sharedWalletAddress: shared.sharedWalletAddress,
+      label: shared.label,
+      publicKey: '',
+    }
+    currentStore.currentSigner = {
+      type: 'HardwareWallet',
+      address: 'AQ1',
+      publicKey: 'cp-1',
+    }
+
+    const { adapter } = useWalletAdapter()
+    expect(adapter.value?.identity.type).toBe('shared')
+  })
+
+  it('returns null when a shared cosigner is a hardware wallet without a publicKey', () => {
+    const shared = makeSharedWallet()
+    const hwCosigner = makeHardwareWallet({ address: 'AQ1', publicKey: '' as never })
+    const walletsStore = useWalletsStore()
+    walletsStore.sharedWallets = [shared]
+    walletsStore.hardwareWallets = [hwCosigner]
+
+    const currentStore = useCurrentWalletStore()
+    currentStore.wallet = {
+      ...currentStore.wallet,
+      address: shared.sharedWalletAddress!,
+      sharedWalletAddress: shared.sharedWalletAddress,
+      publicKey: '',
+    }
+    currentStore.currentSigner = {
+      type: 'HardwareWallet',
+      address: 'AQ1',
+      publicKey: '',
+    }
+
+    const { adapter } = useWalletAdapter()
+    expect(adapter.value).toBeNull()
+  })
+
   it('reactively rebuilds the adapter when the current wallet address changes', () => {
     const a = createFakeEncryptedWallet({ address: 'AQ1', label: 'A' })
     const b = createFakeEncryptedWallet({ address: 'AQ2', label: 'B' })
