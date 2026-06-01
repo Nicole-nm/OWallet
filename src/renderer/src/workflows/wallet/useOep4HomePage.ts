@@ -17,6 +17,8 @@ import {
   loadTrackedOep4Transactions,
 } from '../../modules/wallet/application/dashboard/oep4PortfolioApplicationService'
 import { logger } from '../../shared/lib/logger'
+import { resolveDefaultTransferFee } from '../../shared/lib/constants'
+import { isCommonWallet } from '../../shared/lib/types'
 
 export function useOep4HomePage() {
   const router = useRouter()
@@ -139,7 +141,12 @@ export function useOep4HomePage() {
   }
 
   function sendAsset() {
-    currentWalletStore.resetCurrentTransfer()
+    const gasProfile = isSharedWallet.value
+      ? 'shared'
+      : isCommonWallet(currentWallet.value)
+        ? 'common'
+        : 'ledger'
+    currentWalletStore.resetCurrentTransfer({ gas: resolveDefaultTransferFee(gasProfile) })
     if (isSharedWallet.value) {
       currentWalletStore.setTransferRedeemType({ type: false })
       router.push({ path: ROUTE_PATHS.sharedWalletSendTransfer })

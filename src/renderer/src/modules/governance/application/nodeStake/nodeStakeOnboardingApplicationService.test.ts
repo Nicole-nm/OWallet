@@ -151,6 +151,13 @@ describe('nodeStakeOnboardingApplicationService', () => {
         },
       })
     ).resolves.toEqual({ ok: true, tx: 'tx' })
+    expect(mocks.nodeStakeService.createNodeStakeRegistrationTransaction).toHaveBeenCalledWith({
+      ontid: 'did:ont:1',
+      publicKey: 'pk-1',
+      initPos: 10,
+      stakeWalletAddress: 'AQ123',
+      gasPrice: '500',
+    })
   })
 
   it('signs a registration transaction with ontid credentials and maps decrypt failures to password errors', async () => {

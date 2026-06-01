@@ -11,6 +11,7 @@ vi.mock('../../shared/lib/constants', () => ({
   GAS_LIMIT_HIGH: '200000',
   DEFAULT_SCRYPT: { cost: 16384, blockSize: 8, parallel: 8, size: 64 },
   LEDGER_GAS_PRICE: '2500',
+  resolveDefaultGasPrice: (profile: string) => (profile === 'common' ? '500' : '2500'),
   NETWORKS: { TEST_NET: 'TEST_NET', MAIN_NET: 'MAIN_NET' },
 }))
 

@@ -130,18 +130,21 @@ describe('signWithWallet()', () => {
     await expect(signWithLedger(tx, wallet)).rejects.toThrow('Ledger cancelled')
   })
 
-  it('overrides gas price for ledger-signed transactions', async () => {
+  it('preserves unsigned transaction fields for ledger-signed transactions', async () => {
     mocks.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
     mocks.legacySignWithLedger.mockResolvedValue('ledger-signature')
     mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
 
-    const tx = createFakeTransaction()
+    const payer = { value: 'existing-payer' }
+    const tx = createFakeTransaction({ payer })
+    const gasPrice = tx.gasPrice
     const wallet = createFakeLedgerWallet({ publicKey: 'ledger-pk', acct: 0, neo: false })
 
     const result = await signWithLedger(tx, wallet)
 
     expect(result).toBe(tx)
-    expect((tx.gasPrice as unknown as { val: string }).val).toBe('2500')
+    expect(tx.gasPrice).toBe(gasPrice)
+    expect(tx.payer).toBe(payer)
     expect(tx.sigs).toHaveLength(1)
     expect(mocks.legacySignWithLedger).toHaveBeenCalledWith(tx.serializeUnsignedData(), false, 0)
   })
@@ -197,12 +200,14 @@ describe('signSharedTxWithLedger()', () => {
     vi.clearAllMocks()
   })
 
-  it('validates the ledger and overrides gas price for shared transactions', async () => {
+  it('validates the ledger and preserves unsigned fields for shared transactions', async () => {
     mocks.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
     mocks.legacySignWithLedger.mockResolvedValue('shared-ledger-signature')
     mocks.loadOntologySdk.mockResolvedValue(createFakeOntologySdk())
 
-    const tx = createFakeTransaction()
+    const payer = { value: 'shared-wallet-payer' }
+    const tx = createFakeTransaction({ payer })
+    const gasPrice = tx.gasPrice
     const wallet = createFakeSharedLedgerWallet({
       publicKey: 'ledger-pk',
       acct: 3,
@@ -212,7 +217,8 @@ describe('signSharedTxWithLedger()', () => {
     const result = await signSharedTxWithLedger(tx, 2, ['pk-1', 'pk-2'], wallet, true)
 
     expect(result).toBe(tx)
-    expect((tx.gasPrice as unknown as { val: string }).val).toBe('2500')
+    expect(tx.gasPrice).toBe(gasPrice)
+    expect(tx.payer).toBe(payer)
     expect(tx.sigs || []).toHaveLength(1)
     expect(tx.sigs?.[0]).toMatchObject({ M: 2, sigData: ['01shared-ledger-signature'] })
     expect(mocks.checkPublicKeyIsInTheConnectedLedger).toHaveBeenCalledWith(3, true, 'ledger-pk')

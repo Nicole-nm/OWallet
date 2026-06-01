@@ -13,9 +13,10 @@ import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
-import { isCommonWallet } from '../../shared/lib/types'
+import { isCommonWallet, isHardwareWallet } from '../../shared/lib/types'
 import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
+import { resolveDefaultGasPrice } from '../../shared/lib/constants'
 
 function applyStakeDetail(nodeStakeStore: unknown, result: Record<string, unknown>) {
   const store = nodeStakeStore as { setStakeDetail(payload: { detail: unknown }): void }
@@ -93,6 +94,7 @@ export function useNodeStakeRegisterPage() {
     const result = await createNodeStakeRegistrationDraft({
       stakeQuantity: stakeQuantity.value,
       stakeDetail: stakeDetail.value,
+      gasPrice: resolveDefaultGasPrice(isHardwareWallet(stakeWallet.value) ? 'ledger' : 'common'),
     })
 
     if (notifyFailure(result)) return result

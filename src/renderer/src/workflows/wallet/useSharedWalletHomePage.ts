@@ -1,6 +1,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { POLLING_INTERVAL_MS, TRANSFER_GAS_MIN } from '../../shared/lib/constants'
+import {
+  POLLING_INTERVAL_MS,
+  TRANSFER_GAS_MIN,
+  resolveDefaultTransferFee,
+} from '../../shared/lib/constants'
 import { ROUTE_NAMES, ROUTE_PATHS } from '../../router/routes'
 import { useClipboardNotice } from '../../shared/composables/useClipboardNotice'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
@@ -80,7 +84,9 @@ export function useSharedWalletHomePage() {
       notifyWarning('common.ongNoEnough')
       return
     }
-    dashboard.currentWalletStore.resetCurrentTransfer()
+    dashboard.currentWalletStore.resetCurrentTransfer({
+      gas: resolveDefaultTransferFee('shared'),
+    })
     dashboard.currentWalletStore.setTransferRedeemType({ type: false })
     router.push({ path: ROUTE_PATHS.sharedWalletSendTransfer })
   }
@@ -116,11 +122,13 @@ export function useSharedWalletHomePage() {
       dashboard.redeemInfoVisible.value = true
       return
     }
-    if (Number(dashboard.balance.value.ong) < TRANSFER_GAS_MIN) {
+    if (Number(dashboard.balance.value.ong) < resolveDefaultTransferFee('shared')) {
       notifyWarning('common.ongNoEnough')
       return
     }
-    dashboard.currentWalletStore.resetCurrentTransfer()
+    dashboard.currentWalletStore.resetCurrentTransfer({
+      gas: resolveDefaultTransferFee('shared'),
+    })
     dashboard.currentWalletStore.setTransferRedeemType({ type: true })
     dashboard.currentWalletStore.setCurrentRedeem({
       redeem: {

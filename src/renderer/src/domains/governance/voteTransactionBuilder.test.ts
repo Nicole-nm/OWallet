@@ -16,6 +16,7 @@ vi.mock('../../shared/lib/constants', () => ({
     size: 64,
   },
   LEDGER_GAS_PRICE: '2500',
+  resolveDefaultGasPrice: (profile: string) => (profile === 'common' ? '500' : '2500'),
   NETWORKS: {
     TEST_NET: 'TEST_NET',
     MAIN_NET: 'MAIN_NET',

@@ -187,7 +187,7 @@ describe('useSharedWalletHomePage', () => {
     balanceRef.value = { ont: 100, ong: 1000, unboundOng: 1 }
     const page = useSharedWalletHomePage()
     page.showTransferBox()
-    expect(mocks.currentWalletStore.resetCurrentTransfer).toHaveBeenCalled()
+    expect(mocks.currentWalletStore.resetCurrentTransfer).toHaveBeenCalledWith({ gas: 0.05 })
     expect(mocks.currentWalletStore.setTransferRedeemType).toHaveBeenCalledWith({ type: false })
   })
 
@@ -200,9 +200,10 @@ describe('useSharedWalletHomePage', () => {
   })
 
   it('redeemOng warns when ong balance is below the gas minimum', () => {
-    balanceRef.value = { ont: 100, ong: 0, unboundOng: 2 }
+    balanceRef.value = { ont: 100, ong: 0.02, unboundOng: 2 }
     const page = useSharedWalletHomePage()
     page.redeemOng()
+    expect(mocks.currentWalletStore.resetCurrentTransfer).not.toHaveBeenCalled()
     expect(mocks.feedback.notifyWarning).toHaveBeenCalledWith('common.ongNoEnough')
   })
 
@@ -210,6 +211,7 @@ describe('useSharedWalletHomePage', () => {
     balanceRef.value = { ont: 100, ong: 1000, unboundOng: 2 }
     const page = useSharedWalletHomePage()
     page.redeemOng()
+    expect(mocks.currentWalletStore.resetCurrentTransfer).toHaveBeenCalledWith({ gas: 0.05 })
     expect(mocks.currentWalletStore.setCurrentRedeem).toHaveBeenCalledWith({
       redeem: { claimableOng: 2, balanceOng: 1000 },
     })

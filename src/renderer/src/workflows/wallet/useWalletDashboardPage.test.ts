@@ -101,8 +101,13 @@ describe('useWalletDashboardPage', () => {
     mocks.currentWalletStore.wallet.ong = 1
     const page = useWalletDashboardPage()
     page.sendAsset()
-    expect(mocks.currentWalletStore.resetCurrentTransfer).toHaveBeenCalled()
+    expect(mocks.currentWalletStore.resetCurrentTransfer).toHaveBeenCalledWith({ gas: 0.01 })
     expect(mocks.router.push).toHaveBeenCalledWith({ name: ROUTE_NAMES.COMMON_SEND_HOME })
+
+    mocks.currentWalletStore.resetCurrentTransfer.mockClear()
+    mocks.currentWalletStore.wallet = { address: 'ALedger', ong: 1 }
+    useWalletDashboardPage().sendAsset()
+    expect(mocks.currentWalletStore.resetCurrentTransfer).toHaveBeenCalledWith({ gas: 0.05 })
 
     page.commonReceive()
     expect(mocks.router.push).toHaveBeenCalledWith({

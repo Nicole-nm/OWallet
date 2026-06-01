@@ -4,6 +4,8 @@ const mocks = vi.hoisted(() => ({
   constants: {
     GAS_LIMIT: '20000',
     GAS_PRICE: '500',
+    LEDGER_GAS_PRICE: '2500',
+    resolveDefaultGasPrice: (profile: string) => (profile === 'common' ? '500' : '2500'),
     get TRANSFER_GAS_MIN() {
       return (parseInt(this.GAS_PRICE, 10) * parseInt(this.GAS_LIMIT, 10)) / 1e9
     },
@@ -174,8 +176,8 @@ describe('sharedWalletDraftService', () => {
       expect(result.tx).toBe(fakeTx)
       // amount = 2.5 * 1e9
       expect(result.amount).toBe('2500000000')
-      expect(result.gasPrice).toBe('500')
-      expect(mocks.buildClaimOng).toHaveBeenCalledWith('AShared123', '2.5', '500', '20000')
+      expect(result.gasPrice).toBe('2500')
+      expect(mocks.buildClaimOng).toHaveBeenCalledWith('AShared123', '2.5', '2500', '20000')
       expect(mocks.buildNativeTransfer).not.toHaveBeenCalled()
     })
 
@@ -269,7 +271,7 @@ describe('sharedWalletDraftService', () => {
       })
 
       expect(result.amount).toBe('0')
-      expect(mocks.buildClaimOng).toHaveBeenCalledWith('AShared123', 0, '500', '20000')
+      expect(mocks.buildClaimOng).toHaveBeenCalledWith('AShared123', 0, '2500', '20000')
     })
 
     it('propagates errors thrown by the underlying asset builder', async () => {
@@ -398,7 +400,7 @@ describe('sharedWalletDraftService', () => {
         'transfer',
         expect.any(Array),
         expect.anything(),
-        '500',
+        '2500',
         '20000',
         expect.anything()
       )

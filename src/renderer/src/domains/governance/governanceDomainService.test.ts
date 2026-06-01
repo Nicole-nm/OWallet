@@ -47,7 +47,8 @@ describe('governance applicationService', () => {
       1,
       'stake-wallet',
       10000,
-      'stake-wallet'
+      'stake-wallet',
+      '500'
     )
   })
 

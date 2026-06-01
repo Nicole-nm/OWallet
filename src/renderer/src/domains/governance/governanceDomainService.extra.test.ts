@@ -62,7 +62,15 @@ it('createRegisterCandidateTransaction wraps the register builder', async () => 
       stakeWalletAddress: 'addr',
     })
   ).toBe('registerCandidate')
-  expect(builder.buildRegisterCandidate).toHaveBeenCalledWith('did', 'pk', 1, 'addr', 100, 'addr')
+  expect(builder.buildRegisterCandidate).toHaveBeenCalledWith(
+    'did',
+    'pk',
+    1,
+    'addr',
+    100,
+    'addr',
+    '500'
+  )
 })
 
 it('createUnregisterCandidateTransaction wraps the unregister builder', async () => {

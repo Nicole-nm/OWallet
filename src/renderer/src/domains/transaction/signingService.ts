@@ -1,4 +1,3 @@
-import { LEDGER_GAS_PRICE } from '../../shared/lib/constants'
 import { getRestClient } from '../../shared/chain/restClient'
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
 import { tryDecryptWallet } from '../../shared/chain/transactionSdk'
@@ -63,12 +62,10 @@ function normalizeLedgerSigner(
   }
 }
 
-function setLedgerGasPrice(tx: SdkTransactionLike) {
+function assertTransactionGasPrice(tx: SdkTransactionLike) {
   if (!tx.gasPrice) {
     throw new Error('Transaction gas price is unavailable')
   }
-
-  tx.gasPrice = new tx.gasPrice.constructor(LEDGER_GAS_PRICE) as SdkTransactionLike['gasPrice']
 }
 
 export async function signWithWallet(
@@ -135,8 +132,7 @@ export async function signWithLedger(
   const txSignature = new TxSignature()
   txSignature.M = 1
   txSignature.pubKeys = [publicKey]
-  tx.payer = new Crypto.Address(ledgerSigner.address)
-  setLedgerGasPrice(tx)
+  assertTransactionGasPrice(tx)
 
   const txData = tx.serializeUnsignedData()
   const signature = await legacySignWithLedger(
@@ -183,8 +179,7 @@ export async function signSharedTxWithLedger(
     ledgerSigner.publicKey
   )
 
-  tx.payer = new Crypto.Address(ledgerSigner.sharedWalletAddress)
-  setLedgerGasPrice(tx)
+  assertTransactionGasPrice(tx)
 
   const signature = await legacySignWithLedger(
     tx.serializeUnsignedData(),

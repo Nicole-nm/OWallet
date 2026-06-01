@@ -123,7 +123,15 @@ describe('useNodeStakeRegisterPage', () => {
 
     await page.handleStake()
 
-    expect(mocks.stakeService.createNodeStakeRegistrationDraft).toHaveBeenCalled()
+    expect(mocks.stakeService.createNodeStakeRegistrationDraft).toHaveBeenCalledWith({
+      stakeQuantity: '500',
+      stakeDetail: expect.objectContaining({
+        ontid: 'did:ont:ABC',
+        stakeWalletAddress: 'AQ123',
+        publicKey: 'pk-1',
+      }),
+      gasPrice: '500',
+    })
     expect(page.ontidPassModal.value).toBe(true)
   })
 

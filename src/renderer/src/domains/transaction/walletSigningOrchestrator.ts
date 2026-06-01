@@ -16,7 +16,6 @@ import {
   tryDecryptWallet,
 } from '../../shared/chain/transactionSdk'
 import { createSdkAddress } from '../../shared/chain/walletSdk'
-import { LEDGER_GAS_PRICE } from '../../shared/lib/constants'
 import {
   checkPublicKeyIsInTheConnectedLedger,
   legacySignWithLedger,
@@ -26,12 +25,10 @@ import { signWithLedger } from './signingService'
 import { serializeTx } from './serializationService'
 import type { HardwareWalletSigner, WalletSigner } from '../../shared/lib/types'
 
-function setLedgerGasPrice(tx: SdkTransactionLike) {
+function assertTransactionGasPrice(tx: SdkTransactionLike) {
   if (!tx.gasPrice) {
     throw new Error('Transaction gas price is unavailable')
   }
-
-  tx.gasPrice = new tx.gasPrice.constructor(LEDGER_GAS_PRICE) as SdkTransactionLike['gasPrice']
 }
 
 /**
@@ -60,7 +57,7 @@ export async function addWalletSignature({
 
 /**
  * Sign a transaction with a connected Ledger device.
- * Verifies device identity, sets payer/gasPrice, then appends the signature.
+ * Verifies device identity, preserves the unsigned transaction, then appends the signature.
  */
 export async function addLedgerSignature({
   tx,
@@ -71,7 +68,6 @@ export async function addLedgerSignature({
 }): Promise<SdkTransactionLike> {
   const nestedWallet = wallet.wallet as Record<string, unknown> | undefined
   const publicKeyHex = String(nestedWallet?.publicKey || wallet.publicKey || '')
-  const address = String(nestedWallet?.address || wallet.address || '')
   const neo = Boolean(nestedWallet?.neo ?? wallet.neo)
   const acct = Number(nestedWallet?.acct ?? wallet.acct ?? 0)
 
@@ -79,8 +75,7 @@ export async function addLedgerSignature({
     await checkPublicKeyIsInTheConnectedLedger(acct, neo, publicKeyHex)
   }
 
-  tx.payer = await createSdkAddress(address)
-  setLedgerGasPrice(tx)
+  assertTransactionGasPrice(tx)
 
   const signature = await legacySignWithLedger(tx.serializeUnsignedData(), neo, acct)
   tx.sigs = Array.isArray(tx.sigs) ? tx.sigs : []

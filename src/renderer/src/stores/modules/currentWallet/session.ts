@@ -31,7 +31,11 @@ interface TransferRedeemTypePayload {
   type?: boolean
 }
 
-function createDefaultTransfer(): Transfer {
+interface ResetTransferPayload {
+  gas?: number
+}
+
+function createDefaultTransfer({ gas = TRANSFER_GAS_MIN }: ResetTransferPayload = {}): Transfer {
   return {
     balance: { ont: 0, ong: 0 },
     oep4s: [],
@@ -39,7 +43,7 @@ function createDefaultTransfer(): Transfer {
     to: '',
     amount: 0,
     asset: 'ONT',
-    gas: TRANSFER_GAS_MIN,
+    gas,
     coPayers: [],
     sponsorPayer: '',
     isRedeem: false,
@@ -86,8 +90,8 @@ export const useCurrentWalletSessionStore = defineStore('CurrentWalletSession', 
     currentSigner.value = Object.assign(createDefaultCurrentSigner(), payload.account)
   }
 
-  function resetCurrentTransfer() {
-    transfer.value = createDefaultTransfer()
+  function resetCurrentTransfer(payload: ResetTransferPayload = {}) {
+    transfer.value = createDefaultTransfer(payload)
   }
 
   function setTransferRedeemType(payload: TransferRedeemTypePayload = {}) {

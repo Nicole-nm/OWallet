@@ -4,6 +4,7 @@ import { createChainAddress, generateWalletKeyPair } from '../../../domains/wall
 import { fetchCommonWalletDocs, insertIdentity } from '../../../domains/wallet/walletDomainService'
 import { createLogger } from '../../../shared/lib/logger'
 import { tryCatch } from '../../../shared/lib/result'
+import { resolveDefaultGasPrice } from '../../../shared/lib/constants'
 import type {
   CommonWallet,
   HardwareWalletSigner,
@@ -102,6 +103,7 @@ export async function createIdentityRegistrationDraft({
         privateKey,
         password: password || '',
         payer,
+        gasPrice: resolveDefaultGasPrice(payerWalletType === 'commonWallet' ? 'common' : 'ledger'),
       })
 
       return {

@@ -15,6 +15,7 @@ import { varifyPositiveInt } from '../../../../shared/lib/validators'
 import { loadStakeDetail } from './nodeStakeApplicationService'
 import { normalizeNodePublicKey } from '../../domain/nodeMapper'
 import { NetworkId, Identity, CommonWallet } from '../../../../shared/lib/types'
+import { GAS_PRICE } from '../../../../shared/lib/constants'
 import type { SdkTransactionLike } from '../../../../shared/chain/types'
 import type { WalletAdapter } from '../../../wallet/application/adapter/WalletAdapterFactory'
 
@@ -94,9 +95,11 @@ export async function ensureNodeStakeQualification({
 export async function createNodeStakeRegistrationDraft({
   stakeQuantity,
   stakeDetail,
+  gasPrice = GAS_PRICE,
 }: {
   stakeQuantity: string | number
   stakeDetail?: NodeStakeRegistrationDetail
+  gasPrice?: string
 }) {
   const detail = normalizeStakeRegistrationDetail(stakeDetail)
 
@@ -115,6 +118,7 @@ export async function createNodeStakeRegistrationDraft({
         publicKey: detail.publicKey,
         initPos: Number(stakeQuantity),
         stakeWalletAddress: detail.stakeWalletAddress as string,
+        gasPrice,
       }),
     }),
     { context: 'createNodeStakeRegistrationDraft', errorKey: 'common.networkErr', logger }

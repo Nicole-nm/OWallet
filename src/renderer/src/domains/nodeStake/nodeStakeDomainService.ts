@@ -98,13 +98,21 @@ export async function createNodeStakeRegistrationTransaction({
   publicKey,
   initPos,
   stakeWalletAddress,
+  gasPrice,
 }: {
   ontid: string
   publicKey: string
   initPos: number
   stakeWalletAddress: string
+  gasPrice?: string
 }) {
-  return createRegisterCandidateTransaction({ ontid, publicKey, initPos, stakeWalletAddress })
+  return createRegisterCandidateTransaction({
+    ontid,
+    publicKey,
+    initPos,
+    stakeWalletAddress,
+    ...(gasPrice ? { gasPrice } : {}),
+  })
 }
 
 export function createDelegatedStakeTransactionBody({

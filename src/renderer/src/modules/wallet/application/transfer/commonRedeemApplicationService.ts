@@ -1,4 +1,4 @@
-import { GAS_LIMIT, GAS_PRICE } from '../../../../shared/lib/constants'
+import { GAS_LIMIT, resolveDefaultGasPrice } from '../../../../shared/lib/constants'
 import { createRedeemTransaction } from '../../../../domains/transaction/transactionDomainService'
 import { submitWithAdapter } from '../../../../domains/transaction/submitWithAdapter'
 import type {
@@ -25,7 +25,7 @@ export async function submitWalletRedeem({
     tx = (await createRedeemTransaction({
       address,
       claimableOng,
-      gasPrice: GAS_PRICE,
+      gasPrice: resolveDefaultGasPrice(adapter.identity.type === 'ledger' ? 'ledger' : 'common'),
       gasLimit: GAS_LIMIT,
     })) as SdkTransactionLike
   } catch (error: unknown) {

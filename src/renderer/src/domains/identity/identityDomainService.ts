@@ -13,6 +13,7 @@ export async function buildIdentityRegistration(body: {
   password: string
   label: string
   payer: unknown
+  gasPrice?: string
 }) {
   const { Identity, OntidContract, TransactionBuilder } = await loadOntologySdk()
   let identity = Identity.create(body.privateKey as never, body.password, body.label)
@@ -20,7 +21,7 @@ export async function buildIdentityRegistration(body: {
   const tx = OntidContract.buildRegisterOntidTx(
     identity.ontid,
     publicKey as never,
-    GAS_PRICE,
+    body.gasPrice || GAS_PRICE,
     GAS_LIMIT
   )
   tx.payer = body.payer as never

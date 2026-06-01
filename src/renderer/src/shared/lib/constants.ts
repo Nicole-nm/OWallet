@@ -3,12 +3,22 @@ export const LEDGER_GAS_PRICE = '2500'
 export const GAS_LIMIT = '20000'
 export const GAS_LIMIT_HIGH = '200000'
 
+export type GasPriceProfile = 'common' | 'ledger' | 'shared'
+
 const ONG_BASE_UNITS = 1e9
 const TRANSFER_GAS_DECIMALS = 3
 const TRANSFER_GAS_LIMIT = parseInt(GAS_LIMIT, 10)
 
 function toTransferFeeAmount(gasPrice: number) {
   return Number(((gasPrice * TRANSFER_GAS_LIMIT) / ONG_BASE_UNITS).toFixed(TRANSFER_GAS_DECIMALS))
+}
+
+export function resolveDefaultGasPrice(profile: GasPriceProfile) {
+  return profile === 'common' ? GAS_PRICE : LEDGER_GAS_PRICE
+}
+
+export function resolveDefaultTransferFee(profile: GasPriceProfile) {
+  return toTransferFeeAmount(parseInt(resolveDefaultGasPrice(profile), 10))
 }
 
 export const NETWORKS = {
@@ -113,7 +123,7 @@ export const GOVERNANCE_ONG_ADDRESS = 'AFmseVrdL9f9oyCzZefL9tG6UbviEH9ugK'
 export const POLLING_INTERVAL_MS = 15000
 
 export const TRANSFER_GAS_PRICE_MIN = parseInt(GAS_PRICE, 10)
-export const TRANSFER_GAS_PRICE_MAX = 1000
+export const TRANSFER_GAS_PRICE_MAX = parseInt(LEDGER_GAS_PRICE, 10)
 export const TRANSFER_GAS_PRICE_STEP = 50
 
 // User-selectable transfer fee in ONG. Adjusting it changes gasPrice while gasLimit stays fixed.

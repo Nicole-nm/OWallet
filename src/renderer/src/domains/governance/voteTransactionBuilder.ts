@@ -2,8 +2,8 @@ import {
   GAS_PRICE,
   GAS_LIMIT_HIGH,
   DEFAULT_SCRYPT,
-  LEDGER_GAS_PRICE,
   NETWORKS,
+  resolveDefaultGasPrice,
 } from '../../shared/lib/constants'
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
 import { assertSdkTransactionLike } from '../../shared/chain/sdkBoundary'
@@ -12,6 +12,7 @@ import {
   legacySignWithLedger,
 } from '../../shared/chain/ledgerSigner'
 import type { SdkTransactionLike } from '../../shared/chain/types'
+import { setUnsignedTransactionGasPrice } from '../transaction/transactionGasPrice'
 
 /**
  * Vote contract hashes per network. The "old" map tracks a legacy testnet
@@ -108,12 +109,7 @@ export async function handleSignTx(
     const txSig = new TxSignature()
     txSig.M = 1
     txSig.pubKeys = [pk]
-    if (!txObj.gasPrice) {
-      throw new Error('Transaction gas price is unavailable')
-    }
-    txObj.gasPrice = new txObj.gasPrice.constructor(
-      LEDGER_GAS_PRICE
-    ) as SdkTransactionLike['gasPrice']
+    setUnsignedTransactionGasPrice(txObj, resolveDefaultGasPrice('ledger'))
 
     const txData = txObj.serializeUnsignedData()
     const res = await legacySignWithLedger(txData, isNeo, accountIndex)

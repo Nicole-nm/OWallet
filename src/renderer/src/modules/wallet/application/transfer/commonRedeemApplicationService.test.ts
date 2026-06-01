@@ -24,6 +24,14 @@ const commonCapabilities: WalletCapabilities = {
   canSignMessage: true,
 }
 
+const ledgerCapabilities: WalletCapabilities = {
+  requiresPassword: false,
+  requiresHardwareDevice: true,
+  singleSignature: true,
+  multiSignature: false,
+  canSignMessage: true,
+}
+
 function makeAdapter(
   capabilities: WalletCapabilities = commonCapabilities,
   signResult: unknown = 'signed-tx'
@@ -83,5 +91,23 @@ describe('commonRedeemApplicationService', () => {
       })
     ).resolves.toEqual({ ok: false, errorKey: 'common.pwdErr' })
     expect(mocks.transactionService.sendTransaction).not.toHaveBeenCalled()
+  })
+
+  it('creates ledger redeem transactions with the ledger default gas price', async () => {
+    mocks.transactionService.createRedeemTransaction.mockResolvedValue({ id: 'tx-1' })
+    mocks.transactionService.sendTransaction.mockResolvedValue({ ok: true, txHash: 'hash-1' })
+
+    await submitWalletRedeem({
+      address: 'AQ123',
+      adapter: makeAdapter(ledgerCapabilities),
+      claimableOng: '1',
+    })
+
+    expect(mocks.transactionService.createRedeemTransaction).toHaveBeenCalledWith({
+      address: 'AQ123',
+      claimableOng: '1',
+      gasPrice: '2500',
+      gasLimit: '20000',
+    })
   })
 })

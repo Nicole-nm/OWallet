@@ -127,7 +127,7 @@ describe('createIdentityRegistrationDraft guards', () => {
 
     expect(result.ok).toBe(true)
     expect(mocks.identityService.buildIdentityRegistration).toHaveBeenCalledWith(
-      expect.objectContaining({ password: '' })
+      expect.objectContaining({ password: '', gasPrice: '2500' })
     )
   })
 })

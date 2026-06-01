@@ -43,4 +43,10 @@ describe('useCurrentWalletSessionStore', () => {
     store.resetTransferBalance()
     expect(store.transfer.amount).toBe(0)
   })
+
+  it('resetCurrentTransfer accepts a wallet-specific default fee', () => {
+    const store = useCurrentWalletSessionStore()
+    store.resetCurrentTransfer({ gas: 0.05 })
+    expect(store.transfer.gas).toBe(0.05)
+  })
 })

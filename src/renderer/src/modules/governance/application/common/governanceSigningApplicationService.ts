@@ -4,6 +4,8 @@ import { tryCatch } from '../../../../shared/lib/result'
 import type { SdkTransactionLike } from '../../../../shared/chain/types'
 import type { TransactionFailureResult } from '../../../../domains/transaction/types'
 import type { WalletAdapter } from '../../../wallet/application/adapter/WalletAdapterFactory'
+import { resolveDefaultGasPrice } from '../../../../shared/lib/constants'
+import { setUnsignedTransactionGasPrice } from '../../../../domains/transaction/transactionGasPrice'
 
 const logger = createLogger('governanceSigningApplicationService')
 
@@ -37,7 +39,12 @@ export async function signGovernancePayload({
       const signedPayload =
         typeof payload === 'string'
           ? await adapter.signMessage(payload, ctx)
-          : await adapter.signTransaction(payload, ctx)
+          : await adapter.signTransaction(
+              adapter.identity.type === 'ledger'
+                ? setUnsignedTransactionGasPrice(payload, resolveDefaultGasPrice('ledger'))
+                : payload,
+              ctx
+            )
       return { signedPayload }
     },
     {

@@ -60,16 +60,18 @@ import type { SdkTransactionLike } from '../../shared/chain/types'
 import type { HardwareWalletSigner } from '../../shared/lib/types'
 import { createFakeTransaction } from '../../shared/chain/__fixtures__/fakeSdk'
 
-const makeTx = (): SdkTransactionLike =>
-  createFakeTransaction({ serializeUnsignedData: vi.fn(() => 'unsigned-data') })
+const makeTx = (overrides: Partial<SdkTransactionLike> = {}): SdkTransactionLike =>
+  createFakeTransaction({ serializeUnsignedData: vi.fn(() => 'unsigned-data'), ...overrides })
 
 describe('walletSigningOrchestrator.addLedgerSignature()', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('applies the ledger gas price override before appending a signature', async () => {
-    const tx = makeTx()
+  it('preserves unsigned transaction fields before appending a signature', async () => {
+    const payer = { value: 'existing-payer' }
+    const tx = makeTx({ payer })
+    const gasPrice = tx.gasPrice
     const wallet: HardwareWalletSigner & Record<string, any> = {
       address: 'AQ1234567890',
       publicKey: 'ledger-public-key',
@@ -77,12 +79,10 @@ describe('walletSigningOrchestrator.addLedgerSignature()', () => {
       neo: false,
     }
 
-    const payer = { value: 'sdk-address' }
     const sdkPublicKey = { value: 'sdk-pk' }
     const sdkTxSignature = { M: 1, sigData: ['01ledger-signature'] }
 
     mocks.ledgerSigner.checkPublicKeyIsInTheConnectedLedger.mockResolvedValue(true)
-    mocks.walletSdk.createSdkAddress.mockResolvedValue(payer)
     mocks.ledgerSigner.legacySignWithLedger.mockResolvedValue('ledger-signature')
     mocks.transactionSdk.createSdkPublicKey.mockResolvedValue(sdkPublicKey)
     mocks.transactionSdk.createSdkTxSignature.mockResolvedValue(sdkTxSignature)
@@ -93,8 +93,9 @@ describe('walletSigningOrchestrator.addLedgerSignature()', () => {
     })
 
     expect(result).toBe(tx)
-    expect((tx.gasPrice as unknown as { val: string }).val).toBe('2500')
+    expect(tx.gasPrice).toBe(gasPrice)
     expect(tx.payer).toBe(payer)
+    expect(mocks.walletSdk.createSdkAddress).not.toHaveBeenCalled()
     expect(tx.sigs).toEqual([sdkTxSignature])
     expect(mocks.ledgerSigner.legacySignWithLedger).toHaveBeenCalledWith('unsigned-data', false, 1)
   })

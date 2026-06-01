@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { TRANSFER_GAS_MIN } from '../../shared/lib/constants'
+import { resolveDefaultTransferFee } from '../../shared/lib/constants'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
 import { loadLocalSharedCopayers } from '../../modules/wallet/application/sharedWallet/sharedWalletOverviewApplicationService'
@@ -68,7 +68,7 @@ const summary = computed(() =>
     ? {
         amount: redeem.value.claimableOng,
         asset: 'ONG',
-        fee: TRANSFER_GAS_MIN,
+        fee: resolveDefaultTransferFee('shared'),
         recipient: '',
         titleKey: 'sharedWalletHome.redeemOng',
       }

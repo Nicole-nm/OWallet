@@ -1,9 +1,9 @@
 import { BigNumber } from 'bignumber.js'
 import {
   GAS_LIMIT,
-  GAS_PRICE,
   getOntPassHost,
   ONT_PASS_API_PATHS,
+  resolveDefaultGasPrice,
 } from '../../shared/lib/constants'
 import { convertTransferFeeToGasPrice } from '../../shared/lib/transferGas'
 import httpClient from '../../shared/network/httpClient'
@@ -99,7 +99,7 @@ export async function prepareSharedTransferDraft({
   let tx: SdkTransactionLike
 
   if (transfer.isRedeem) {
-    gasPrice = GAS_PRICE
+    gasPrice = resolveDefaultGasPrice('shared')
     const claimableOng = redeem.claimableOng ?? 0
     amount = new BigNumber(claimableOng).multipliedBy(1e9).toString()
     tx = await buildClaimOng(sharedAddress, claimableOng, gasPrice, gasLimit)
@@ -212,7 +212,7 @@ export async function createSerializedSharedInvokeTransaction({
     trimmedMethod,
     invokeParameters,
     contractAddress,
-    GAS_PRICE,
+    resolveDefaultGasPrice('shared'),
     GAS_LIMIT,
     payer
   )

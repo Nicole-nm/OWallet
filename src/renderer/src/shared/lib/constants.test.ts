@@ -5,6 +5,8 @@ import {
   MAIN_NET_LIST,
   NETWORKS,
   TEST_NET_LIST,
+  TRANSFER_GAS_MAX,
+  TRANSFER_GAS_MIN,
   getDefaultNodeForNetwork,
   getExplorerApiBaseUrl,
   getExplorerApiUrl,
@@ -12,9 +14,26 @@ import {
   getNodeListForNetwork,
   getOntPassHost,
   isTestNetNetwork,
+  resolveDefaultGasPrice,
+  resolveDefaultTransferFee,
 } from './constants'
 
 describe('shared/lib/constants', () => {
+  describe('gas defaults', () => {
+    it('uses 500 for common wallets and 2500 for ledger and shared wallets', () => {
+      expect(resolveDefaultGasPrice('common')).toBe('500')
+      expect(resolveDefaultGasPrice('ledger')).toBe('2500')
+      expect(resolveDefaultGasPrice('shared')).toBe('2500')
+    })
+
+    it('derives the selectable transfer fee range from gas prices', () => {
+      expect(TRANSFER_GAS_MIN).toBe(0.01)
+      expect(TRANSFER_GAS_MAX).toBe(0.05)
+      expect(resolveDefaultTransferFee('ledger')).toBe(TRANSFER_GAS_MAX)
+      expect(resolveDefaultTransferFee('shared')).toBe(TRANSFER_GAS_MAX)
+    })
+  })
+
   describe('getNodeListForNetwork', () => {
     it('returns the mainnet list for MAIN_NET', () => {
       expect(getNodeListForNetwork(NETWORKS.MAIN_NET)).toBe(MAIN_NET_LIST)

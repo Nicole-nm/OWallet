@@ -1,6 +1,10 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { POLLING_INTERVAL_MS, TRANSFER_GAS_MIN } from '../../shared/lib/constants'
+import {
+  POLLING_INTERVAL_MS,
+  TRANSFER_GAS_MIN,
+  resolveDefaultTransferFee,
+} from '../../shared/lib/constants'
 import { ROUTE_NAMES, ROUTE_PATHS } from '../../router/routes'
 import { useClipboardNotice } from '../../shared/composables/useClipboardNotice'
 import { usePollingTask } from '../../shared/composables/usePollingTask'
@@ -39,7 +43,9 @@ export function useWalletDashboardPage() {
       return
     }
 
-    dashboard.currentWalletStore.resetCurrentTransfer()
+    dashboard.currentWalletStore.resetCurrentTransfer({
+      gas: resolveDefaultTransferFee(currentWallet.value.key ? 'common' : 'ledger'),
+    })
     router.push({ name: ROUTE_NAMES.COMMON_SEND_HOME })
   }
 

@@ -12,6 +12,7 @@ import {
   buildWithdrawFee,
   buildWithdrawPeerUnboundOng,
 } from './transactionBuilder'
+import { GAS_PRICE } from '../../shared/lib/constants'
 
 export async function createAuthorizationTransaction({
   stakeWalletAddress,
@@ -54,11 +55,13 @@ export async function createRegisterCandidateTransaction({
   publicKey,
   initPos,
   stakeWalletAddress,
+  gasPrice = GAS_PRICE,
 }: {
   ontid: string
   publicKey: string
   initPos: number | string
   stakeWalletAddress: string
+  gasPrice?: string
 }) {
   return buildRegisterCandidate(
     ontid,
@@ -66,7 +69,8 @@ export async function createRegisterCandidateTransaction({
     1,
     stakeWalletAddress,
     initPos,
-    stakeWalletAddress
+    stakeWalletAddress,
+    gasPrice
   )
 }
 

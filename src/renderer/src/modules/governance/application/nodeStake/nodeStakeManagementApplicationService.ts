@@ -17,6 +17,8 @@ import type {
 } from '../../../../domains/transaction/types'
 import type { SdkTransactionLike } from '../../../../shared/chain/types'
 import type { WalletAdapter } from '../../../wallet/application/adapter/WalletAdapterFactory'
+import { resolveDefaultGasPrice } from '../../../../shared/lib/constants'
+import { setUnsignedTransactionGasPrice } from '../../../../domains/transaction/transactionGasPrice'
 export {
   refreshNodeStakeManagementDetails,
   refreshNodeStakeAuthorizationDetails,
@@ -79,7 +81,10 @@ export async function submitSignedNodeStakeManagementTransaction({
   }
 
   const baseOptions = {
-    tx: tx as SdkTransactionLike,
+    tx:
+      adapter.identity.type === 'ledger'
+        ? setUnsignedTransactionGasPrice(tx as SdkTransactionLike, resolveDefaultGasPrice('ledger'))
+        : (tx as SdkTransactionLike),
     adapter,
     password,
     networkErrorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.networkErr',

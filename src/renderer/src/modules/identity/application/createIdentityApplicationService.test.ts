@@ -171,6 +171,7 @@ describe('createIdentityApplicationService', () => {
       privateKey,
       password: 'secret123',
       payer: 'sdk-address',
+      gasPrice: '500',
     })
   })
 
