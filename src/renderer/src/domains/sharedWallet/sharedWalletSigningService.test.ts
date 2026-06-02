@@ -57,6 +57,7 @@ import {
   submitPendingSharedSignature,
 } from './sharedWalletSigningService'
 import type { WalletAdapter, WalletCapabilities } from '../wallet/adapter'
+import { LedgerSigningError } from '../../shared/lib/ledgerError'
 
 const commonCapabilities: WalletCapabilities = {
   requiresPassword: true,
@@ -237,8 +238,65 @@ describe('sharedWalletSigningService', () => {
         signedAddress: 'ACosigner',
       })
 
-      expect(result).toEqual({ ok: false, errorKey: 'ledgerWallet.signFailed' })
+      expect(result).toMatchObject({
+        ok: false,
+        category: 'signing',
+        errorKey: 'ledgerWallet.signFailed',
+      })
       expect(mocks.httpClient.post).not.toHaveBeenCalled()
+    })
+
+    it('surfaces a typed Ledger user-rejection as cancelled, not a network error', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({
+        sigs: [{ M: 2, pubKeys: ['pk-1', 'pk-2'], sigData: [] as string[] }],
+      })
+      const adapter = makeAdapter(ledgerCapabilities, null)
+      adapter.addSignature = vi
+        .fn()
+        .mockRejectedValue(new LedgerSigningError('user_rejected', { statusCode: 0x6985 }))
+
+      const result = await submitPendingSharedSignature({
+        network: 'testnet',
+        pendingTx: {
+          transactionbodyhash: 'serialized',
+          transactionidhash: 'tx-id-hash',
+        },
+        adapter,
+        signedAddress: 'ACosigner',
+      })
+
+      expect(result).toMatchObject({
+        ok: false,
+        category: 'cancelled',
+        errorKey: 'common.rejectedByUser',
+        level: 'warning',
+      })
+    })
+
+    it('surfaces a typed Ledger app-closed error with its own key', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({
+        sigs: [{ M: 2, pubKeys: ['pk-1', 'pk-2'], sigData: [] as string[] }],
+      })
+      const adapter = makeAdapter(ledgerCapabilities, null)
+      adapter.addSignature = vi
+        .fn()
+        .mockRejectedValue(new LedgerSigningError('app_closed', { statusCode: 0x6e00 }))
+
+      const result = await submitPendingSharedSignature({
+        network: 'testnet',
+        pendingTx: {
+          transactionbodyhash: 'serialized',
+          transactionidhash: 'tx-id-hash',
+        },
+        adapter,
+        signedAddress: 'ACosigner',
+      })
+
+      expect(result).toMatchObject({
+        ok: false,
+        category: 'signing',
+        errorKey: 'ledgerWallet.appClosed',
+      })
     })
 
     it('returns a failure when the server rejects the signature submission', async () => {
@@ -350,7 +408,50 @@ describe('sharedWalletSigningService', () => {
         adapter,
       })
 
-      expect(result).toEqual({ ok: false, errorKey: 'ledgerWallet.signFailed' })
+      expect(result).toMatchObject({
+        ok: false,
+        category: 'signing',
+        errorKey: 'ledgerWallet.signFailed',
+      })
+    })
+
+    it('surfaces a typed Ledger user-rejection as cancelled, not a network error', async () => {
+      const adapter = makeAdapter(ledgerCapabilities, null)
+      adapter.addSignature = vi
+        .fn()
+        .mockRejectedValue(new LedgerSigningError('user_rejected', { statusCode: 0x6985 }))
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({})
+
+      const result = await signSerializedSharedTransaction({
+        serializedTx: 'hex',
+        adapter,
+      })
+
+      expect(result).toMatchObject({
+        ok: false,
+        category: 'cancelled',
+        errorKey: 'common.rejectedByUser',
+        level: 'warning',
+      })
+    })
+
+    it('surfaces a typed Ledger app-closed error with its own key', async () => {
+      const adapter = makeAdapter(ledgerCapabilities, null)
+      adapter.addSignature = vi
+        .fn()
+        .mockRejectedValue(new LedgerSigningError('app_closed', { statusCode: 0x6e00 }))
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({})
+
+      const result = await signSerializedSharedTransaction({
+        serializedTx: 'hex',
+        adapter,
+      })
+
+      expect(result).toMatchObject({
+        ok: false,
+        category: 'signing',
+        errorKey: 'ledgerWallet.appClosed',
+      })
     })
   })
 
@@ -389,10 +490,25 @@ describe('sharedWalletSigningService', () => {
       expect(result).toMatchObject({ ok: false, message: 'some other error' })
     })
 
-    it('returns a network error when deserialization or send throws', async () => {
+    it('classifies unknown errors as unexpected, not a misleading network error', async () => {
       mocks.transactionSdk.deserializeTransaction.mockRejectedValue(new Error('boom'))
       const result = await sendSerializedSharedTransaction('hex')
-      expect(result).toEqual({ ok: false, errorKey: 'common.networkErr' })
+      expect(result).toMatchObject({
+        ok: false,
+        category: 'unknown',
+        errorKey: 'common.unexpectedError',
+      })
+    })
+
+    it('classifies HTTP errors from the chain submit as network failures', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({ getHash: () => 'h' })
+      mocks.signingService.sendTx.mockRejectedValue(new Error('HTTP 503'))
+      const result = await sendSerializedSharedTransaction('hex')
+      expect(result).toMatchObject({
+        ok: false,
+        category: 'network',
+        code: 'network.server_error',
+      })
     })
   })
 

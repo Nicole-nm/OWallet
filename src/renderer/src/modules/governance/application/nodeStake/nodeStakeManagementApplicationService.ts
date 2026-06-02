@@ -87,7 +87,7 @@ export async function submitSignedNodeStakeManagementTransaction({
         : (tx as SdkTransactionLike),
     adapter,
     password,
-    networkErrorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.networkErr',
+    networkErrorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.unexpectedError',
     logger,
     errorContext: 'submitSignedNodeStakeManagementTransaction',
   }

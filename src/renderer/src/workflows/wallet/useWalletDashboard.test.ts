@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   open: vi.fn(),
   notifyError: vi.fn(),
+  showAppError: vi.fn(),
   loggerError: vi.fn(),
   currentWalletStore: {
     balance: {
@@ -68,6 +69,7 @@ vi.mock('../../shared/platform/urlOpener', () => ({
 
 vi.mock('../../shared/ui/feedback', () => ({
   notifyError: (...args: unknown[]) => mocks.notifyError(...args),
+  showAppError: (...args: unknown[]) => mocks.showAppError(...args),
 }))
 
 vi.mock('../../shared/lib/logger', () => ({
@@ -205,7 +207,13 @@ describe('useWalletDashboard', () => {
     expect(mocks.loadingStore.hideLoadingModals).toHaveBeenCalled()
     expect(dashboard.requestStart.value).toBe(false)
     expect(mocks.loggerError).toHaveBeenCalledWith('useWalletDashboard.refresh', error)
-    expect(mocks.notifyError).toHaveBeenCalledWith('common.networkErr')
+    expect(mocks.showAppError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: 'unknown',
+        errorKey: 'common.unexpectedError',
+        detail: expect.stringContaining('dashboard:'),
+      })
+    )
   })
 
   it('resolves a rapid second refresh as skipped while the first remains in flight', async () => {

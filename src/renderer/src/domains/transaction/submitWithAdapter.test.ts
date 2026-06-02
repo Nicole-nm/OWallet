@@ -126,20 +126,21 @@ describe('submitWithAdapter', () => {
     expect(mocks.applicationService.sendTransaction).not.toHaveBeenCalled()
   })
 
-  it('returns network error with default key on a thrown error', async () => {
+  it('falls back to default networkErrorKey for an unclassifiable thrown error', async () => {
     const tx = makeTx()
     const error = new Error('boom')
     const adapter = makeAdapter(commonCapabilities)
     vi.mocked(adapter.signTransaction).mockRejectedValue(error)
 
-    await expect(submitWithAdapter({ tx, adapter, password: 'secret' })).resolves.toEqual({
+    await expect(submitWithAdapter({ tx, adapter, password: 'secret' })).resolves.toMatchObject({
       ok: false,
       errorKey: 'common.networkErr',
+      category: 'unknown',
       error,
     })
   })
 
-  it('returns network error with custom key when networkErrorKey is provided', async () => {
+  it('uses the caller-provided fallback key for unclassifiable errors', async () => {
     const tx = makeTx()
     const error = new Error('boom')
     const adapter = makeAdapter(ledgerCapabilities)
@@ -151,7 +152,12 @@ describe('submitWithAdapter', () => {
         adapter,
         networkErrorKey: 'ledgerWallet.signFailed',
       })
-    ).resolves.toEqual({ ok: false, errorKey: 'ledgerWallet.signFailed', error })
+    ).resolves.toMatchObject({
+      ok: false,
+      errorKey: 'ledgerWallet.signFailed',
+      category: 'unknown',
+      error,
+    })
   })
 
   it('delegates broadcast to custom submit function when provided', async () => {
@@ -178,9 +184,12 @@ describe('submitWithAdapter', () => {
     })
     const adapter = makeAdapter(commonCapabilities, signed)
 
-    await expect(submitWithAdapter({ tx, adapter, password: 'secret', submit })).resolves.toEqual({
+    await expect(
+      submitWithAdapter({ tx, adapter, password: 'secret', submit })
+    ).resolves.toMatchObject({
       ok: false,
       errorKey: 'common.networkErr',
+      category: 'unknown',
       error,
     })
   })

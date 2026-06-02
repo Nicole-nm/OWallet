@@ -1,6 +1,7 @@
 import { sendTransaction } from '../../../../domains/transaction/transactionDomainService'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
+import { classifyError } from '../../../../shared/lib/errors'
 import type { SdkTransactionLike } from '../../../../shared/chain/types'
 import type { TransactionFailureResult } from '../../../../domains/transaction/types'
 import type { WalletAdapter } from '../../../wallet/application/adapter/WalletAdapterFactory'
@@ -49,7 +50,7 @@ export async function signGovernancePayload({
     },
     {
       context: 'signGovernancePayload',
-      errorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.networkErr',
+      errorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.unexpectedError',
       logger,
     }
   )
@@ -68,6 +69,7 @@ export async function submitGovernanceSignedTransaction({ tx }: { tx: SdkTransac
     return await sendTransaction(tx)
   } catch (err: unknown) {
     logger.error('submitGovernanceSignedTransaction', err)
-    return { ok: false, errorKey: 'common.networkErr', error: err }
+    const payload = classifyError(err)
+    return { ok: false, ...payload, error: err }
   }
 }

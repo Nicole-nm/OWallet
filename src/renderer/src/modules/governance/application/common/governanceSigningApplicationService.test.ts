@@ -117,9 +117,10 @@ describe('governanceSigningApplicationService', () => {
         adapter,
         ledgerConnected: true,
       })
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       ok: false,
       errorKey: 'ledgerWallet.signFailed',
+      category: 'unknown',
       error: expect.any(Error),
     })
   })
@@ -141,7 +142,7 @@ describe('governanceSigningApplicationService', () => {
     })
   })
 
-  it('maps software-wallet transaction signing throws to a network error', async () => {
+  it('classifies unknown software-wallet signing throws as unexpected, not network', async () => {
     const error = new Error('sdk failed')
     const adapter = fakeAdapter(commonCapabilities, {
       signTransaction: vi.fn().mockRejectedValue(error),
@@ -153,9 +154,10 @@ describe('governanceSigningApplicationService', () => {
         adapter,
         password: 'secret',
       })
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       ok: false,
-      errorKey: 'common.networkErr',
+      errorKey: 'common.unexpectedError',
+      category: 'unknown',
       error,
     })
   })
@@ -215,9 +217,10 @@ describe('governanceSigningApplicationService', () => {
       submitGovernanceSignedTransaction({
         tx: makeTx('tx') as never,
       })
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       ok: false,
       errorKey: 'common.networkErr',
+      category: 'network',
       error: expect.any(Error),
     })
   })

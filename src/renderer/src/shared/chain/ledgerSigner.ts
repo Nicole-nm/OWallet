@@ -4,12 +4,7 @@ import * as elliptic from 'elliptic'
 import i18n from '../../lang'
 import { logger } from '../lib/logger'
 import { loadOntologySdk } from './loadOntologySdk'
-import {
-  LedgerProtocolClient,
-  LedgerTransportError,
-  evalTransportError,
-  getDerivationPath,
-} from './ledgerTransport'
+import { LedgerProtocolClient, evalTransportError, getDerivationPath } from './ledgerTransport'
 
 /**
  * Compress a 65-byte uncompressed SECP256R1 public key into the 33-byte
@@ -101,7 +96,7 @@ export default class OntLedger {
         productId: hidDevice?.productId,
       }
     } catch (err) {
-      throw evalTransportError(err as LedgerTransportError)
+      throw evalTransportError(err)
     }
   }
 

@@ -1,6 +1,6 @@
 import type Transport from '@ledgerhq/hw-transport'
 import { Buffer } from 'buffer'
-import i18n from '../../lang'
+import { LedgerSigningError, type LedgerErrorCode } from '../lib/ledgerError'
 
 /* -------------------------------------------------------------------------- */
 /*  APDU constants                                                            */
@@ -35,24 +35,46 @@ export const DEFAULT_ACCEPTED_STATUSES = [STATUS_OK]
 export interface LedgerTransportError {
   statusCode?: number
   message?: string
+  name?: string
+}
+
+const STATUS_CODE_MAP: Record<number, LedgerErrorCode> = {
+  [TX_DENIED]: 'user_rejected',
+  [APP_CLOSED]: 'app_closed',
+  [MSG_TOO_BIG]: 'tx_too_big',
+  [TX_PARSE_ERR]: 'tx_parse_error',
+  [INS_NOT_SUPPORTED]: 'ins_not_supported',
+}
+
+const NAME_CODE_MAP: Record<string, LedgerErrorCode> = {
+  LockedDeviceError: 'device_locked',
+  DisconnectedDevice: 'device_disconnected',
+  DisconnectedDeviceDuringOperation: 'device_disconnected',
 }
 
 /**
- * Map a raw Ledger transport error into a user-facing message.
+ * Convert any raw Ledger transport error into a typed `LedgerSigningError`.
+ * Status codes and named errors (from `@ledgerhq/errors`) are mapped to
+ * distinct `LedgerErrorCode`s; unknown errors are wrapped as `transport_unknown`
+ * preserving the original cause. Translation happens at the UI boundary.
  */
-export function evalTransportError(err: LedgerTransportError): LedgerTransportError {
-  switch (err.statusCode) {
-    case APP_CLOSED:
-      return { ...err, message: i18n.global.t('ledgerWallet.appClosed') }
-    case MSG_TOO_BIG:
-      return { ...err, message: i18n.global.t('ledgerWallet.transactionTooBig') }
-    case TX_DENIED:
-      return { ...err, message: i18n.global.t('ledgerWallet.transactionDenied') }
-    case TX_PARSE_ERR:
-      return { ...err, message: i18n.global.t('ledgerWallet.transactionParseError') }
-    default:
-      return err
-  }
+export function evalTransportError(err: unknown): LedgerSigningError {
+  if (err instanceof LedgerSigningError) return err
+
+  const raw = (err ?? {}) as LedgerTransportError
+  const statusCode = typeof raw.statusCode === 'number' ? raw.statusCode : undefined
+  const name = typeof raw.name === 'string' ? raw.name : undefined
+
+  const code =
+    (statusCode !== undefined ? STATUS_CODE_MAP[statusCode] : undefined) ??
+    (name ? NAME_CODE_MAP[name] : undefined) ??
+    'transport_unknown'
+
+  return new LedgerSigningError(code, {
+    statusCode,
+    cause: err,
+    message: raw.message,
+  })
 }
 
 /* -------------------------------------------------------------------------- */
@@ -177,7 +199,7 @@ export class LedgerProtocolClient {
       if (transportError.statusCode === INS_NOT_SUPPORTED) {
         return Buffer.from('0000009000', 'hex')
       }
-      throw this.convertTransportError(transportError)
+      throw evalTransportError(transportError)
     }
   }
 
@@ -221,7 +243,7 @@ export class LedgerProtocolClient {
       const keyLength = result.readUInt8(0)
       return result.subarray(1, keyLength + 1).toString('hex')
     } catch (error) {
-      throw this.convertTransportError(error as LedgerTransportError)
+      throw evalTransportError(error)
     }
   }
 
@@ -252,19 +274,19 @@ export class LedgerProtocolClient {
         }
 
         if (!result) {
-          throw new Error(i18n.global.t('ledgerWallet.noSignatureData'))
+          throw new LedgerSigningError('no_signature_returned')
         }
         return parseLegacySignatureReply(result)
       }
 
       const reply = await this.sendChunkedMessage(path, INS.SIGN, Buffer.from(msg, 'hex'))
       if (reply.length <= 2) {
-        throw new Error(i18n.global.t('ledgerWallet.noSignatureReturned'))
+        throw new LedgerSigningError('no_signature_returned')
       }
 
       return parseModernSignatureReply(reply)
     } catch (error) {
-      throw this.convertTransportError(error as LedgerTransportError)
+      throw evalTransportError(error)
     }
   }
 
@@ -275,7 +297,7 @@ export class LedgerProtocolClient {
   ): Promise<Buffer> {
     const supportsNewProtocol = await this.supportsModernProtocol()
     if (!supportsNewProtocol) {
-      throw new Error(i18n.global.t('ledgerWallet.unsupportedAppVersion'))
+      throw new LedgerSigningError('unsupported_app_version')
     }
 
     try {
@@ -315,14 +337,7 @@ export class LedgerProtocolClient {
         DEFAULT_ACCEPTED_STATUSES
       )
     } catch (error) {
-      throw this.convertTransportError(error as LedgerTransportError)
+      throw evalTransportError(error)
     }
-  }
-
-  private convertTransportError(error: LedgerTransportError): LedgerTransportError {
-    if (error.statusCode === TX_DENIED) {
-      return { ...error, message: i18n.global.t('common.rejectedByUser') }
-    }
-    return evalTransportError(error)
   }
 }

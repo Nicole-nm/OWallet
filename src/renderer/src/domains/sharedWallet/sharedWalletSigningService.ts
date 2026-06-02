@@ -4,6 +4,8 @@ import { deserializeTransaction } from '../../shared/chain/transactionSdk'
 import { reverseHex } from '../../shared/chain/sdkHex'
 import type { SdkTransactionLike } from '../../shared/chain/types'
 import { createLogger } from '../../shared/lib/logger'
+import { classifyError, classifySigningError } from '../../shared/lib/errors'
+import type { FailureMetadata } from '../../shared/lib/result/types'
 import { sendTx } from '../transaction/signingService'
 import { serializeTx } from '../transaction/serializationService'
 import type { WalletAdapter } from '../wallet/adapter'
@@ -22,8 +24,7 @@ export type SharedWalletSendFailure = {
   ok: false
   errorKey?: string
   message?: string | null
-  detail?: string
-}
+} & FailureMetadata
 
 export type SharedWalletSendResult =
   | { ok: true; txHash: string; response: HttpBody }
@@ -140,12 +141,8 @@ export async function signSerializedSharedTransaction({
       })
     } catch (error: unknown) {
       logger.error('signSerializedSharedTransaction.sign', error)
-      return {
-        ok: false,
-        errorKey: adapter.capabilities.requiresHardwareDevice
-          ? 'ledgerWallet.signFailed'
-          : 'common.networkErr',
-      }
+      const payload = classifySigningError(error)
+      return { ok: false, ...payload }
     }
 
     if (!signed) {
@@ -163,7 +160,8 @@ export async function signSerializedSharedTransaction({
     }
   } catch (error: unknown) {
     logger.error('signSerializedSharedTransaction', error)
-    return { ok: false, errorKey: 'common.networkErr' }
+    const payload = classifyError(error)
+    return { ok: false, ...payload }
   }
 }
 
@@ -174,8 +172,10 @@ export async function sendSerializedSharedTransaction(
     const tx = await deserializeTransaction(serializedTx)
     const response = (await sendTx(asSdkTransaction(tx))) as unknown as HttpBody
     return normalizeSendResponse(response, tx)
-  } catch {
-    return { ok: false, errorKey: 'common.networkErr' }
+  } catch (error: unknown) {
+    logger.error('sendSerializedSharedTransaction', error)
+    const payload = classifyError(error)
+    return { ok: false, ...payload }
   }
 }
 
@@ -213,12 +213,8 @@ export async function submitPendingSharedSignature({
       })
     } catch (error: unknown) {
       logger.error('submitPendingSharedSignature.sign', error)
-      return {
-        ok: false,
-        errorKey: adapter.capabilities.requiresHardwareDevice
-          ? 'ledgerWallet.signFailed'
-          : 'common.networkErr',
-      }
+      const payload = classifySigningError(error)
+      return { ok: false, ...payload }
     }
 
     if (!signed) {
@@ -252,6 +248,7 @@ export async function submitPendingSharedSignature({
     return { ok: true, sentToChain: false }
   } catch (error: unknown) {
     logger.error('submitPendingSharedSignature', error)
-    return { ok: false, errorKey: 'common.networkErr' }
+    const payload = classifyError(error)
+    return { ok: false, ...payload }
   }
 }

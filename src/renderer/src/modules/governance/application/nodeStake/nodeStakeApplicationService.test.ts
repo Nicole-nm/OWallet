@@ -83,7 +83,7 @@ describe('nodeStakeApplicationService', () => {
         network: 'TEST_NET',
         payload: { address: 'did:ont:1' },
       })
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       ok: false,
       errorKey: 'common.networkErr',
       error: expect.any(Error),

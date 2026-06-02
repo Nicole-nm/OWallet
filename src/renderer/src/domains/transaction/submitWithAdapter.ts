@@ -2,6 +2,7 @@ import { sendTransaction } from './transactionDomainService'
 import type { SdkTransactionLike } from '../../shared/chain/types'
 import type { WalletAdapter } from '../wallet/adapter'
 import type { SendTransactionResult, TransactionFailureResult } from './types'
+import { classifierKeyWins, classifyError } from '../../shared/lib/errors'
 
 interface MinimalLogger {
   error: (...args: unknown[]) => void
@@ -58,6 +59,8 @@ export async function submitWithAdapter<TResult = SendTransactionResult>({
     return submit ? await submit(signedTx) : await sendTransaction(signedTx)
   } catch (error: unknown) {
     logger?.error(errorContext, error)
-    return { ok: false, errorKey: networkErrorKey, error }
+    const payload = classifyError(error)
+    const resolvedErrorKey = classifierKeyWins(payload) ? payload.errorKey : networkErrorKey
+    return { ok: false, ...payload, errorKey: resolvedErrorKey, error }
   }
 }

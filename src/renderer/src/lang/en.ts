@@ -15,6 +15,8 @@ export default {
     invalidInput: 'Invalid input. Please check and try again.',
     permissionDenied: 'Permission denied.',
     unexpectedError: 'Unexpected error. Please try again.',
+    serverError: 'Server error. Please try again later.',
+    dashboardPartialFail: 'Some balances could not be updated.',
     normalWallet: 'Individual wallet',
     sharedWallet: 'Shared wallet',
     hardwareWallet: 'Ledger wallet',
@@ -521,6 +523,8 @@ export default {
     noSignatureData: 'Ledger returned no signature data.',
     noSignatureReturned: 'Ledger did not return a signature.',
     unsupportedAppVersion: 'Unsupported ONT app version. Please upgrade the app on your Ledger.',
+    deviceLocked: 'Your Ledger device is locked. Unlock it and try again.',
+    disconnected: 'Ledger device disconnected. Reconnect and try again.',
     selectAccount: 'Please select the account(s) on your Ledger device.',
     normalMode: 'Normal Mode',
     advancedMode: 'Advanced Mode',
@@ -859,5 +863,18 @@ Within their 50% share each consensus node will receive their share according to
       'You will be redirected to the third party dApp. Use of the third party dApp will be subject to their User Agreement and Privacy Policy. You will be liable to the third party dApp only.',
     ontidMgmt:
       'ONT ID management. This feature will be removed in the future. Please backup ONT ID related data',
+  },
+
+  feedback: {
+    details: 'Details',
+    close: 'Close',
+    copyDetails: 'Copy',
+    copied: 'Copied',
+    code: 'Code',
+    category: 'Category',
+    statusCode: 'Status',
+    cause: 'Cause',
+    detail: 'Detail',
+    timestamp: 'Time',
   },
 }

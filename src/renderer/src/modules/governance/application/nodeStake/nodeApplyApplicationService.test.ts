@@ -79,7 +79,7 @@ describe('nodeApplyApplicationService', () => {
         stakeWalletAddress: 'AQ123',
         operationWalletPublicKey: 'pk-1',
       })
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       ok: false,
       level: 'warning',
       errorKey: 'nodeApply.invalidOperationPk',

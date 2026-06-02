@@ -209,7 +209,7 @@ export async function submitNodeStakeRegistration({
     }),
     {
       context: 'submitNodeStakeRegistration.sign',
-      errorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.networkErr',
+      errorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.unexpectedError',
       logger,
     }
   )

@@ -1,11 +1,14 @@
 import type { Ref } from 'vue'
 import { logger } from '../../shared/lib/logger'
+import { classifyError } from '../../shared/lib/errors'
+import type { AppErrorPayload } from '../../shared/lib/result/types'
 import {
   runRefreshTasks,
   type RefreshTask,
+  type RefreshTaskFailure,
   type RefreshTasksResult,
 } from '../../shared/lib/refreshHelper'
-import { notifyError } from '../../shared/ui/feedback'
+import { showAppError } from '../../shared/ui/feedback'
 
 export type WalletDashboardRefreshTask = Promise<unknown> | (() => Promise<unknown> | unknown)
 export type WalletDashboardRefreshResult = Omit<RefreshTasksResult<unknown>, 'failures'> & {
@@ -32,6 +35,44 @@ function toRefreshTask(task: WalletDashboardRefreshTask, index: number): Refresh
   }
 }
 
+/**
+ * Pick the most informative payload across all failed dashboard tasks. The
+ * priority order favours user-actionable categories (cancelled, signing,
+ * permission, timeout) over generic network/unknown so a single mid-refresh
+ * Ledger rejection or timeout isn't drowned out by a string of network errors.
+ * Also injects the failing task names into `detail` so the Details modal shows
+ * which fetches went wrong.
+ */
+const CATEGORY_PRIORITY: Record<string, number> = {
+  cancelled: 0,
+  signing: 1,
+  permission: 2,
+  timeout: 3,
+  network: 4,
+  storage: 5,
+  validation: 6,
+  unknown: 7,
+}
+
+function summariseDashboardFailures(failures: RefreshTaskFailure[]): AppErrorPayload {
+  const classified = failures.map((failure) => ({
+    name: failure.name,
+    payload: classifyError(failure.reason),
+  }))
+
+  const dominant = classified.reduce((acc, current) => {
+    const accRank = CATEGORY_PRIORITY[acc.payload.category] ?? 999
+    const currentRank = CATEGORY_PRIORITY[current.payload.category] ?? 999
+    return currentRank < accRank ? current : acc
+  })
+
+  const taskNames = failures.map((failure) => failure.name).join(', ')
+  const baseDetail = dominant.payload.detail
+  const detail = baseDetail ? `${baseDetail} — tasks: ${taskNames}` : `tasks: ${taskNames}`
+
+  return { ...dominant.payload, detail }
+}
+
 export async function runWalletDashboardRefresh({
   requestStart,
   showLoading,
@@ -54,7 +95,7 @@ export async function runWalletDashboardRefresh({
       for (const failure of failures) {
         logger.error(errorContext, failure.reason)
       }
-      notifyError('common.networkErr')
+      showAppError(summariseDashboardFailures(failures))
     },
     onFinally: () => {
       if (loadingShown) {

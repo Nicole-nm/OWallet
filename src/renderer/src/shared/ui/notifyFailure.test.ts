@@ -4,6 +4,10 @@ const mocks = vi.hoisted(() => ({
   messageError: vi.fn(),
   messageWarning: vi.fn(),
   messageSuccess: vi.fn(),
+  notificationError: vi.fn(),
+  notificationWarning: vi.fn(),
+  notificationSuccess: vi.fn(),
+  notificationInfo: vi.fn(),
 }))
 
 vi.mock('ant-design-vue', () => ({
@@ -12,7 +16,13 @@ vi.mock('ant-design-vue', () => ({
     warning: mocks.messageWarning,
     success: mocks.messageSuccess,
   },
-  Modal: { success: vi.fn() },
+  notification: {
+    error: mocks.notificationError,
+    warning: mocks.notificationWarning,
+    success: mocks.notificationSuccess,
+    info: mocks.notificationInfo,
+  },
+  Modal: { success: vi.fn(), info: vi.fn() },
 }))
 
 vi.mock('../../lang', () => ({
@@ -80,10 +90,39 @@ describe('shared/ui/notifyFailure', () => {
     expect(mocks.messageError).toHaveBeenCalledWith('T(specific.error)')
   })
 
-  it('falls back to the category default when no errorKey is present', () => {
+  it('falls back to the category default when no errorKey is present and routes through the rich pipeline', () => {
     const result = notifyFailure({ ok: false, category: 'timeout', code: 'timeout.request' })
 
     expect(result).toBe(true)
-    expect(mocks.messageError).toHaveBeenCalledWith('T(common.requestTimeout)')
+    expect(mocks.notificationError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'T(common.requestTimeout)' })
+    )
+    expect(mocks.messageError).not.toHaveBeenCalled()
+  })
+
+  it('routes a classified failure through showAppError (notification) with rich payload', () => {
+    notifyFailure({
+      ok: false,
+      errorKey: 'common.rejectedByUser',
+      category: 'cancelled',
+      code: 'signing.user_rejected',
+      level: 'warning',
+      cause: new Error('underlying'),
+    })
+
+    expect(mocks.notificationWarning).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'T(common.rejectedByUser)',
+        key: 'app-signing.user_rejected',
+      })
+    )
+    expect(mocks.messageWarning).not.toHaveBeenCalled()
+  })
+
+  it('keeps using the simple `message` shim when the failure has no classification metadata', () => {
+    notifyFailure({ ok: false, errorKey: 'common.networkErr' })
+
+    expect(mocks.messageError).toHaveBeenCalledWith('T(common.networkErr)')
+    expect(mocks.notificationError).not.toHaveBeenCalled()
   })
 })

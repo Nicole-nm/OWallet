@@ -1,6 +1,6 @@
-import { notifyError, notifyWarning } from './feedback'
+import { notifyError, notifyWarning, showAppError, showAppWarning } from './feedback'
 import { getDefaultErrorKeyForCategory } from '../lib/errors'
-import type { AppErrorCode, ErrorCategory } from '../lib/result/types'
+import type { AppErrorCode, AppErrorPayload, ErrorCategory } from '../lib/result/types'
 
 export type FailureLike = {
   ok?: boolean
@@ -8,7 +8,25 @@ export type FailureLike = {
   category?: ErrorCategory
   code?: AppErrorCode
   detail?: unknown
+  cause?: unknown
+  retryable?: boolean
   level?: 'warning' | string
+}
+
+function hasClassificationMetadata(result: FailureLike): boolean {
+  return Boolean(result.category || result.code || result.cause)
+}
+
+function toAppErrorPayload(result: FailureLike, key: string): AppErrorPayload {
+  return {
+    category: result.category ?? 'unknown',
+    code: result.code ?? 'unknown.unexpected',
+    errorKey: key,
+    detail: typeof result.detail === 'string' ? result.detail : undefined,
+    cause: result.cause,
+    retryable: result.retryable,
+    level: result.level === 'warning' ? 'warning' : 'error',
+  }
 }
 
 /**
@@ -16,10 +34,15 @@ export type FailureLike = {
  * is a failure so callers can early-return: `if (notifyFailure(result)) return`.
  * Picks notifyWarning when `result.level === 'warning'`, else notifyError.
  *
+ * When the failure carries classification metadata (category, code, cause from
+ * the classifier), routes through the rich `showAppError`/`showAppWarning`
+ * pipeline so the user gets the precise message plus an expandable "Details"
+ * affordance. Otherwise falls back to the simple `notifyError`/`notifyWarning`
+ * shim — keeps backward compatibility with call sites that emit plain
+ * `{ ok: false, errorKey }` results.
+ *
  * Acts as a type predicate so the success branch stays narrowed after the
- * early return. Lives in its own module so that test files which mock
- * `./feedback` keep intercepting the underlying notify calls without having
- * to also expose `notifyFailure`.
+ * early return.
  */
 export function notifyFailure<T extends FailureLike>(
   result: T | null | undefined,
@@ -29,6 +52,17 @@ export function notifyFailure<T extends FailureLike>(
   if (result.ok === true) return false
   const key = result.errorKey ?? fallbackKey ?? getDefaultErrorKeyForCategory(result.category)
   if (key === undefined) return true
+
+  if (hasClassificationMetadata(result)) {
+    const payload = toAppErrorPayload(result, key)
+    if (result.level === 'warning') {
+      showAppWarning(payload)
+    } else {
+      showAppError(payload)
+    }
+    return true
+  }
+
   if (result.level === 'warning') {
     notifyWarning(key)
   } else {

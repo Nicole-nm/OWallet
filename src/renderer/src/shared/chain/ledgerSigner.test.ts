@@ -147,7 +147,8 @@ describe('ledgerSigner', () => {
 
     expect(() => new OntLedger(device as never).getDeviceInfo()).toThrowError(
       expect.objectContaining({
-        message: 'ledgerWallet.appClosed',
+        code: 'app_closed',
+        statusCode: APP_CLOSED,
       })
     )
   })

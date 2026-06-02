@@ -147,7 +147,7 @@ export async function submitIdentityRegistration({
     adapter,
     password: payerPassword,
     useAddSignature: true,
-    networkErrorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.networkErr',
+    networkErrorKey: requiresHardwareDevice ? 'ledgerWallet.signFailed' : 'common.unexpectedError',
     logger,
     errorContext: 'submitIdentityRegistration',
   })

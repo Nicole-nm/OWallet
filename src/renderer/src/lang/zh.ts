@@ -15,6 +15,8 @@ export default {
     invalidInput: '输入无效，请检查后重试。',
     permissionDenied: '权限不足。',
     unexpectedError: '发生未知错误，请重试。',
+    serverError: '服务器异常，请稍后重试。',
+    dashboardPartialFail: '部分余额未能更新。',
     normalWallet: '普通钱包',
     sharedWallet: '共享钱包',
     hardwareWallet: 'Ledger钱包',
@@ -516,6 +518,8 @@ export default {
     noSignatureData: 'Ledger 未返回签名数据。',
     noSignatureReturned: 'Ledger 未返回签名。',
     unsupportedAppVersion: 'ONT 应用版本不支持，请升级 Ledger 上的应用。',
+    deviceLocked: 'Ledger 设备已锁定，请解锁后重试。',
+    disconnected: 'Ledger 设备已断开，请重新连接后重试。',
     selectAccount: '请选择您Ledger设备里的账户（可多选）',
     normalMode: '普通模式',
     advancedMode: '高级模式',
@@ -846,5 +850,18 @@ export default {
     userPolicy:
       '您将跳转至第三方dApp页面，在第三方dApp上的使用行为将适用该第三方dApp的《用户协议》和《隐私政策》，由该第三方dApp直接并单独向您承担责任',
     ontidMgmt: '管理ONT ID。该功能以后会被移除。请备份ONT ID相关数据。',
+  },
+
+  feedback: {
+    details: '详情',
+    close: '关闭',
+    copyDetails: '复制',
+    copied: '已复制',
+    code: '错误码',
+    category: '类别',
+    statusCode: '状态码',
+    cause: '原因',
+    detail: '详情',
+    timestamp: '时间',
   },
 }

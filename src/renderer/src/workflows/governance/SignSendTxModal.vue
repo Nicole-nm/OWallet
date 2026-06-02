@@ -30,7 +30,8 @@ import {
 } from '../../modules/governance/application/common/governanceSigningApplicationService'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
-import { notifyError, notifyWarning } from '../../shared/ui/feedback'
+import { notifyError, notifyWarning, showAppError } from '../../shared/ui/feedback'
+import { classifyError } from '../../shared/lib/errors'
 import { handleTransactionFeedback } from '../../shared/lib/transactionFeedback'
 import { useLedgerStatusMonitor } from '../../modules/wallet/composables/useLedgerStatusMonitor'
 import { isCommonWallet } from '../../shared/lib/types'
@@ -151,8 +152,8 @@ async function handleWalletSignOK() {
 
     await sendTx(result.signedPayload)
     walletPassword.value = ''
-  } catch {
-    notifyError('common.networkErr')
+  } catch (err: unknown) {
+    showAppError(classifyError(err))
   } finally {
     loadingStore.hideLoadingModals()
     if (usingLedger) {
@@ -177,9 +178,9 @@ async function sendTx(tx: unknown) {
 
   walletPassword.value = ''
   const result = await submitGovernanceSignedTransaction({ tx: rawTx })
-  if (!result.ok && 'errorKey' in result && result.errorKey === 'common.networkErr') {
+  if (!result.ok && 'category' in result && result.category === 'network') {
     loadingStore.hideLoadingModals()
-    notifyError('common.networkErr')
+    notifyError(result.errorKey ?? 'common.networkErr')
     return
   }
 

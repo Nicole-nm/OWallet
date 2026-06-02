@@ -18,16 +18,17 @@ describe('createTryCatch', () => {
       }
     )
 
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       ok: false,
       errorKey: 'common.networkErr',
       error,
       items: [],
+      category: 'network',
     })
     expect(logger.error).toHaveBeenCalledWith('loadSomething', error)
   })
 
-  it('allows callers to override a default error key', async () => {
+  it('falls back to the caller-provided key when the error is genuinely unknown', async () => {
     const logger = { error: vi.fn() }
     const tryNetwork = createTryCatch({ errorKey: 'common.networkErr', logger })
 
@@ -41,6 +42,26 @@ describe('createTryCatch', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) {
       expect(result.errorKey).toBe('common.savedbFailed')
+      expect(result.category).toBe('unknown')
+    }
+  })
+
+  it('classifier wins over the caller hint when it can identify the error', async () => {
+    const logger = { error: vi.fn() }
+    const tryNetwork = createTryCatch({ errorKey: 'common.networkErr', logger })
+
+    const result = await tryNetwork(
+      async (): Promise<{ saved: boolean }> => {
+        throw new Error('HTTP 503')
+      },
+      { context: 'loadSomething', errorKey: 'common.unexpectedError' }
+    )
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.errorKey).toBe('common.serverError')
+      expect(result.category).toBe('network')
+      expect(result.code).toBe('network.server_error')
     }
   })
 })

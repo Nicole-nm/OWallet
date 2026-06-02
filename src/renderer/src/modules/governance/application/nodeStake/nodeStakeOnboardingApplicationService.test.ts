@@ -269,7 +269,7 @@ describe('nodeStakeOnboardingApplicationService', () => {
         stakeWalletAddress: 'AQ123',
         stakeQuantity: '10',
       })
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       ok: false,
       stage: 'submit',
       errorKey: 'nodeStake.txFailed',

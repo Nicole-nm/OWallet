@@ -17,14 +17,7 @@ import {
   parseLegacySignatureReply,
   parseModernSignatureReply,
 } from './ledgerTransport'
-
-vi.mock('../../lang', () => ({
-  default: {
-    global: {
-      t: (key: string) => key,
-    },
-  },
-}))
+import { LedgerSigningError } from '../lib/ledgerError'
 
 function createTransport(send: ReturnType<typeof vi.fn>) {
   return {
@@ -61,7 +54,7 @@ describe('LedgerProtocolClient', () => {
     expect(DEFAULT_ACCEPTED_STATUSES).not.toContain(TX_DENIED)
   })
 
-  it('maps TX_DENIED from a signing APDU to the user-rejected error', async () => {
+  it('maps TX_DENIED from a signing APDU to a typed user-rejected error', async () => {
     const send = vi.fn(async (_cla, instruction) => {
       if (instruction === INS.GET_VERSION) {
         return Buffer.from('0200009000', 'hex')
@@ -71,28 +64,50 @@ describe('LedgerProtocolClient', () => {
     })
     const client = new LedgerProtocolClient(createTransport(send))
 
-    await expect(client.signMessage("44'/1024'/0'/0/0", 'aabbcc')).rejects.toMatchObject({
-      message: 'common.rejectedByUser',
+    const rejection = client.signMessage("44'/1024'/0'/0/0", 'aabbcc')
+    await expect(rejection).rejects.toBeInstanceOf(LedgerSigningError)
+    await expect(rejection).rejects.toMatchObject({
+      code: 'user_rejected',
       statusCode: TX_DENIED,
     })
   })
 
-  it('maps transport status errors to locale keys', () => {
-    expect(evalTransportError({ statusCode: APP_CLOSED })).toMatchObject({
-      message: 'ledgerWallet.appClosed',
-    })
-    expect(evalTransportError({ statusCode: MSG_TOO_BIG })).toMatchObject({
-      message: 'ledgerWallet.transactionTooBig',
-    })
-    expect(evalTransportError({ statusCode: TX_DENIED })).toMatchObject({
-      message: 'ledgerWallet.transactionDenied',
-    })
+  it('maps transport status errors to typed Ledger codes', () => {
+    expect(evalTransportError({ statusCode: APP_CLOSED })).toBeInstanceOf(LedgerSigningError)
+    expect(evalTransportError({ statusCode: APP_CLOSED })).toMatchObject({ code: 'app_closed' })
+    expect(evalTransportError({ statusCode: MSG_TOO_BIG })).toMatchObject({ code: 'tx_too_big' })
+    expect(evalTransportError({ statusCode: TX_DENIED })).toMatchObject({ code: 'user_rejected' })
     expect(evalTransportError({ statusCode: TX_PARSE_ERR })).toMatchObject({
-      message: 'ledgerWallet.transactionParseError',
+      code: 'tx_parse_error',
     })
   })
 
-  it('maps missing modern signature replies to a locale key', async () => {
+  it('maps named transport errors to device-state codes', () => {
+    expect(evalTransportError({ name: 'LockedDeviceError' })).toMatchObject({
+      code: 'device_locked',
+    })
+    expect(evalTransportError({ name: 'DisconnectedDevice' })).toMatchObject({
+      code: 'device_disconnected',
+    })
+    expect(evalTransportError({ name: 'DisconnectedDeviceDuringOperation' })).toMatchObject({
+      code: 'device_disconnected',
+    })
+  })
+
+  it('wraps unknown errors as transport_unknown preserving the cause', () => {
+    const cause = new Error('boom')
+    const wrapped = evalTransportError(cause)
+    expect(wrapped).toBeInstanceOf(LedgerSigningError)
+    expect(wrapped.code).toBe('transport_unknown')
+    expect(wrapped.cause).toBe(cause)
+  })
+
+  it('passes through an existing LedgerSigningError unchanged', () => {
+    const original = new LedgerSigningError('app_closed')
+    expect(evalTransportError(original)).toBe(original)
+  })
+
+  it('throws a typed no_signature_returned error for missing modern replies', async () => {
     const send = vi.fn(async (_cla, instruction) => {
       if (instruction === INS.GET_VERSION) {
         return Buffer.from('0200009000', 'hex')
@@ -102,9 +117,9 @@ describe('LedgerProtocolClient', () => {
     })
     const client = new LedgerProtocolClient(createTransport(send))
 
-    await expect(client.signMessage("44'/1024'/0'/0/0", 'aabbcc')).rejects.toThrow(
-      'ledgerWallet.noSignatureReturned'
-    )
+    const rejection = client.signMessage("44'/1024'/0'/0/0", 'aabbcc')
+    await expect(rejection).rejects.toBeInstanceOf(LedgerSigningError)
+    await expect(rejection).rejects.toMatchObject({ code: 'no_signature_returned' })
   })
 
   it('encodes legacy and modern derivation paths and rejects malformed paths', () => {
@@ -189,7 +204,8 @@ describe('LedgerProtocolClient', () => {
       )
     )
     await expect(failing.getVersion()).rejects.toMatchObject({
-      message: 'ledgerWallet.appClosed',
+      code: 'app_closed',
+      statusCode: APP_CLOSED,
     })
   })
 })

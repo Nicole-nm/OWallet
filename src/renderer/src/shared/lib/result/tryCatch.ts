@@ -1,4 +1,5 @@
 import { logger as defaultLogger } from '../logger'
+import { classifierKeyWins, classifyError } from '../errors'
 
 interface LoggerLike {
   error(context: string, error: unknown): void
@@ -7,7 +8,12 @@ interface LoggerLike {
 interface TryCatchOptions<F extends object> {
   /** Logger context label. Required so failures are traceable. */
   context: string
-  /** i18n key surfaced on the failure result. Default: 'common.networkErr'. */
+  /**
+   * Fallback i18n key when the classifier can't categorise the error.
+   * Typed errors (`LedgerSigningError`), HTTP errors, and timeouts take
+   * precedence — this hint is only used when classifyError returns 'unknown'.
+   * Default: 'common.networkErr'.
+   */
   errorKey?: string
   /** Optional module logger. Defaults to the global logger. */
   logger?: LoggerLike
@@ -24,9 +30,20 @@ type TryCatchOverrides<F extends object> = Omit<TryCatchOptions<F>, 'errorKey' |
 
 type SuccessShape = Record<string, unknown> | void
 
+type ClassifiedFailureFields = {
+  category?: import('./types').ErrorCategory
+  code?: import('./types').AppErrorCode
+  detail?: string
+  cause?: unknown
+  retryable?: boolean
+  level?: 'warning' | 'error'
+}
+
 export type TryCatchResult<S extends SuccessShape, F extends object> = S extends object
-  ? ({ ok: true } & S) | ({ ok: false; errorKey: string; error: unknown } & F)
-  : { ok: true } | ({ ok: false; errorKey: string; error: unknown } & F)
+  ?
+      | ({ ok: true } & S)
+      | ({ ok: false; errorKey: string; error: unknown } & ClassifiedFailureFields & F)
+  : { ok: true } | ({ ok: false; errorKey: string; error: unknown } & ClassifiedFailureFields & F)
 
 /**
  * Wrap an async op that already produces a service-shaped success object
@@ -53,7 +70,20 @@ export async function tryCatch<S extends SuccessShape, F extends object = Record
   } catch (err) {
     logger.error(context, err)
     const extras = onFailure ? onFailure() : ({} as F)
-    return { ok: false, errorKey, error: err, ...extras } as TryCatchResult<S, F>
+    const payload = classifyError(err)
+    const resolvedErrorKey = classifierKeyWins(payload) ? payload.errorKey : errorKey
+    return {
+      ok: false,
+      category: payload.category,
+      code: payload.code,
+      detail: payload.detail,
+      cause: payload.cause,
+      retryable: payload.retryable,
+      level: payload.level,
+      errorKey: resolvedErrorKey,
+      error: err,
+      ...extras,
+    } as TryCatchResult<S, F>
   }
 }
 

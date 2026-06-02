@@ -81,7 +81,7 @@ export interface TransactionFailureResult extends FailureMetadata {
   ok: false
   cancelled?: true
   errorKey?: string
-  level?: 'warning'
+  level?: 'warning' | 'error'
 }
 
 /**
