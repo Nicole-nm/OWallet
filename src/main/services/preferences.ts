@@ -2,7 +2,7 @@
 
 import type { IpcMain, IpcMainInvokeEvent } from 'electron'
 import { app } from 'electron'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { validateKeystorePath } from './pathValidation'
 import { registerIpcHandlerWithTimeout } from './ipcTimeout'
@@ -83,7 +83,18 @@ export async function getConfiguredSavePath() {
 }
 
 export async function hasConfiguredSavePath() {
-  return Boolean(await getConfiguredSavePath())
+  const configuredPath = await getConfiguredSavePath()
+  if (configuredPath) {
+    return true
+  }
+
+  const defaultPath = app.getPath('userData')
+  try {
+    const stats = await stat(join(defaultPath, 'keystore.db'))
+    return stats.isFile()
+  } catch {
+    return false
+  }
 }
 
 export async function getResolvedSavePath() {

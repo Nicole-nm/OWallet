@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   getPath: vi.fn(() => '/tmp/owallet-user-data'),
   mkdir: vi.fn(async () => undefined),
   readFile: vi.fn(),
+  stat: vi.fn(),
   writeFile: vi.fn(async () => undefined),
   validateKeystorePath: vi.fn(async () => true),
 }))
@@ -15,6 +16,7 @@ vi.mock('electron', () => ({
 vi.mock('node:fs/promises', () => ({
   mkdir: mocks.mkdir,
   readFile: mocks.readFile,
+  stat: mocks.stat,
   writeFile: mocks.writeFile,
 }))
 
@@ -109,6 +111,23 @@ describe('clearConfiguredSavePath', () => {
   })
 })
 
+describe('hasConfiguredSavePath with default-path keystore', () => {
+  it('returns true when the default path already has a keystore.db', async () => {
+    mocks.readFile.mockRejectedValueOnce(Object.assign(new Error('missing'), { code: 'ENOENT' }))
+    mocks.stat.mockResolvedValueOnce({ isFile: () => true })
+    const { hasConfiguredSavePath } = await import('./preferences')
+    await expect(hasConfiguredSavePath()).resolves.toBe(true)
+    expect(mocks.stat).toHaveBeenCalledWith('/tmp/owallet-user-data/keystore.db')
+  })
+
+  it('returns false when there is no savePath and no keystore.db', async () => {
+    mocks.readFile.mockRejectedValueOnce(Object.assign(new Error('missing'), { code: 'ENOENT' }))
+    mocks.stat.mockRejectedValueOnce(Object.assign(new Error('missing'), { code: 'ENOENT' }))
+    const { hasConfiguredSavePath } = await import('./preferences')
+    await expect(hasConfiguredSavePath()).resolves.toBe(false)
+  })
+})
+
 describe('registerPreferencesIpc', () => {
   it('wires the preferences handlers and validates inputs', async () => {
     const handlers = new Map<string, (...args: unknown[]) => unknown>()
@@ -118,6 +137,7 @@ describe('registerPreferencesIpc', () => {
       }),
     }
     mocks.readFile.mockRejectedValue(Object.assign(new Error('missing'), { code: 'ENOENT' }))
+    mocks.stat.mockRejectedValue(Object.assign(new Error('missing'), { code: 'ENOENT' }))
 
     const { registerPreferencesIpc } = await import('./preferences')
     registerPreferencesIpc(ipcMain as never)

@@ -4,7 +4,6 @@ import type { IpcMain, IpcMainInvokeEvent } from 'electron'
 import { app } from 'electron'
 import { appendFile, chmod, mkdir } from 'node:fs/promises'
 import { dirname, join } from 'path'
-import { createRequire } from 'module'
 import { isDevelopment } from '../config'
 import { clearConfiguredSavePath, getResolvedSavePath } from './preferences'
 import { registerIpcHandlerWithTimeout } from './ipcTimeout'
@@ -16,9 +15,8 @@ import {
   assertSafeUpdate,
 } from './databaseValidators'
 
-const require = createRequire(import.meta.url)
-const Datastore = require('nedb-promises')
-const nedbStorage = require('@seald-io/nedb/lib/storage')
+import Datastore from 'nedb-promises'
+import nedbStorage from '@seald-io/nedb/lib/storage'
 
 interface NedbDatastore {
   find(query: Record<string, unknown>): Promise<unknown[]>
