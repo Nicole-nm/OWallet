@@ -159,7 +159,7 @@ function createRendererManualChunk(id: string): string | null {
 export default defineConfig({
   main: {
     build: {
-      externalizeDeps: true,
+      externalizeDeps: false,
     },
   },
   preload: {

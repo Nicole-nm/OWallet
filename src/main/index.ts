@@ -15,7 +15,7 @@ import { closeAllDatabases } from './services/database'
 import { onPreferencesSavePathChanged } from './services/preferences'
 
 configureAppEnvironment()
-app.setName('OWallet')
+app.setName('owallet')
 
 let win: BrowserWindow | null = null
 

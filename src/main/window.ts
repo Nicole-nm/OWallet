@@ -1,6 +1,11 @@
 'use strict'
 
-import { BrowserWindow, Menu, MenuItemConstructorOptions } from 'electron'
+import {
+  BrowserWindow,
+  Menu,
+  MenuItemConstructorOptions,
+  type BrowserWindowConstructorOptions,
+} from 'electron'
 import { join } from 'path'
 import { getApplicationMenuTemplate } from './menu'
 import { isDevelopment, shouldOpenDevtools } from './config'
@@ -9,6 +14,18 @@ import { attachNavigationGuards } from './navigationGuards'
 
 const STARTUP_BACKGROUND_COLOR = '#0f141a'
 const MAX_RENDERER_RECOVERY_ATTEMPTS = 2
+const LINUX_SOURCE_ICON_PATH = '../../src/renderer/src/assets/icons/512x512.png'
+const LINUX_PACKAGED_ICON_PATH = 'icons/512x512.png'
+
+function getLinuxWindowIconPath(): string | undefined {
+  if (process.platform !== 'linux') {
+    return undefined
+  }
+
+  return isDevelopment
+    ? join(__dirname, LINUX_SOURCE_ICON_PATH)
+    : join(process.resourcesPath, LINUX_PACKAGED_ICON_PATH)
+}
 
 function attachDevelopmentLogging(window: BrowserWindow): void {
   window.webContents.on(
@@ -174,7 +191,7 @@ function attachStartupShowBehavior(window: BrowserWindow): void {
 }
 
 export function createMainWindow() {
-  const window = new BrowserWindow({
+  const windowOptions: BrowserWindowConstructorOptions = {
     title: 'OWallet',
     show: false,
     backgroundColor: STARTUP_BACKGROUND_COLOR,
@@ -190,7 +207,13 @@ export function createMainWindow() {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: true,
     },
-  })
+  }
+  const linuxWindowIconPath = getLinuxWindowIconPath()
+  if (linuxWindowIconPath) {
+    windowOptions.icon = linuxWindowIconPath
+  }
+
+  const window = new BrowserWindow(windowOptions)
 
   if (isDevelopment) {
     attachDevelopmentLogging(window)

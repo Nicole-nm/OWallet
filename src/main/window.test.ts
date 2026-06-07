@@ -66,6 +66,16 @@ const mocks = vi.hoisted(() => {
   }
 })
 
+const originalPlatform = process.platform
+const originalResourcesPath = process.resourcesPath
+
+function stubProcessValue<T extends keyof NodeJS.Process>(key: T, value: NodeJS.Process[T]): void {
+  Object.defineProperty(process, key, {
+    configurable: true,
+    value,
+  })
+}
+
 vi.mock('electron', () => ({
   BrowserWindow: mocks.BrowserWindow,
   Menu: mocks.Menu,
@@ -98,6 +108,8 @@ describe('createMainWindow security configuration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.constructorOptions.value = null
+    stubProcessValue('platform', originalPlatform)
+    stubProcessValue('resourcesPath', originalResourcesPath)
   })
 
   it('hardens the renderer with isolation, sandbox, and no node integration', async () => {
@@ -125,6 +137,23 @@ describe('createMainWindow security configuration', () => {
 
     expect(window.loadFile).toHaveBeenCalledOnce()
     expect(window.loadURL).not.toHaveBeenCalled()
+  })
+
+  it('uses the packaged PNG icon for Linux windows', async () => {
+    stubProcessValue('platform', 'linux')
+    stubProcessValue('resourcesPath', '/opt/OWallet/resources')
+
+    await buildWindow()
+
+    expect(mocks.constructorOptions.value?.icon).toBe('/opt/OWallet/resources/icons/512x512.png')
+  })
+
+  it('does not set a window icon outside Linux', async () => {
+    stubProcessValue('platform', 'darwin')
+
+    await buildWindow()
+
+    expect(mocks.constructorOptions.value?.icon).toBeUndefined()
   })
 
   it('reloads the renderer after recoverable renderer exits', async () => {
