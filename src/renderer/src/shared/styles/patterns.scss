@@ -690,7 +690,11 @@
 
 .ow-settings-row--storage,
 .ow-settings-row--updates {
-  gap: var(--ow-space-7);
+  column-gap: var(--ow-space-7);
+}
+
+.ow-settings-row--updates {
+  row-gap: var(--ow-space-7);
 }
 
 .ow-settings-row--storage {
@@ -1788,9 +1792,7 @@
 }
 
 .ow-list-card:hover,
-.ow-list-card:focus-within,
-.ow-create-card:hover,
-.ow-create-card:focus-within {
+.ow-list-card:focus-within {
   transform: translateY(-2px);
   border-color: var(--ow-color-brand);
   background: var(--ow-color-surface-elevated);
@@ -1830,6 +1832,19 @@
   cursor: default;
 }
 
+.ow-create-card .ant-card-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ow-space-5);
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  padding: var(--ow-space-5);
+}
+
 .ow-create-card--node {
   padding: var(--ow-space-5);
 }
@@ -1845,6 +1860,9 @@
 .ow-create-card__actions {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   padding: var(--ow-space-5);
   opacity: 0;
@@ -1857,42 +1875,52 @@
 
 .ow-create-card__actions--single {
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
 .ow-create-card__actions--stacked {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ow-space-8);
+  display: grid;
+  gap: var(--ow-space-4);
+  justify-items: center;
 }
 
 .ow-create-card__action {
+  width: min(100%, 10.625rem);
   text-align: center;
 }
 
 .ow-create-card__button {
+  width: 100%;
   text-decoration: none;
+}
+
+.ow-create-card__visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ow-space-16);
+  height: var(--ow-space-16);
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
 }
 
 .ow-create-card__icon {
   width: 60px;
   height: 60px;
   object-fit: contain;
-  transition:
-    opacity 0.15s ease,
-    visibility 0.15s ease;
 }
 
 .ow-create-card:hover,
 .ow-create-card:focus-within {
-  background-color: var(--ow-color-card-create-hover);
+  transform: translateY(-2px);
+  border-color: var(--ow-color-brand);
+  background: var(--ow-color-card-create-hover);
+  box-shadow: var(--ow-shadow-elevated);
 }
 
-.ow-create-card:hover .ow-create-card__icon,
-.ow-create-card:focus-within .ow-create-card__icon {
+.ow-create-card:hover .ow-create-card__visual,
+.ow-create-card:focus-within .ow-create-card__visual {
   opacity: 0;
   visibility: hidden;
 }
@@ -1946,21 +1974,6 @@
 .ow-asset-list {
   height: 40vh;
   overflow: auto;
-}
-
-.ow-asset-list::-webkit-scrollbar {
-  -webkit-appearance: none;
-}
-
-.ow-asset-list::-webkit-scrollbar:vertical {
-  width: 10px;
-  height: 15px;
-}
-
-.ow-asset-list::-webkit-scrollbar-thumb {
-  border: 2px solid var(--ow-color-surface);
-  border-radius: var(--ow-radius-card);
-  background-color: var(--ow-color-border-default);
 }
 
 .ow-asset-header {

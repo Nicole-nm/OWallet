@@ -138,6 +138,15 @@
     "files": [
       "out/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "src/renderer/src/assets/icons",
+        "to": "icons",
+        "filter": [
+          "**/*.png"
+        ]
+      }
+    ],
     "nsis": {
       "oneClick": false,
       "perMachine": true,
@@ -168,6 +177,12 @@
       ],
       "category": "Utility",
       "icon": "src/renderer/src/assets/icons",
+      "extraResources": [
+        {
+          "from": "src/renderer/src/assets/icons/512x512.png",
+          "to": "icons/512x512.png"
+        }
+      ],
       "artifactName": "${productName}-${version}-${os}.${ext}",
       "syncDesktopName": true
     },

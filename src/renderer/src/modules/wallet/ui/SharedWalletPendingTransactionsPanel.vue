@@ -62,21 +62,6 @@ defineEmits<{
   overflow-y: auto;
 }
 
-.wallet-dashboard__tx-list--pending::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-.wallet-dashboard__tx-list--pending::-webkit-scrollbar-thumb {
-  border-radius: var(--ow-radius-pill);
-  background: var(--ow-color-border-default);
-}
-
-.wallet-dashboard__tx-list--pending::-webkit-scrollbar-track {
-  border-radius: var(--ow-radius-control);
-  background: var(--ow-color-surface-hover);
-}
-
 .wallet-dashboard__tx-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

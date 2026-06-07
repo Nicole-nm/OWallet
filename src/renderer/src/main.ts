@@ -82,12 +82,45 @@ for (const component of antdComponents) {
 app.component('AButton', AppButton)
 app.component('AppButton', AppButton)
 
+declare global {
+  interface Window {
+    __owScrollbarActivityInstalled?: boolean
+  }
+}
+
+function installScrollbarActivityIndicator() {
+  if (window.__owScrollbarActivityInstalled) {
+    return
+  }
+
+  window.__owScrollbarActivityInstalled = true
+
+  let hideTimer: number | undefined
+
+  const showScrollbar = () => {
+    document.documentElement.classList.add('ow-scrollbar--active')
+
+    if (hideTimer !== undefined) {
+      window.clearTimeout(hideTimer)
+    }
+
+    hideTimer = window.setTimeout(() => {
+      document.documentElement.classList.remove('ow-scrollbar--active')
+      hideTimer = undefined
+    }, 800)
+  }
+
+  document.addEventListener('scroll', showScrollbar, { capture: true, passive: true })
+  window.addEventListener('wheel', showScrollbar, { passive: true })
+}
+
 function removeStartupOverlay() {
   document.getElementById('owallet-startup')?.remove()
 }
 
 async function bootstrap() {
   await migrateLegacySavePathPreference()
+  installScrollbarActivityIndicator()
   await router.isReady()
   app.mount('#app')
   removeStartupOverlay()

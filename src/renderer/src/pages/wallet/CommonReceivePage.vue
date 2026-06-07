@@ -179,15 +179,6 @@ async function copy(value: string) {
   letter-spacing: -0.015em;
 }
 
-.receive-shell__value--address::-webkit-scrollbar {
-  height: 4px;
-}
-
-.receive-shell__value--address::-webkit-scrollbar-thumb {
-  border-radius: var(--ow-radius-pill);
-  background: var(--ow-color-border-default);
-}
-
 .receive-shell__icon-button {
   flex-shrink: 0;
   color: var(--ow-color-brand);

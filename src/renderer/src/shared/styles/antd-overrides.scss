@@ -38,7 +38,6 @@
 
 .ant-table-wrapper,
 .ant-table,
-.ant-table-thead > tr > th,
 .ant-table-tbody > tr > td {
   color: var(--ow-color-text-primary);
   background: var(--ow-color-surface);
@@ -47,6 +46,7 @@
 
 .ant-table-thead > tr > th {
   background: var(--ow-color-surface-muted) !important;
+  border-color: var(--ow-color-border-subtle);
   font-family: var(--ow-font-medium);
   font-size: var(--ow-font-size-caption);
   color: var(--ow-color-text-secondary) !important;
@@ -98,8 +98,9 @@
 .ant-modal .ant-modal-header,
 .ant-modal-confirm .ant-modal-header {
   margin-bottom: 0;
-  padding: var(--ow-space-5) var(--ow-space-6) var(--ow-space-2);
-  padding-right: calc(var(--ow-space-6) + var(--ow-modal-close-size) + var(--ow-space-2));
+  padding: var(--ow-space-5)
+    calc(var(--ow-space-6) + var(--ow-modal-close-size) + var(--ow-space-2)) var(--ow-space-2)
+    var(--ow-space-6);
   border-bottom: none;
   background: transparent !important;
 }
@@ -115,7 +116,6 @@
 .ant-modal .ant-modal-body,
 .ant-modal-confirm .ant-modal-body {
   padding: var(--ow-space-3) var(--ow-space-6) var(--ow-space-5);
-  color: var(--ow-color-text-primary);
 }
 
 .ant-modal .ant-modal-body,

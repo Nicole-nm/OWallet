@@ -22,9 +22,11 @@ function getLinuxWindowIconPath(): string | undefined {
     return undefined
   }
 
-  return isDevelopment
-    ? join(__dirname, LINUX_SOURCE_ICON_PATH)
-    : join(process.resourcesPath, LINUX_PACKAGED_ICON_PATH)
+  if (isDevelopment) {
+    return join(__dirname, LINUX_SOURCE_ICON_PATH)
+  }
+
+  return process.resourcesPath ? join(process.resourcesPath, LINUX_PACKAGED_ICON_PATH) : undefined
 }
 
 function attachDevelopmentLogging(window: BrowserWindow): void {
@@ -196,6 +198,7 @@ export function createMainWindow() {
     show: false,
     backgroundColor: STARTUP_BACKGROUND_COLOR,
     useContentSize: true,
+    autoHideMenuBar: process.platform !== 'darwin',
     width: 1140,
     minWidth: 1140,
     height: 675,

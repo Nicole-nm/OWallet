@@ -139,6 +139,30 @@ describe('createMainWindow security configuration', () => {
     expect(window.loadURL).not.toHaveBeenCalled()
   })
 
+  it('auto-hides the native menu bar on Windows', async () => {
+    stubProcessValue('platform', 'win32')
+
+    await buildWindow()
+
+    expect(mocks.constructorOptions.value?.autoHideMenuBar).toBe(true)
+  })
+
+  it('auto-hides the native menu bar on Linux', async () => {
+    stubProcessValue('platform', 'linux')
+
+    await buildWindow()
+
+    expect(mocks.constructorOptions.value?.autoHideMenuBar).toBe(true)
+  })
+
+  it('keeps the native menu bar visible on macOS', async () => {
+    stubProcessValue('platform', 'darwin')
+
+    await buildWindow()
+
+    expect(mocks.constructorOptions.value?.autoHideMenuBar).toBe(false)
+  })
+
   it('uses the packaged PNG icon for Linux windows', async () => {
     stubProcessValue('platform', 'linux')
     stubProcessValue('resourcesPath', '/opt/OWallet/resources')
