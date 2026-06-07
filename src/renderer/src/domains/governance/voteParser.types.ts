@@ -1,8 +1,8 @@
 export interface VoteStringReader {
   readVarUint: () => number
   read: (len: number) => string
-  readUint128: () => number
-  readUint64: () => number
+  readUint128: () => number | bigint
+  readUint64: () => number | bigint
   readUint8: () => number
   readH256: () => string
   readBoolean?: () => boolean

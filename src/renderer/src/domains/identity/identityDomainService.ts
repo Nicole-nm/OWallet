@@ -16,7 +16,7 @@ export async function buildIdentityRegistration(body: {
   gasPrice?: string
 }) {
   const { Identity, OntidContract, TransactionBuilder } = await loadOntologySdk()
-  let identity = Identity.create(body.privateKey as never, body.password, body.label)
+  const identity = Identity.create(body.privateKey as never, body.password, body.label)
   const publicKey = body.privateKey.getPublicKey()
   const tx = OntidContract.buildRegisterOntidTx(
     identity.ontid,
@@ -26,11 +26,11 @@ export async function buildIdentityRegistration(body: {
   )
   tx.payer = body.payer as never
   TransactionBuilder.signTransaction(tx, body.privateKey as never)
-  identity = identity.toJsonObj()
+  const identityJson = identity.toJsonObj()
   return {
     label: body.label,
-    ontid: identity.ontid,
-    identity,
+    ontid: identityJson.ontid,
+    identity: identityJson,
     tx,
   }
 }
@@ -80,7 +80,7 @@ async function importIdentityFromKeystore(
   const label = keystoreObj.label || 'Identity'
   const salt = keystoreObj.salt
   const transformedPassword = SDK.transformPassword(password)
-  let identity = Identity.importIdentity(
+  const identity = Identity.importIdentity(
     label,
     encryptedPrivateKey,
     transformedPassword,
@@ -88,9 +88,9 @@ async function importIdentityFromKeystore(
     salt,
     params as never
   )
-  identity = identity.toJsonObj()
-  ;(identity as { scrypt?: unknown }).scrypt = keystoreObj.scrypt
-  return identity
+  const identityJson = identity.toJsonObj()
+  ;(identityJson as { scrypt?: unknown }).scrypt = keystoreObj.scrypt
+  return identityJson
 }
 
 async function getOntidDocumentJson(ontid: string) {

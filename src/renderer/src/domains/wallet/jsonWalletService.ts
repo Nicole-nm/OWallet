@@ -13,18 +13,18 @@ export async function buildJsonWallet(body: BuildJsonWalletInput) {
   const { Account, Wallet } = await loadOntologySdk()
   const wallet = Wallet.create(body.label || '')
   wallet.scrypt.n = DEFAULT_SCRYPT.cost
-  let account = Account.create(
+  const account = Account.create(
     body.privateKey as never,
     body.password,
     body.label,
     DEFAULT_SCRYPT as never
   )
-  account.isDefault = true
+  ;(account as unknown as { isDefault: boolean }).isDefault = true
   wallet.addAccount(account)
-  account = account.toJsonObj()
+  const accountJson = account.toJsonObj()
   return {
     label: body.label,
-    account: toSdkJsonAccount(account),
+    account: toSdkJsonAccount(accountJson),
     content: wallet.toJsonObj(),
     wif: body.wif,
   }

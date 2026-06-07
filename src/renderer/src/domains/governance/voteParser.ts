@@ -1,5 +1,5 @@
 import type { VoteParticipationRecord } from './types'
-import { VOTE_ADDRESS_BYTES, VOTE_HASH_BYTES } from './voteParser.shared'
+import { toVoteNumber, VOTE_ADDRESS_BYTES, VOTE_HASH_BYTES } from './voteParser.shared'
 import type {
   VoteCrypto,
   VoteUtils,
@@ -34,7 +34,7 @@ export function parseVotedRecords(
   if (length > 0) {
     for (let i = 0; i < length; i++) {
       const address = new Crypto.Address(sr.read(VOTE_ADDRESS_BYTES)).toBase58()
-      const weight = sr.readUint64()
+      const weight = toVoteNumber(sr.readUint64())
       const isApproval = sr.readBoolean()
       records.push({ address, weight, isApproval })
     }

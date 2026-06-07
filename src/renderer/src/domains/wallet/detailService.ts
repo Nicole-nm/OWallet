@@ -12,7 +12,9 @@ export async function downloadWalletFile(wallet: CommonWallet) {
   const { Wallet, Account } = await loadOntologySdk()
   const walletFile = Wallet.create(wallet.label || '')
   walletFile.scrypt.n = DEFAULT_SCRYPT.cost
-  const account = Account.parseJsonObj(wallet)
+  const account = Account.parseJsonObj(
+    wallet as unknown as Parameters<typeof Account.parseJsonObj>[0]
+  )
   walletFile.addAccount(account)
   FileHelper.downloadFile(walletFile.toJsonObj(), wallet.label)
 }

@@ -81,7 +81,7 @@ export async function createInvokeTransaction(
 
 export async function createSdkParameter(name: string, type: string, value: unknown) {
   const { Parameter } = await loadOntologySdk()
-  return new Parameter(name, type as never, value)
+  return new Parameter(name, type as never, value as never)
 }
 
 export async function createSdkPublicKey(pkHex: string) {

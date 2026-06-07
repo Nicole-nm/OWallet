@@ -11,6 +11,10 @@ export function formatNumber(
   return parseInt(utils.reverseHex(val), 16)
 }
 
+export function toVoteNumber(value: number | bigint): number {
+  return Number(value)
+}
+
 export function applyStatusText(
   vote: Pick<VoteRecord, 'status' | 'startTime' | 'endTime'> & { statusText?: string },
   nowMs = Date.now()

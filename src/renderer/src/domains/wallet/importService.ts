@@ -1,4 +1,5 @@
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
+import { toSdkJsonAccount } from '../../shared/chain/sdkBoundary'
 import type { ScryptParams } from '../../shared/lib/types'
 import type { SdkPrivateKeyLike, SerializedWalletLike } from '../../shared/chain/types'
 
@@ -20,7 +21,7 @@ export async function importWalletAccountFromMnemonic(
 ) {
   const { Account } = await loadOntologySdk()
   const account = Account.importWithMnemonic(label, mnemonic, password, scrypt as never)
-  return account.toJsonObj() as Record<string, unknown>
+  return toSdkJsonAccount(account.toJsonObj())
 }
 
 export async function decryptImportedWallet(
@@ -51,5 +52,5 @@ export async function createWalletAccountFromPrivateKey(
 ) {
   const { Account } = await loadOntologySdk()
   const account = Account.create(privateKey as never, password, label, scrypt as never)
-  return account.toJsonObj() as Record<string, unknown>
+  return toSdkJsonAccount(account.toJsonObj())
 }
