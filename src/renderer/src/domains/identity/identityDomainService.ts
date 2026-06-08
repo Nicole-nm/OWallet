@@ -4,6 +4,7 @@ import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
 import { GAS_PRICE, GAS_LIMIT } from '../../shared/lib/constants'
 import { serializeTx } from '../transaction/serializationService'
 import type { SdkPrivateKeyLike, SdkTransactionLike } from '../../shared/chain/types'
+import type { Identity } from '../../shared/lib/types'
 
 function serializeIdentityTx(tx: unknown, context: string) {
   return serializeTx(tx as SdkTransactionLike, context)
@@ -14,7 +15,7 @@ export async function buildIdentityRegistration(body: {
   label: string
   payer: unknown
   gasPrice?: string
-}) {
+}): Promise<{ label: string; ontid: string; identity: Identity; tx: unknown }> {
   const { Identity, OntidContract, TransactionBuilder } = await loadOntologySdk()
   const identity = Identity.create(body.privateKey as never, body.password, body.label)
   const publicKey = body.privateKey.getPublicKey()
@@ -46,7 +47,7 @@ type IdentityKeystore = Record<string, unknown> & {
 export async function importIdentityFromSerializedKeystore(
   keystore: IdentityKeystore,
   password: string
-) {
+): Promise<Identity> {
   const params = keystore.scrypt
     ? formatScryptParams(keystore.scrypt as Record<string, unknown>)
     : undefined
@@ -73,7 +74,7 @@ async function importIdentityFromKeystore(
   keystoreObj: IdentityKeystore,
   password: string,
   params: unknown
-) {
+): Promise<Identity> {
   const { Crypto, SDK, Identity } = await loadOntologySdk()
   const encryptedPrivateKey = new Crypto.PrivateKey(keystoreObj.key)
   const address = new Crypto.Address(keystoreObj.address)

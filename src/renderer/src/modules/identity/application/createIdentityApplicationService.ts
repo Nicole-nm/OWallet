@@ -109,7 +109,7 @@ export async function createIdentityRegistrationDraft({
       return {
         label: draft.label,
         ontid: draft.ontid,
-        identity: draft.identity as unknown as Identity,
+        identity: draft.identity,
         tx: draft.tx,
       }
     },

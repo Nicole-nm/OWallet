@@ -37,10 +37,7 @@ export async function importIdentityFromKeystore({ keystoreText, password }: Imp
 
   let identity: Identity
   try {
-    identity = (await importIdentityFromSerializedKeystore(
-      parsedKeystore,
-      password
-    )) as unknown as Identity
+    identity = await importIdentityFromSerializedKeystore(parsedKeystore, password)
   } catch {
     return { ok: false, errorKey: 'importIdentity.passError' }
   }

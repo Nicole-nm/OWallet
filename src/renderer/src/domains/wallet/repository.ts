@@ -10,7 +10,7 @@ import {
   type Identity,
 } from './types'
 
-interface DbRecord<T> {
+type DbRecord<T> = {
   _id?: string
   type: WalletType | 'Identity'
   address: string
@@ -127,7 +127,7 @@ export function findRecordsByPublicKeys(publicKeys: string[]): Promise<DbRecord<
 }
 
 export function insertWalletRecord(doc: Omit<DbRecord<unknown>, '_id'>) {
-  return dbService.insert(doc as unknown as Record<string, unknown>)
+  return dbService.insert(doc)
 }
 
 export function updateWalletRecord(address: string, fields: Record<string, unknown>) {
