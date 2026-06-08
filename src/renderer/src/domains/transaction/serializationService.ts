@@ -7,7 +7,7 @@ interface SerializableTxSignature {
   sigData?: string[]
 }
 
-export function summarizeTx(tx: SdkTransactionLike | null | undefined) {
+function summarizeTx(tx: SdkTransactionLike | null | undefined) {
   return {
     hasPayload: Boolean(tx?.payload),
     sigCount: Array.isArray(tx?.sigs) ? tx.sigs.length : 0,

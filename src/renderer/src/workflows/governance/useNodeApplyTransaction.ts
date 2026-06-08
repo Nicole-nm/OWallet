@@ -3,6 +3,7 @@ import type { Router } from 'vue-router'
 import {
   createNodeApplyTransactionDraft,
   createPendingNodeApplyInfo,
+  validateNodeApplyRegistrationInput,
 } from '../../modules/governance/application/nodeStake/nodeApplyApplicationService'
 import { openNodeManagement } from '../../modules/governance/application/nodeStake/managementContextService'
 import { useNodeSessionStore } from '../../modules/governance/store/nodeSessionStore'
@@ -41,9 +42,22 @@ export function useNodeApplyTransaction({
   const pendingNodeInfoPersisted = ref(false)
 
   async function confirm() {
+    const stakeWalletAddress = stakeWallet.value?.address || ''
+    const operationWalletPublicKey = getNodePublicKey() || ''
+    const validationResult = await validateNodeApplyRegistrationInput({
+      network: settingStore.network,
+      stakeWalletAddress,
+      operationWalletPublicKey,
+    })
+
+    if (!validationResult.ok) {
+      notifyFailure(validationResult, 'common.networkErr')
+      return validationResult
+    }
+
     const result = await createNodeApplyTransactionDraft({
-      stakeWalletAddress: stakeWallet.value?.address || '',
-      operationWalletPublicKey: getNodePublicKey() || '',
+      stakeWalletAddress,
+      operationWalletPublicKey,
       stakeAmount: stakeAmount.value,
     })
 

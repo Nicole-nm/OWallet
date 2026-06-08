@@ -8,6 +8,7 @@ import { classifyError, classifySigningError } from '../../shared/lib/errors'
 import type { FailureMetadata } from '../../shared/lib/result/types'
 import { sendTx } from '../transaction/signingService'
 import { serializeTx } from '../transaction/serializationService'
+import { mapTransactionFailureResponse } from '../transaction/transactionFailureMapper'
 import type { WalletAdapter } from '../wallet/adapter'
 
 // ---------------------------------------------------------------------------
@@ -43,8 +44,8 @@ type HttpBody = Record<string, unknown>
 const logger = createLogger('sharedWalletSigningService')
 
 interface PendingSharedTransaction extends HttpBody {
-  transactionbodyhash: string
-  transactionidhash: string
+  transactionBodyHash: string
+  transactionIdHash: string
 }
 
 function signSharedTransfer(network: string, body: HttpBody) {
@@ -70,7 +71,6 @@ function normalizeSendResponse(
   response: HttpBody,
   tx: { getHash: () => string }
 ): SharedWalletSendResult {
-  const detail = String(response?.Result || '')
   const errorCode = Number(response?.Error)
 
   if (errorCode === 0) {
@@ -81,15 +81,7 @@ function normalizeSendResponse(
     }
   }
 
-  if (detail.includes('balance insufficient')) {
-    return { ok: false, errorKey: 'common.balanceInsufficient', detail }
-  }
-
-  if (errorCode === -1 || detail.includes('cover gas cost')) {
-    return { ok: false, errorKey: 'common.ongNoEnough', detail }
-  }
-
-  return { ok: false, message: detail || null, detail }
+  return mapTransactionFailureResponse(response)
 }
 
 function asSdkTransaction(tx: unknown): SdkTransactionLike {
@@ -200,7 +192,11 @@ export async function submitPendingSharedSignature({
   password?: string
 }): Promise<PendingSharedSignatureResult> {
   try {
-    const tx = await deserializeTransaction(pendingTx.transactionbodyhash)
+    if (!pendingTx.transactionBodyHash || !pendingTx.transactionIdHash) {
+      throw new Error('Pending shared transaction hash payload is missing')
+    }
+
+    const tx = await deserializeTransaction(pendingTx.transactionBodyHash)
     if (!tx.sigs?.[0]) {
       throw new Error('Shared transaction signature payload is missing')
     }
@@ -224,7 +220,7 @@ export async function submitPendingSharedSignature({
     }
 
     const signResponse = (await signSharedTransfer(network, {
-      transactionIdHash: pendingTx.transactionidhash,
+      transactionIdHash: pendingTx.transactionIdHash,
       signedAddress,
       signedHash: serializeTx(
         asSdkTransaction(signed),

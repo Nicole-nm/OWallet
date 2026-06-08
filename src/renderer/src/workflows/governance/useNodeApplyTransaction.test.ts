@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   createNodeApplyTransactionDraft: vi.fn(),
   createPendingNodeApplyInfo: vi.fn(),
+  validateNodeApplyRegistrationInput: vi.fn(),
   openNodeManagement: vi.fn(),
   applyManagementContext: vi.fn(),
   notifyError: vi.fn(),
@@ -14,6 +15,8 @@ vi.mock('../../modules/governance/application/nodeStake/nodeApplyApplicationServ
   createNodeApplyTransactionDraft: (...args: unknown[]) =>
     mocks.createNodeApplyTransactionDraft(...args),
   createPendingNodeApplyInfo: (...args: unknown[]) => mocks.createPendingNodeApplyInfo(...args),
+  validateNodeApplyRegistrationInput: (...args: unknown[]) =>
+    mocks.validateNodeApplyRegistrationInput(...args),
 }))
 
 vi.mock('../../modules/governance/application/nodeStake/managementContextService', () => ({
@@ -71,6 +74,7 @@ describe('useNodeApplyTransaction', () => {
       ok: true,
       tx: createLocalTransactionFixture(),
     })
+    mocks.validateNodeApplyRegistrationInput.mockResolvedValue({ ok: true })
     mocks.createPendingNodeApplyInfo.mockResolvedValue({
       ok: true,
       nodePublicKey: 'node-pk',
@@ -86,6 +90,11 @@ describe('useNodeApplyTransaction', () => {
 
     await expect(subject.confirm()).resolves.toMatchObject({ ok: true })
 
+    expect(mocks.validateNodeApplyRegistrationInput).toHaveBeenCalledWith({
+      network: 'testnet',
+      stakeWalletAddress: 'AQ-stake',
+      operationWalletPublicKey: 'node-pk',
+    })
     expect(mocks.createNodeApplyTransactionDraft).toHaveBeenCalledWith({
       stakeWalletAddress: 'AQ-stake',
       operationWalletPublicKey: 'node-pk',
@@ -140,6 +149,27 @@ describe('useNodeApplyTransaction', () => {
     const { subject } = createSubject()
     await subject.confirm()
 
+    expect(subject.tx.value).toBeNull()
+    expect(subject.signVisible.value).toBe(false)
+  })
+
+  it('confirm stops before creating a draft when the operation public key is registered', async () => {
+    mocks.validateNodeApplyRegistrationInput.mockResolvedValueOnce({
+      ok: false,
+      errorKey: 'nodeApply.publicKeyAlreadyRegistered',
+    })
+
+    const { subject } = createSubject()
+    await expect(subject.confirm()).resolves.toEqual({
+      ok: false,
+      errorKey: 'nodeApply.publicKeyAlreadyRegistered',
+    })
+
+    expect(mocks.notifyFailure).toHaveBeenCalledWith(
+      { ok: false, errorKey: 'nodeApply.publicKeyAlreadyRegistered' },
+      'common.networkErr'
+    )
+    expect(mocks.createNodeApplyTransactionDraft).not.toHaveBeenCalled()
     expect(subject.tx.value).toBeNull()
     expect(subject.signVisible.value).toBe(false)
   })

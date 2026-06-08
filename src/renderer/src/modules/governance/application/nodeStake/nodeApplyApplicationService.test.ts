@@ -10,6 +10,9 @@ const mocks = vi.hoisted(() => ({
   nodeStakeApplicationService: {
     createPendingNodeStakeInfo: vi.fn(),
   },
+  governanceStorageReader: {
+    getPeerPoolMap: vi.fn(),
+  },
 }))
 
 vi.mock('../../../../domains/governance/governanceDomainService', () => ({
@@ -27,12 +30,17 @@ vi.mock('./nodeStakeApplicationService', () => ({
     mocks.nodeStakeApplicationService.createPendingNodeStakeInfo(...args),
 }))
 
+vi.mock('../../../../domains/governance/governanceStorageReader', () => ({
+  getPeerPoolMap: (...args: unknown[]) => mocks.governanceStorageReader.getPeerPoolMap(...args),
+}))
+
 import {
   createNodeApplyTransactionDraft,
   createPendingNodeApplyInfo,
   isNodeApplyAmountValid,
   validateNodeApplyForm,
   validateNodeApplyOperationWallet,
+  validateNodeApplyRegistrationInput,
 } from './nodeApplyApplicationService'
 
 describe('nodeApplyApplicationService', () => {
@@ -98,6 +106,58 @@ describe('nodeApplyApplicationService', () => {
       level: 'warning',
       errorKey: 'nodeApply.sameWalletNotAllowed',
       address: 'AQ123',
+    })
+  })
+
+  it('checks the operation public key against the chain peer pool before registration', async () => {
+    mocks.accountService.deriveAddressFromPublicKey.mockResolvedValue('AQ-operation')
+    mocks.governanceStorageReader.getPeerPoolMap.mockResolvedValue({
+      'NODE-PK': { status: 1 },
+    })
+
+    await expect(
+      validateNodeApplyRegistrationInput({
+        network: 'TEST_NET',
+        stakeWalletAddress: 'AQ123',
+        operationWalletPublicKey: 'node-pk',
+      })
+    ).resolves.toEqual({
+      ok: false,
+      level: 'warning',
+      errorKey: 'nodeApply.publicKeyAlreadyRegistered',
+      address: 'AQ-operation',
+    })
+  })
+
+  it('allows registration when the operation public key is not in the chain peer pool', async () => {
+    mocks.accountService.deriveAddressFromPublicKey.mockResolvedValue('AQ-operation')
+    mocks.governanceStorageReader.getPeerPoolMap.mockResolvedValue({
+      'other-pk': { status: 1 },
+    })
+
+    await expect(
+      validateNodeApplyRegistrationInput({
+        network: 'TEST_NET',
+        stakeWalletAddress: 'AQ123',
+        operationWalletPublicKey: 'node-pk',
+      })
+    ).resolves.toEqual({ ok: true, address: 'AQ-operation' })
+  })
+
+  it('stops registration when the chain peer pool cannot be queried', async () => {
+    mocks.accountService.deriveAddressFromPublicKey.mockResolvedValue('AQ-operation')
+    mocks.governanceStorageReader.getPeerPoolMap.mockRejectedValue(new Error('network down'))
+
+    await expect(
+      validateNodeApplyRegistrationInput({
+        network: 'TEST_NET',
+        stakeWalletAddress: 'AQ123',
+        operationWalletPublicKey: 'node-pk',
+      })
+    ).resolves.toMatchObject({
+      ok: false,
+      errorKey: 'common.networkErr',
+      error: expect.any(Error),
     })
   })
 

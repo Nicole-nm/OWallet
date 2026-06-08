@@ -63,12 +63,12 @@ describe('transactionApplicationService.sendTransaction', () => {
     })
   })
 
-  it('maps Error=-1 response to ongNoEnough error key', async () => {
+  it('does not treat a bare Error=-1 response as an ONG balance error', async () => {
     mocks.signingService.sendTx.mockResolvedValue({ Error: -1, Result: 'detail' })
 
     await expect(sendTransaction(makeTx('x'))).resolves.toEqual({
       ok: false,
-      errorKey: 'common.ongNoEnough',
+      message: 'detail',
       detail: 'detail',
     })
   })

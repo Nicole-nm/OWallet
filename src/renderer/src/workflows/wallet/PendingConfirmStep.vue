@@ -24,7 +24,7 @@ import { computed, onMounted, ref } from 'vue'
 import { BigNumber } from 'bignumber.js'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { useSharedWalletSessionStore } from '../../stores/modules/SharedWalletSession'
-import { findLocalSharedSigner } from '../../modules/wallet/application/sharedWallet/sharedWalletOverviewApplicationService'
+import { findNextLocalSharedSigner } from '../../modules/wallet/application/sharedWallet/sharedWalletOverviewApplicationService'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
 import SharedTransferReviewPanel from './SharedTransferReviewPanel.vue'
 defineOptions({
@@ -52,14 +52,10 @@ onMounted(() => {
 })
 
 async function updateShowSign() {
-  const nextSigner = pendingTx.value.coPayerSignDtos.find(
-    (item: { isSign?: boolean }) => item.isSign === false
-  )
-  if (!nextSigner) {
-    return
-  }
+  showSign.value = false
+  currentWalletStore.setCurrentSigner()
 
-  const result = await findLocalSharedSigner(nextSigner.address)
+  const result = await findNextLocalSharedSigner(pendingTx.value.coPayerSignDtos)
   if (result.ok && result.signer) {
     currentWalletStore.setCurrentSigner({ account: result.signer })
     showSign.value = true

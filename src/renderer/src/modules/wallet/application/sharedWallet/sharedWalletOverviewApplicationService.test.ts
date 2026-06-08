@@ -25,6 +25,7 @@ vi.mock('../../../../domains/sharedWallet/sharedWalletDomainService', () => ({
 import {
   checkSharedWalletHasLocalCopayer,
   findLocalSharedSigner,
+  findNextLocalSharedSigner,
   loadLocalSharedCopayers,
   loadPendingSharedTransfers,
 } from './sharedWalletOverviewApplicationService'
@@ -36,14 +37,61 @@ describe('sharedWalletOverviewApplicationService', () => {
 
   it('loads and formats pending shared transfers', async () => {
     mocks.sharedWalletService.queryPendingTransfer.mockResolvedValue({
-      SigningSharedTransfers: [{ assetName: 'ONG', amount: '1000000000' }],
+      SigningSharedTransfers: [
+        {
+          assetName: 'ONG',
+          amount: '1000000000',
+          receiveAddress: 'AQ2',
+          sendAddress: 'AS1',
+          gasPrice: '500',
+          gasLimit: '20000',
+          coPayerSignVOS: [
+            { address: 'AQ1', name: 'Alice', publickey: 'pk1', isSign: 1 },
+            { address: 'AQ2', name: 'Bob', publicKey: 'pk2', isSign: 'false' },
+          ],
+          transactionidhash: 'legacy-id',
+          transactionbodyhash: 'legacy-body',
+        },
+      ],
     })
 
     await expect(
       loadPendingSharedTransfers({ network: 'testnet', sharedWalletAddress: 'AQ123' })
     ).resolves.toEqual({
       ok: true,
-      transfers: [{ assetName: 'ONG', amount: '1.000000000' }],
+      transfers: [
+        {
+          amount: '1.000000000',
+          assetName: 'ONG',
+          receiveaddress: 'AQ2',
+          sendaddress: 'AS1',
+          gasprice: '500',
+          gaslimit: '20000',
+          coPayerSignDtos: [
+            {
+              address: 'AQ1',
+              name: 'Alice',
+              publickey: 'pk1',
+              publicKey: 'pk1',
+              isSign: true,
+            },
+            {
+              address: 'AQ2',
+              name: 'Bob',
+              publickey: 'pk2',
+              publicKey: 'pk2',
+              isSign: false,
+            },
+          ],
+          transactionBodyHash: 'legacy-body',
+          transactionIdHash: 'legacy-id',
+        },
+      ],
+    })
+    expect(mocks.sharedWalletService.queryPendingTransfer).toHaveBeenCalledWith('testnet', {
+      sharedAddress: 'AQ123',
+      assetName: '',
+      beforeTimeStamp: expect.any(Number),
     })
   })
 
@@ -66,6 +114,7 @@ describe('sharedWalletOverviewApplicationService', () => {
       signer: {
         address: 'AQ123',
         label: 'Main Wallet',
+        publicKey: '',
         type: 'CommonWallet',
       },
     })
@@ -75,5 +124,35 @@ describe('sharedWalletOverviewApplicationService', () => {
       ok: true,
       hasLocalCopayer: true,
     })
+  })
+
+  it('selects the first local unsigned pending signer', async () => {
+    mocks.walletService.getLocalCopayers.mockResolvedValue([
+      {
+        address: 'AQ3',
+        type: 'CommonWallet',
+        wallet: { address: 'AQ3', label: 'Third Wallet', publicKey: 'pk3' },
+      },
+    ])
+
+    await expect(
+      findNextLocalSharedSigner([
+        { address: 'AQ1', name: 'Alice', isSign: true },
+        { address: 'AQ2', name: 'Bob', isSign: false },
+        { address: 'AQ3', name: 'Carol', isSign: false },
+      ])
+    ).resolves.toEqual({
+      ok: true,
+      signer: {
+        address: 'AQ3',
+        label: 'Third Wallet',
+        publicKey: 'pk3',
+        type: 'CommonWallet',
+      },
+    })
+    expect(mocks.walletService.getLocalCopayers).toHaveBeenCalledWith([
+      { address: 'AQ2', name: 'Bob', isSign: false },
+      { address: 'AQ3', name: 'Carol', isSign: false },
+    ])
   })
 })

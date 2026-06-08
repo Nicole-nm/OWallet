@@ -10,8 +10,20 @@ vi.mock('../../shared/lib/logger', () => ({
   logger: mocks.logger,
 }))
 
-import { serializeTx, summarizeTx } from './serializationService'
+import { serializeTx } from './serializationService'
 import type { SdkTransactionLike } from '../../shared/chain/types'
+
+type TxSummary = {
+  hasPayload: boolean
+  sigCount: number
+  sigs: Array<{
+    m?: number
+    pubKeyCount: number
+    pubKeys: string[]
+    sigDataCount: number
+    sigData: string[]
+  }>
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -77,75 +89,8 @@ describe('serializeTx()', () => {
 
     expect(() => serializeTx(badTx, 'ctx')).toThrow('bad hash')
 
-    const loggedSummary = JSON.parse(mocks.logger.error.mock.calls[0]![1] as string) as ReturnType<
-      typeof import('./serializationService').summarizeTx
-    >
+    const loggedSummary = JSON.parse(mocks.logger.error.mock.calls[0]![1] as string) as TxSummary
     expect(loggedSummary.sigCount).toBe(2)
     expect(loggedSummary.hasPayload).toBe(true)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// summarizeTx
-// ---------------------------------------------------------------------------
-
-describe('summarizeTx()', () => {
-  it('returns a zeroed summary for null input', () => {
-    const summary = summarizeTx(null)
-    expect(summary.sigCount).toBe(0)
-    expect(summary.hasPayload).toBe(false)
-    expect(summary.sigs).toEqual([])
-  })
-
-  it('returns a zeroed summary for undefined input', () => {
-    const summary = summarizeTx(undefined)
-    expect(summary.sigCount).toBe(0)
-    expect(summary.sigs).toEqual([])
-  })
-
-  it('correctly summarises a transaction with sigs', () => {
-    const tx = makeTx({
-      sigs: [
-        {
-          M: 1,
-          pubKeys: [{ serializeHex: () => 'pub-hex-1' }, { serializeHex: () => 'pub-hex-2' }],
-          sigData: ['sig-a', 'sig-b'],
-        },
-      ],
-      payload: { code: 'some-code' },
-    })
-
-    const summary = summarizeTx(tx)
-
-    expect(summary.hasPayload).toBe(true)
-    expect(summary.sigCount).toBe(1)
-    const sig0 = summary.sigs[0]!
-    expect(sig0.m).toBe(1)
-    expect(sig0.pubKeyCount).toBe(2)
-    expect(sig0.pubKeys).toEqual(['pub-hex-1', 'pub-hex-2'])
-    expect(sig0.sigDataCount).toBe(2)
-    expect(sig0.sigData).toEqual(['sig-a', 'sig-b'])
-  })
-
-  it('handles sigs with pubKeys that throw during serializeHex gracefully', () => {
-    const tx = makeTx({
-      sigs: [
-        {
-          M: 1,
-          pubKeys: [
-            {
-              serializeHex: () => {
-                throw new Error('pk serialization failed')
-              },
-            },
-          ],
-          sigData: [],
-        },
-      ],
-    })
-
-    const summary = summarizeTx(tx)
-
-    expect(summary.sigs[0]!.pubKeys).toEqual([''])
   })
 })

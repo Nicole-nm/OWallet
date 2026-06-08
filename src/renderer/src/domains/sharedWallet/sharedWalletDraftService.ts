@@ -32,6 +32,12 @@ export type CreatedSharedTransferResult =
   | { ok: false; errorKey: string; response: HttpBody }
 
 type HttpBody = Record<string, unknown>
+type HttpQueryParams = Record<string, string | number | boolean | undefined | null>
+type SharedTransferPayerBody = {
+  address?: string
+  name?: string
+  publickey?: string
+}
 
 interface SharedTransferInput extends HttpBody {
   asset?: string
@@ -50,6 +56,44 @@ interface SharedRedeemInput extends HttpBody {
 interface InvokeParameterDraft {
   type: string
   value: string
+}
+
+function stringifyPayerField(value: unknown): string | undefined {
+  if (value === undefined || value === null) {
+    return undefined
+  }
+
+  const normalized = String(value).trim()
+  return normalized || undefined
+}
+
+function normalizeSharedTransferPayer(payer: unknown): SharedTransferPayerBody | null {
+  if (typeof payer === 'string') {
+    const address = stringifyPayerField(payer)
+    return address ? { address } : null
+  }
+
+  if (!payer || typeof payer !== 'object') {
+    return null
+  }
+
+  const record = payer as Record<string, unknown>
+  const normalized: SharedTransferPayerBody = {}
+  const address = stringifyPayerField(record.address)
+  const name = stringifyPayerField(record.name ?? record.label)
+  const publickey = stringifyPayerField(record.publickey ?? record.publicKey)
+
+  if (address) normalized.address = address
+  if (name) normalized.name = name
+  if (publickey) normalized.publickey = publickey
+
+  return Object.keys(normalized).length > 0 ? normalized : null
+}
+
+function normalizeSharedTransferPayers(payers: unknown[] = []): SharedTransferPayerBody[] {
+  return payers
+    .map((payer) => normalizeSharedTransferPayer(payer))
+    .filter((payer): payer is SharedTransferPayerBody => payer !== null)
 }
 
 // ---------------------------------------------------------------------------
@@ -74,8 +118,10 @@ export function createSharedTransfer(network: string, body: HttpBody) {
   })
 }
 
-export function queryPendingTransfer(network: string, params: HttpBody) {
-  return httpClient.post(getOntPassHost(network) + ONT_PASS_API_PATHS.QueryPendingTransfer, params)
+export function queryPendingTransfer(network: string, params: HttpQueryParams) {
+  return httpClient.get(getOntPassHost(network) + ONT_PASS_API_PATHS.QueryPendingTransfer, {
+    params,
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -156,7 +202,7 @@ export async function submitCreatedSharedTransfer({
   network: string
   sharedWallet: SharedWallet
   transfer: SharedTransferInput
-  payers: HttpBody[]
+  payers: unknown[]
   draft: SharedTransactionDraft
 }): Promise<CreatedSharedTransferResult> {
   const txHash = reverseHex(draft.tx.getHash())
@@ -170,7 +216,7 @@ export async function submitCreatedSharedTransfer({
     gasPrice: draft.gasPrice,
     transactionIdHash: txHash,
     transactionBodyHash: txData,
-    coPayers: payers,
+    coPayers: normalizeSharedTransferPayers(payers),
   })) as HttpBody
 
   if (response && response.Error && response.Error !== 0) {

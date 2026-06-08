@@ -1,3 +1,4 @@
+import { BigNumber } from 'bignumber.js'
 import {
   createDelegatedStakeTransactionBody,
   createNodeStakeRegistrationTransaction,
@@ -9,6 +10,7 @@ import {
   applyPrivateKeyTransactionSignature,
   decryptWalletPrivateKey,
 } from '../../../../domains/transaction/transactionDomainService'
+import { fetchNativeBalance } from '../../../../domains/wallet/walletDomainService'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
 import { varifyPositiveInt } from '../../../../shared/lib/validators'
@@ -92,6 +94,25 @@ export async function ensureNodeStakeQualification({
   return result
 }
 
+export async function validateNodeStakeRegistrationBalance({
+  stakeWalletAddress,
+  stakeQuantity,
+}: {
+  stakeWalletAddress: string
+  stakeQuantity: string | number
+}) {
+  const balanceResult = await fetchNativeBalance(stakeWalletAddress)
+  if (!balanceResult.ok) {
+    return { ok: false as const, errorKey: balanceResult.errorKey || 'common.networkErr' }
+  }
+
+  if (new BigNumber(stakeQuantity).isGreaterThan(balanceResult.data.ont || 0)) {
+    return { ok: false as const, errorKey: 'nodeStake.ontBalanceInsufficient' }
+  }
+
+  return { ok: true as const }
+}
+
 export async function createNodeStakeRegistrationDraft({
   stakeQuantity,
   stakeDetail,
@@ -110,6 +131,12 @@ export async function createNodeStakeRegistrationDraft({
   if (!detail.ontid || !detail.publicKey || !detail.stakeWalletAddress) {
     return { ok: false, errorKey: 'common.networkErr' }
   }
+
+  const balanceResult = await validateNodeStakeRegistrationBalance({
+    stakeWalletAddress: detail.stakeWalletAddress,
+    stakeQuantity,
+  })
+  if (!balanceResult.ok) return balanceResult
 
   return tryCatch(
     async () => ({

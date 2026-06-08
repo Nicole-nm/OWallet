@@ -563,6 +563,7 @@ export default {
     invalidOntid: 'Invalid ONT ID ',
     invalidAddress: 'Invalid stake wallet address',
     stakeQuantityEmpty: 'Please enter valid stake quantity',
+    ontBalanceInsufficient: 'Insufficient ONT balance to complete staking.',
     password: 'Enter Password',
     signWithOntid: 'Sign with ONT ID',
     signWithWallet: 'Authentication',
@@ -803,6 +804,8 @@ Within their 50% share each consensus node will receive their share according to
     completeNodeInfo: 'Complete node info now',
     later: 'Later',
     sameWalletNotAllowed: 'The operation wallet and staking wallet can not be the same',
+    publicKeyAlreadyRegistered:
+      'This operation public key is already registered. Use a different operation wallet or public key.',
     operationWalletRequired: 'Operation wallet is required',
     stakeWalletRequired: 'Stake wallet is required',
     stakeAmountRequired: 'Stake amount is required',

@@ -65,8 +65,8 @@ export function createFakePendingTransfer(
     gasprice: 500,
     gaslimit: 20000,
     coPayerSignDtos: [],
-    transactionbodyhash: '',
-    transactionidhash: '',
+    transactionBodyHash: '',
+    transactionIdHash: '',
     ...overrides,
   }
 }

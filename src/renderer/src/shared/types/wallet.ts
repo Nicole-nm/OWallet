@@ -86,8 +86,8 @@ export interface PendingSharedTransfer {
   gasprice: string | number
   gaslimit: string | number
   coPayerSignDtos: SharedCopayer[]
-  transactionbodyhash: string
-  transactionidhash: string
+  transactionBodyHash: string
+  transactionIdHash: string
   [key: string]: unknown
 }
 

@@ -83,8 +83,8 @@ function makePendingTransfer(
 ): PendingSharedTransfer {
   return createFakePendingTransfer({
     sendaddress: 'AQ1',
-    transactionbodyhash: 'body',
-    transactionidhash: 'txid',
+    transactionBodyHash: 'body',
+    transactionIdHash: 'txid',
     ...overrides,
   })
 }
@@ -337,7 +337,7 @@ describe('sharedWalletTransactionApplicationService', () => {
     await expect(
       submitPendingSharedTransferSignature({
         network: 'testnet',
-        pendingTx: makePendingTransfer({ transactionbodyhash: 'body' }),
+        pendingTx: makePendingTransfer({ transactionBodyHash: 'body' }),
         sharedWallet: {
           address: 'AS123',
           label: 'multi',

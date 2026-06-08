@@ -125,8 +125,8 @@ describe('sharedWalletSigningService', () => {
       const result = await submitPendingSharedSignature({
         network: 'testnet',
         pendingTx: {
-          transactionbodyhash: 'serialized',
-          transactionidhash: 'tx-id-hash',
+          transactionBodyHash: 'serialized',
+          transactionIdHash: 'tx-id-hash',
         },
         adapter: makeAdapter(commonCapabilities, partialTx),
         signedAddress: 'ACosigner',
@@ -134,6 +134,7 @@ describe('sharedWalletSigningService', () => {
       })
 
       expect(result).toEqual({ ok: true, sentToChain: false })
+      expect(mocks.transactionSdk.deserializeTransaction).toHaveBeenCalledWith('serialized')
       expect(mocks.httpClient.post).toHaveBeenCalledWith(
         'https://node.example/sign',
         {
@@ -168,8 +169,8 @@ describe('sharedWalletSigningService', () => {
       const result = await submitPendingSharedSignature({
         network: 'testnet',
         pendingTx: {
-          transactionbodyhash: 'serialized',
-          transactionidhash: 'tx-id-hash',
+          transactionBodyHash: 'serialized',
+          transactionIdHash: 'tx-id-hash',
         },
         adapter: makeAdapter(commonCapabilities, completedTx),
         signedAddress: 'ACosigner',
@@ -189,8 +190,8 @@ describe('sharedWalletSigningService', () => {
       const result = await submitPendingSharedSignature({
         network: 'testnet',
         pendingTx: {
-          transactionbodyhash: 'serialized',
-          transactionidhash: 'tx-id-hash',
+          transactionBodyHash: 'serialized',
+          transactionIdHash: 'tx-id-hash',
         },
         adapter: makeAdapter(commonCapabilities, null),
         signedAddress: 'ACosigner',
@@ -210,8 +211,8 @@ describe('sharedWalletSigningService', () => {
       const result = await submitPendingSharedSignature({
         network: 'testnet',
         pendingTx: {
-          transactionbodyhash: 'serialized',
-          transactionidhash: 'tx-id-hash',
+          transactionBodyHash: 'serialized',
+          transactionIdHash: 'tx-id-hash',
         },
         adapter: makeAdapter(ledgerCapabilities, null),
         signedAddress: 'ACosigner',
@@ -231,8 +232,8 @@ describe('sharedWalletSigningService', () => {
       const result = await submitPendingSharedSignature({
         network: 'testnet',
         pendingTx: {
-          transactionbodyhash: 'serialized',
-          transactionidhash: 'tx-id-hash',
+          transactionBodyHash: 'serialized',
+          transactionIdHash: 'tx-id-hash',
         },
         adapter,
         signedAddress: 'ACosigner',
@@ -258,8 +259,8 @@ describe('sharedWalletSigningService', () => {
       const result = await submitPendingSharedSignature({
         network: 'testnet',
         pendingTx: {
-          transactionbodyhash: 'serialized',
-          transactionidhash: 'tx-id-hash',
+          transactionBodyHash: 'serialized',
+          transactionIdHash: 'tx-id-hash',
         },
         adapter,
         signedAddress: 'ACosigner',
@@ -285,8 +286,8 @@ describe('sharedWalletSigningService', () => {
       const result = await submitPendingSharedSignature({
         network: 'testnet',
         pendingTx: {
-          transactionbodyhash: 'serialized',
-          transactionidhash: 'tx-id-hash',
+          transactionBodyHash: 'serialized',
+          transactionIdHash: 'tx-id-hash',
         },
         adapter,
         signedAddress: 'ACosigner',
@@ -322,8 +323,8 @@ describe('sharedWalletSigningService', () => {
       const result = await submitPendingSharedSignature({
         network: 'testnet',
         pendingTx: {
-          transactionbodyhash: 'serialized',
-          transactionidhash: 'tx-id-hash',
+          transactionBodyHash: 'serialized',
+          transactionIdHash: 'tx-id-hash',
         },
         adapter: makeAdapter(commonCapabilities, signedTx),
         signedAddress: 'ACosigner',
@@ -480,6 +481,14 @@ describe('sharedWalletSigningService', () => {
 
       const result = await sendSerializedSharedTransaction('hex')
       expect(result).toMatchObject({ ok: false, errorKey: 'common.ongNoEnough' })
+    })
+
+    it('does not treat a bare Error=-1 result as an ONG balance error', async () => {
+      mocks.transactionSdk.deserializeTransaction.mockResolvedValue({ getHash: () => 'h' })
+      mocks.signingService.sendTx.mockResolvedValue({ Error: -1, Result: 'already registered' })
+
+      const result = await sendSerializedSharedTransaction('hex')
+      expect(result).toMatchObject({ ok: false, message: 'already registered' })
     })
 
     it('returns a generic failure message for other errors', async () => {

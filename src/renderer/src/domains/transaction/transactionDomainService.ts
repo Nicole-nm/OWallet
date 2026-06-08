@@ -7,32 +7,13 @@ import { reverseHex } from '../../shared/chain/sdkHex'
 import { toSdkTransactionResponse } from '../../shared/chain/sdkBoundary'
 import { sendTx } from './signingService'
 import { serializeTx } from './serializationService'
-import type {
-  SdkPrivateKeyLike,
-  SdkTransactionLike,
-  SdkTransactionResponseLike,
-} from '../../shared/chain/types'
+import { mapTransactionFailureResponse } from './transactionFailureMapper'
+import type { SdkPrivateKeyLike, SdkTransactionLike } from '../../shared/chain/types'
 import { createLogger } from '../../shared/lib/logger'
 import type { ScryptParams, TransferParams, WalletSigner } from '../../shared/lib/types'
 import type { SendTransactionResult } from './types'
 
 const logger = createLogger('transactionDomainService')
-
-function mapTransactionFailure(
-  response: SdkTransactionResponseLike | null | undefined
-): SendTransactionResult {
-  const detail = String(response?.Result || '')
-
-  if (response?.Error === -1 || detail.includes('cover gas cost')) {
-    return { ok: false, errorKey: 'common.ongNoEnough', detail }
-  }
-
-  if (detail.includes('balance insufficient')) {
-    return { ok: false, errorKey: 'common.balanceInsufficient', detail }
-  }
-
-  return { ok: false, message: detail || null, detail }
-}
 
 export async function createTransferTransaction({
   transfer,
@@ -93,7 +74,7 @@ export async function sendTransaction(tx: SdkTransactionLike): Promise<SendTrans
       }
     }
 
-    return mapTransactionFailure(response)
+    return mapTransactionFailureResponse(response)
   } catch (err: unknown) {
     logger.error('sendTransaction', err)
     return {

@@ -1,4 +1,5 @@
 import { createRegisterCandidateTransaction } from '../../../../domains/governance/governanceDomainService'
+import { getPeerPoolMap } from '../../../../domains/governance/governanceStorageReader'
 import { deriveAddressFromPublicKey } from '../../../../domains/wallet/accountService'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
@@ -7,6 +8,10 @@ import { createPendingNodeStakeInfo } from './nodeStakeApplicationService'
 import { NetworkId } from '../../../../shared/lib/types'
 
 const logger = createLogger('nodeApplyApplicationService')
+
+function normalizePublicKeyForCompare(publicKey: string) {
+  return publicKey.trim().toLowerCase()
+}
 
 export function isNodeApplyAmountValid(amount: string | number) {
   return !(amount && !varifyPositiveInt(amount))
@@ -78,6 +83,59 @@ export async function validateNodeApplyOperationWallet({
     }
   }
   return result
+}
+
+export async function validateNodeApplyRegistrationInput({
+  network,
+  stakeWalletAddress,
+  operationWalletPublicKey,
+}: {
+  network: NetworkId
+  stakeWalletAddress: string
+  operationWalletPublicKey: string
+}) {
+  if (!network || !stakeWalletAddress) {
+    return { ok: false as const, errorKey: 'nodeApply.stakeWalletRequired' }
+  }
+
+  if (!operationWalletPublicKey) {
+    return { ok: false as const, errorKey: 'nodeApply.operationWalletRequired' }
+  }
+
+  const walletResult = await validateNodeApplyOperationWallet({
+    stakeWalletAddress,
+    operationWalletPublicKey,
+  })
+  if (!walletResult.ok) return walletResult
+
+  const peerPoolResult = await tryCatch(
+    async () => ({
+      peerPool: await getPeerPoolMap(),
+    }),
+    {
+      context: 'validateNodeApplyRegistrationInput.peerPool',
+      errorKey: 'common.networkErr',
+      logger,
+    }
+  )
+
+  if (!peerPoolResult.ok) return peerPoolResult
+
+  const operationKey = normalizePublicKeyForCompare(operationWalletPublicKey)
+  const registered = Object.keys(peerPoolResult.peerPool || {}).some(
+    (peerPublicKey) => normalizePublicKeyForCompare(peerPublicKey) === operationKey
+  )
+
+  if (registered) {
+    return {
+      ok: false as const,
+      level: 'warning' as const,
+      errorKey: 'nodeApply.publicKeyAlreadyRegistered',
+      address: walletResult.address,
+    }
+  }
+
+  return { ok: true as const, address: walletResult.address }
 }
 
 export async function createNodeApplyTransactionDraft({

@@ -1,7 +1,7 @@
 <template>
   <section class="ow-panel wallet-dashboard__panel">
     <h2 class="wallet-dashboard__panel-title">{{ $t('sharedWalletHome.pendingTx') }}</h2>
-    <div class="wallet-dashboard__tx-list wallet-dashboard__tx-list--pending">
+    <div class="wallet-dashboard__tx-list">
       <wallet-transaction-empty-state
         v-if="pendingTx.length === 0"
         class="wallet-dashboard__empty wallet-dashboard__empty--pending"
@@ -9,11 +9,13 @@
       />
       <div
         v-for="tx in pendingTx"
-        :key="tx.transactionidhash"
+        :key="tx.transactionIdHash"
         class="wallet-dashboard__tx-row"
         @click="$emit('show-detail', tx)"
       >
-        <span class="wallet-dashboard__tx-hash">{{ tx.transactionidhash }}</span>
+        <span class="wallet-dashboard__tx-hash">
+          {{ tx.transactionIdHash.substring(0, 40) + '...' }}
+        </span>
         <span class="wallet-dashboard__tx-amount">
           {{ tx.receiveaddress === sharedWalletAddress ? '+' : '-' }}
           {{ tx.amount }} {{ tx.assetName }}
@@ -55,11 +57,6 @@ defineEmits<{
 
 .wallet-dashboard__empty {
   margin: var(--ow-space-3) 0 0;
-}
-
-.wallet-dashboard__tx-list--pending {
-  max-height: 150px;
-  overflow-y: auto;
 }
 
 .wallet-dashboard__tx-row {

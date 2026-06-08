@@ -45,7 +45,7 @@ export function useSharedWalletHomePage() {
 
     refresh(true)
     ifHasLocalCopayer()
-    startPolling({ immediate: false })
+    startPolling({ immediate: true })
   })
 
   function refresh(showLoading: boolean) {

@@ -319,9 +319,11 @@ describe('sharedWalletDraftService', () => {
       )
     })
 
-    it('queryPendingTransfer posts to the pending endpoint', () => {
+    it('queryPendingTransfer gets with pending query params', () => {
       queryPendingTransfer('MAIN_NET', { b: 2 })
-      expect(mocks.httpClient.post).toHaveBeenCalledWith('https://node.example/pending', { b: 2 })
+      expect(mocks.httpClient.get).toHaveBeenCalledWith('https://node.example/pending', {
+        params: { b: 2 },
+      })
     })
   })
 
@@ -351,6 +353,59 @@ describe('sharedWalletDraftService', () => {
         expect(result.txHash).toBe('hashbytes')
         expect(result.serializedTx).toBe('serialized-data')
       }
+      const body = mocks.httpClient.post.mock.calls[0]?.[1] as { amount?: unknown }
+      expect(body.amount).toBe('100')
+    })
+
+    it('strips non-cloneable payer fields from the create-transfer body', async () => {
+      mocks.serializeTx.mockReturnValue('serialized-data')
+      mocks.httpClient.post.mockResolvedValue({ Error: 0 })
+
+      const pollutedPayers = [
+        {
+          address: 'AQ1',
+          name: 'Sponsor',
+          publicKey: 'pk-sponsor',
+          type: 'CommonWallet',
+          value: 'AQ1',
+          label: 'Local Sponsor',
+          wallet: {
+            address: 'AQ1',
+            key: 'encrypted-key',
+            salt: 'salt',
+          },
+          reactiveHook: () => 'noop',
+        },
+        {
+          address: 'AQ2',
+          name: 'Second',
+          publickey: 'pk-second',
+          onClick: () => 'noop',
+        },
+        'AQ3',
+      ]
+      expect(() => structuredClone(pollutedPayers)).toThrow()
+
+      await submitCreatedSharedTransfer({
+        network: 'MAIN_NET',
+        sharedWallet: makeSharedWallet('2', '3', 3),
+        transfer: { asset: 'ONT', to: 'ATo', isRedeem: false, amount: '100' },
+        payers: pollutedPayers,
+        draft: baseDraft,
+      })
+
+      const body = mocks.httpClient.post.mock.calls[0]?.[1] as {
+        coPayers: Array<Record<string, unknown>>
+      }
+      expect(body.coPayers).toEqual([
+        { address: 'AQ1', name: 'Sponsor', publickey: 'pk-sponsor' },
+        { address: 'AQ2', name: 'Second', publickey: 'pk-second' },
+        { address: 'AQ3' },
+      ])
+      for (const payer of body.coPayers) {
+        expect(Object.getPrototypeOf(payer)).toBe(Object.prototype)
+      }
+      expect(() => structuredClone(body)).not.toThrow()
     })
 
     it('returns a failure result when the API responds with an error code', async () => {

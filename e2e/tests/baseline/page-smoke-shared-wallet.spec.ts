@@ -47,9 +47,8 @@ test.describe('Baseline Page Smoke: shared wallet routes', () => {
     await expect(
       appPage.getByText(TEST_SHARED_WALLET.sharedWalletName, { exact: true })
     ).toBeVisible()
-    await expect(
-      appPage.getByText(TEST_SHARED_PENDING_TRANSFER.transactionidhash, { exact: true })
-    ).toBeVisible()
+    const pendingTxLabel = `${TEST_SHARED_PENDING_TRANSFER.transactionIdHash.substring(0, 40)}...`
+    await expect(appPage.getByText(pendingTxLabel, { exact: true })).toBeVisible()
     await expect(
       appPage
         .locator('.wallet-dashboard__asset-row')
@@ -111,7 +110,8 @@ test.describe('Baseline Page Smoke: shared wallet routes', () => {
 
   test('should open pending transaction home from shared wallet home', async ({ appPage }) => {
     await gotoHash(appPage, '#/sharedWallet/home')
-    await appPage.getByText(TEST_SHARED_PENDING_TRANSFER.transactionidhash, { exact: true }).click()
+    const pendingTxLabel = `${TEST_SHARED_PENDING_TRANSFER.transactionIdHash.substring(0, 40)}...`
+    await appPage.getByText(pendingTxLabel, { exact: true }).click()
     await appPage.waitForURL(/sharedWallet\/pendingTxHome/i)
 
     await expect(appPage.locator('.pending-container')).toBeVisible()

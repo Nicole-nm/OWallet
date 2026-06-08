@@ -52,8 +52,8 @@ export const TEST_SHARED_WALLET = {
 }
 
 export const TEST_SHARED_PENDING_TRANSFER = {
-  transactionidhash: 'shared-pending-tx-hash',
-  transactionbodyhash: 'serialized-pending-tx',
+  transactionIdHash: 'shared-pending-tx-hash',
+  transactionBodyHash: 'serialized-pending-tx',
   sendaddress: TEST_SHARED_WALLET.sharedWalletAddress,
   receiveaddress: TEST_WALLETS.bob.address,
   assetName: 'ONT',

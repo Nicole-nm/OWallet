@@ -59,8 +59,8 @@ function createDefaultPendingTx(): PendingSharedTransfer {
     gasprice: 0,
     gaslimit: 0,
     coPayerSignDtos: [],
-    transactionbodyhash: '',
-    transactionidhash: '',
+    transactionBodyHash: '',
+    transactionIdHash: '',
   }
 }
 

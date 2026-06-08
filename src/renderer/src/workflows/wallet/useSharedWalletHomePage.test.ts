@@ -146,7 +146,7 @@ describe('useSharedWalletHomePage', () => {
       txSliceCount: 6,
     })
     expect(mocks.dashboard.refresh).toHaveBeenCalledWith(true, [expect.any(Function)])
-    expect(mocks.polling.startPolling).toHaveBeenCalledWith({ immediate: false })
+    expect(mocks.polling.startPolling).toHaveBeenCalledWith({ immediate: true })
   })
 
   it('loads pending transfers with the shared wallet address', async () => {

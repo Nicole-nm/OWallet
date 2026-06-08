@@ -12,6 +12,9 @@ const mocks = vi.hoisted(() => ({
     applyPrivateKeyTransactionSignature: vi.fn(),
     decryptWalletPrivateKey: vi.fn(),
   },
+  walletDomainService: {
+    fetchNativeBalance: vi.fn(),
+  },
   nodeStakeApplicationService: {
     loadStakeDetail: vi.fn(),
   },
@@ -35,6 +38,10 @@ vi.mock('../../../../domains/transaction/transactionDomainService', () => ({
     mocks.transactionService.decryptWalletPrivateKey(...args),
 }))
 
+vi.mock('../../../../domains/wallet/walletDomainService', () => ({
+  fetchNativeBalance: (...args: any[]) => mocks.walletDomainService.fetchNativeBalance(...args),
+}))
+
 vi.mock('./nodeStakeApplicationService', () => ({
   loadStakeDetail: (...args: any[]) => mocks.nodeStakeApplicationService.loadStakeDetail(...args),
 }))
@@ -45,6 +52,7 @@ import {
   loadNodeStakeRegistrationDetail,
   signNodeStakeRegistrationOntid,
   submitNodeStakeRegistration,
+  validateNodeStakeRegistrationBalance,
 } from './nodeStakeOnboardingApplicationService'
 import type { Identity } from '../../../../shared/lib/types'
 import type { WalletAdapter, WalletCapabilities } from '../../../../domains/wallet/adapter'
@@ -140,6 +148,10 @@ describe('nodeStakeOnboardingApplicationService', () => {
     ).resolves.toEqual({ ok: false, errorKey: 'nodeStake.stakeQuantityEmpty' })
 
     mocks.nodeStakeService.createNodeStakeRegistrationTransaction.mockResolvedValue('tx')
+    mocks.walletDomainService.fetchNativeBalance.mockResolvedValue({
+      ok: true,
+      data: { ont: '20', ong: '1' },
+    })
 
     await expect(
       createNodeStakeRegistrationDraft({
@@ -158,6 +170,29 @@ describe('nodeStakeOnboardingApplicationService', () => {
       stakeWalletAddress: 'AQ123',
       gasPrice: '500',
     })
+  })
+
+  it('blocks node stake registration when the stake wallet does not have enough ONT', async () => {
+    mocks.walletDomainService.fetchNativeBalance.mockResolvedValue({
+      ok: true,
+      data: { ont: '9', ong: '1' },
+    })
+
+    await expect(
+      validateNodeStakeRegistrationBalance({
+        stakeWalletAddress: 'AQ123',
+        stakeQuantity: '10',
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'nodeStake.ontBalanceInsufficient' })
+
+    await expect(
+      createNodeStakeRegistrationDraft({
+        stakeQuantity: '10',
+        stakeDetail: { ontid: 'did:ont:1', publicKey: 'pk-1', stakeWalletAddress: 'AQ123' },
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'nodeStake.ontBalanceInsufficient' })
+
+    expect(mocks.nodeStakeService.createNodeStakeRegistrationTransaction).not.toHaveBeenCalled()
   })
 
   it('signs a registration transaction with ontid credentials and maps decrypt failures to password errors', async () => {

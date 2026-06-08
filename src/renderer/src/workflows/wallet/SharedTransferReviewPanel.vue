@@ -303,7 +303,10 @@ function signedStateClass(payer: SharedCopayer): string {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--ow-color-text-secondary);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
