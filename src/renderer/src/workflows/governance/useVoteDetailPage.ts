@@ -120,15 +120,6 @@ export function useVoteDetailPage() {
     columns.value = nextColumns
   }
 
-  function navigateVoteDetailBack() {
-    router.back()
-  }
-
-  function openVoteExplorer() {
-    const url = `${getExplorerUrl()}/transaction/${reverseVoteHash(String(vote.value.hash || ''))}`
-    openExternalUrl(url)
-  }
-
   async function initializeVoteDetailPage() {
     loadingStore.showLoadingModals()
 
@@ -183,20 +174,8 @@ export function useVoteDetailPage() {
     return result
   }
 
-  function closeVoteDetailDialog() {
-    signVisible.value = false
-    tx.value = ''
-  }
-
   function setVoteDetailDialogVisible(visible: boolean) {
     signVisible.value = visible
-  }
-
-  function handleVoteDetailSent() {
-    signVisible.value = false
-    setTimeout(() => {
-      void refreshVoteDetail()
-    }, 3000)
   }
 
   function createStatusMap() {
@@ -204,7 +183,7 @@ export function useVoteDetailPage() {
   }
 
   function back() {
-    navigateVoteDetailBack()
+    router.back()
   }
 
   function formatTime(dateTime: unknown) {
@@ -224,15 +203,20 @@ export function useVoteDetailPage() {
   }
 
   function openVoteInExplorer() {
-    openVoteExplorer()
+    const url = `${getExplorerUrl()}/transaction/${reverseVoteHash(String(vote.value.hash || ''))}`
+    openExternalUrl(url)
   }
 
   function handleCancel() {
-    closeVoteDetailDialog()
+    signVisible.value = false
+    tx.value = ''
   }
 
   function handleTxSent() {
-    handleVoteDetailSent()
+    signVisible.value = false
+    setTimeout(() => {
+      void refreshVoteDetail()
+    }, 3000)
   }
 
   async function onApprove() {
@@ -290,17 +274,7 @@ export function useVoteDetailPage() {
     onStop,
     setVoteDetailRoutes,
     setVoteDetailColumns,
-    navigateVoteDetailBack,
-    formatVoteTime,
-    formatVoteStatus,
-    reverseVoteHash,
-    openVoteExplorer,
     refreshVoteDetail,
-    closeVoteDetailDialog,
     setVoteDetailDialogVisible,
-    handleVoteDetailSent,
-    submitVoteApproval,
-    submitVoteRejection,
-    submitStopVoteDetail,
   }
 }

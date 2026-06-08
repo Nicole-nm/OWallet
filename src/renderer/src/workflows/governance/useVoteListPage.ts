@@ -13,6 +13,7 @@ import { notifyFailure } from '../../shared/ui/notifyFailure'
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { VOTE_STATUS_TEXT, useVoteStore } from '../../stores/modules/Vote'
+import { withLoading } from './governanceTxHelpers'
 import { useVoteAdminOperations } from './useVoteAdminOperations'
 import { formatVoteStatus } from './useVoteFormatting'
 import { getVoteFailureMessage } from './voteFailureMessage'
@@ -201,14 +202,8 @@ export function useVoteListPage() {
     }
   }
 
-  function navigateVoteListBack() {
-    router.back()
-  }
-
   async function initializeVoteListPage() {
-    loadingStore.showLoadingModals()
-
-    try {
+    await withLoading(loadingStore, async () => {
       if (voteWallet.value?.address) {
         const roleResult = await loadVoteRole({
           contractHash: voteStore.contractHash,
@@ -220,9 +215,7 @@ export function useVoteListPage() {
       }
 
       await refreshVoteList({ showLoading: false, showError: true })
-    } finally {
-      loadingStore.hideLoadingModals()
-    }
+    })
 
     startPolling({ immediate: false })
   }
@@ -266,19 +259,6 @@ export function useVoteListPage() {
     pageSize.value = pagination?.pageSize || pageSize.value
   }
 
-  function openVoteCreatePage() {
-    router.push({ name: ROUTE_NAMES.VOTE_CREATE })
-  }
-
-  function formatVoteDuration(vote: Pick<VoteTopic, 'startTime' | 'endTime'>) {
-    return formatVoteDurationForDisplay(vote)
-  }
-
-  function openVoteDetail(vote: VoteTopic | Record<string, unknown>) {
-    voteStore.setCurrentVote(vote)
-    router.push({ name: ROUTE_NAMES.VOTE_DETAIL })
-  }
-
   function isVoteStoppable(vote: VoteTopic | Record<string, unknown>) {
     return (
       vote?.statusText === VOTE_STATUS_TEXT.NOT_START ||
@@ -290,18 +270,8 @@ export function useVoteListPage() {
     return getVoteRowKeyForDisplay(vote)
   }
 
-  function closeVoteListDialog() {
-    signVisible.value = false
-    tx.value = ''
-  }
-
   function setVoteListDialogVisible(visible: boolean) {
     signVisible.value = visible
-  }
-
-  function handleVoteListTransactionSent() {
-    signVisible.value = false
-    void refreshVoteList()
   }
 
   function createStatusMap() {
@@ -309,7 +279,7 @@ export function useVoteListPage() {
   }
 
   function back() {
-    navigateVoteListBack()
+    router.back()
   }
 
   function handleSelectMenu({ key }: MenuSelectPayload) {
@@ -317,11 +287,11 @@ export function useVoteListPage() {
   }
 
   function handleAddVote() {
-    openVoteCreatePage()
+    router.push({ name: ROUTE_NAMES.VOTE_CREATE })
   }
 
   function formatDuration(vote: Pick<VoteTopic, 'startTime' | 'endTime'>) {
-    return formatVoteDuration(vote)
+    return formatVoteDurationForDisplay(vote)
   }
 
   function formatStatus(vote: VoteTopic | Record<string, unknown>) {
@@ -329,15 +299,18 @@ export function useVoteListPage() {
   }
 
   function toDetail(vote: VoteTopic | Record<string, unknown>) {
-    openVoteDetail(vote)
+    voteStore.setCurrentVote(vote)
+    router.push({ name: ROUTE_NAMES.VOTE_DETAIL })
   }
 
   function handleCancel() {
-    closeVoteListDialog()
+    signVisible.value = false
+    tx.value = ''
   }
 
   function handleTxSent() {
-    handleVoteListTransactionSent()
+    signVisible.value = false
+    void refreshVoteList()
   }
 
   async function onStopVote(vote: VoteTopic | Record<string, unknown>) {
@@ -378,16 +351,9 @@ export function useVoteListPage() {
     onStopVote,
     setVoteListRoutes,
     setVoteListMenuLabels,
-    navigateVoteListBack,
     refreshVoteList,
     selectVoteListMenu,
-    openVoteCreatePage,
-    formatVoteDuration,
-    formatVoteStatus,
-    openVoteDetail,
-    closeVoteListDialog,
     setVoteListDialogVisible,
-    handleVoteListTransactionSent,
     submitStopVote,
   }
 }

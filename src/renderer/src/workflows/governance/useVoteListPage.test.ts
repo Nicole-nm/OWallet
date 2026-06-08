@@ -154,7 +154,7 @@ describe('useVoteListPage', () => {
     ])
 
     const vote = { hash: 'vote-hash-1' }
-    page.openVoteDetail(vote)
+    page.toDetail(vote)
 
     expect(mocks.voteStore.setCurrentVote).toHaveBeenCalledWith(vote)
     expect(mocks.router.push).toHaveBeenCalledWith({ name: ROUTE_NAMES.VOTE_DETAIL })
