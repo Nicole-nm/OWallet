@@ -11,6 +11,10 @@ import {
   checkPublicKeyIsInTheConnectedLedger,
   legacySignWithLedger,
 } from '../../shared/chain/ledgerSigner'
+import {
+  normalizeLedgerBoolean,
+  normalizeLedgerAccountIndex,
+} from '../transaction/ledgerWalletFields'
 import type { SdkTransactionLike } from '../../shared/chain/types'
 import { setUnsignedTransactionGasPrice } from '../transaction/transactionGasPrice'
 
@@ -59,18 +63,6 @@ export type VoteWallet = {
   publicKey?: string
   neo?: boolean | number
   acct?: number
-}
-
-function normalizeLedgerBoolean(value: unknown): boolean {
-  return value === true || value === 1
-}
-
-function normalizeLedgerAccountIndex(value: unknown): number {
-  const accountIndex = Number(value ?? 0)
-  if (!Number.isInteger(accountIndex) || accountIndex < 0) {
-    throw new Error('Ledger account index is invalid')
-  }
-  return accountIndex
 }
 
 /**

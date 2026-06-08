@@ -23,13 +23,8 @@ import {
 import type { SdkTransactionLike } from '../../shared/chain/types'
 import { signWithLedger } from './signingService'
 import { serializeTx } from './serializationService'
+import { assertTransactionGasPrice } from './transactionGasPrice'
 import type { HardwareWalletSigner, WalletSigner } from '../../shared/lib/types'
-
-function assertTransactionGasPrice(tx: SdkTransactionLike) {
-  if (!tx.gasPrice) {
-    throw new Error('Transaction gas price is unavailable')
-  }
-}
 
 /**
  * Append an additional CommonWallet signature to an existing multi-sig

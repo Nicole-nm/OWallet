@@ -6,7 +6,9 @@ import {
   checkPublicKeyIsInTheConnectedLedger,
   legacySignWithLedger,
 } from '../../shared/chain/ledgerSigner'
+import { normalizeLedgerBoolean, normalizeLedgerAccountIndex } from './ledgerWalletFields'
 import { serializeTx } from './serializationService'
+import { assertTransactionGasPrice } from './transactionGasPrice'
 import type { WalletSigner } from '../../shared/lib/types'
 
 interface LegacyNestedWallet {
@@ -25,18 +27,6 @@ interface NormalizedLedgerSigner {
   publicKey: string
   accountIndex: number
   isNeo: boolean
-}
-
-function normalizeLedgerBoolean(value: unknown): boolean {
-  return value === true || value === 1
-}
-
-function normalizeLedgerAccountIndex(value: unknown): number {
-  const accountIndex = Number(value ?? 0)
-  if (!Number.isInteger(accountIndex) || accountIndex < 0) {
-    throw new Error('Ledger account index is invalid')
-  }
-  return accountIndex
 }
 
 function normalizeLedgerSigner(
@@ -59,12 +49,6 @@ function normalizeLedgerSigner(
     publicKey,
     accountIndex: normalizeLedgerAccountIndex(nestedWallet?.acct ?? wallet.acct),
     isNeo: normalizeLedgerBoolean(nestedWallet?.neo ?? wallet.neo),
-  }
-}
-
-function assertTransactionGasPrice(tx: SdkTransactionLike) {
-  if (!tx.gasPrice) {
-    throw new Error('Transaction gas price is unavailable')
   }
 }
 

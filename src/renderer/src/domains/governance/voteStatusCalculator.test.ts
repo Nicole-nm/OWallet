@@ -5,7 +5,6 @@ import {
   isVoteAdmin,
   canCancelVote,
   totalVotedWeight,
-  totalVoterWeight,
   approvalRatio,
 } from './voteStatusCalculator'
 import type { VoteRecord } from './types'
@@ -185,26 +184,6 @@ describe('totalVotedWeight', () => {
 
   it('returns 0 when no votes cast', () => {
     expect(totalVotedWeight({ approves: 0, rejects: 0 })).toBe(0)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// totalVoterWeight
-// ---------------------------------------------------------------------------
-
-describe('totalVoterWeight', () => {
-  it('sums all voter weights', () => {
-    const vote = makeVote({
-      voters: [
-        { address: 'a', weight: 50 },
-        { address: 'b', weight: 30 },
-      ],
-    })
-    expect(totalVoterWeight(vote)).toBe(80)
-  })
-
-  it('returns 0 for empty voter list', () => {
-    expect(totalVoterWeight({ voters: [] })).toBe(0)
   })
 })
 

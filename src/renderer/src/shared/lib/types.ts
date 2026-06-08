@@ -131,27 +131,6 @@ export interface TransferParams {
 }
 
 // ---------------------------------------------------------------------------
-// Transaction
-// ---------------------------------------------------------------------------
-
-export interface SendResult {
-  ok: boolean
-  response?: unknown
-  txHash?: string
-  errorKey?: string
-  detail?: string
-  message?: string | null
-  sentToChain?: boolean
-}
-
-export interface SignResult {
-  ok: boolean
-  errorKey?: string
-  cancelled?: boolean
-  message?: string | null
-}
-
-// ---------------------------------------------------------------------------
 // Governance
 // ---------------------------------------------------------------------------
 

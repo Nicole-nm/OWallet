@@ -92,13 +92,6 @@ export function totalVotedWeight(vote: Pick<VoteRecord, 'approves' | 'rejects'>)
 }
 
 /**
- * Return the total weight of all eligible voters registered for the topic.
- */
-export function totalVoterWeight(vote: Pick<VoteRecord, 'voters'>): number {
-  return vote.voters.reduce((sum, v) => sum + v.weight, 0)
-}
-
-/**
  * Return the approval ratio as a number in [0, 1].
  * Returns 0 when no votes have been cast.
  */
