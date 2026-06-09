@@ -1,4 +1,8 @@
-import { fetchOep4TokenBalances, fetchOep4TokenList } from '../../../../domains/wallet/oep4Service'
+import {
+  fetchOep4TokenBalances,
+  fetchOep4TokenList,
+  queryOep4Balance,
+} from '../../../../domains/wallet/oep4Service'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
 import type { TrackedOep4Token } from '../../../../shared/types'
@@ -62,14 +66,28 @@ export async function loadSelectedOep4TokenBalances({
 }) {
   return tryCatch(
     async () => {
-      const balancesResponse = (await fetchOep4TokenBalances(address)) as TokenBalanceEntry[]
-      const selectedTokens = Object.values(toSelectedTokenMap(selectedTokensByNetwork))
-      return {
-        balances: selectedTokens.map((oep4) => {
-          const balanceEntry = balancesResponse.find((item) => item.asset_name === oep4.symbol)
-          return { ...oep4, balance: balanceEntry?.balance || 0 }
-        }),
+      let balancesResponse: TokenBalanceEntry[] = []
+      try {
+        balancesResponse = (await fetchOep4TokenBalances(address)) as TokenBalanceEntry[]
+      } catch (err) {
+        logger.warn('Failed to fetch bulk OEP4 balances', err)
       }
+
+      const selectedTokens = Object.values(toSelectedTokenMap(selectedTokensByNetwork))
+      const balances = await Promise.all(
+        selectedTokens.map(async (oep4) => {
+          const balanceEntry = balancesResponse.find((item) => item.asset_name === oep4.symbol)
+          if (balanceEntry && balanceEntry.balance !== undefined) {
+            return { ...oep4, balance: balanceEntry.balance }
+          }
+          const scriptHash = String(
+            oep4.scriptHash || oep4.contractHash || oep4.contract_hash || ''
+          )
+          const balance = await queryOep4Balance(scriptHash, address, oep4.decimal || 0)
+          return { ...oep4, balance }
+        })
+      )
+      return { balances }
     },
     {
       context: 'loadSelectedOep4TokenBalances',

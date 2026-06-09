@@ -4,12 +4,14 @@ const mocks = vi.hoisted(() => ({
   oep4Service: {
     fetchOep4TokenBalances: vi.fn(),
     fetchOep4TokenList: vi.fn(),
+    queryOep4Balance: vi.fn(),
   },
 }))
 
 vi.mock('../../../../domains/wallet/oep4Service', () => ({
   fetchOep4TokenBalances: (...args: any[]) => mocks.oep4Service.fetchOep4TokenBalances(...args),
   fetchOep4TokenList: (...args: any[]) => mocks.oep4Service.fetchOep4TokenList(...args),
+  queryOep4Balance: (...args: any[]) => mocks.oep4Service.queryOep4Balance(...args),
 }))
 
 import {
@@ -66,5 +68,24 @@ describe('tokenSelectionApplicationService', () => {
       ok: true,
       balances: [{ ...selectedToken, balance: 9 }],
     })
+  })
+
+  it('falls back to RPC query if bulk API does not return the token', async () => {
+    mocks.oep4Service.fetchOep4TokenBalances.mockResolvedValue([])
+    mocks.oep4Service.queryOep4Balance.mockResolvedValue(42)
+
+    await expect(
+      loadSelectedOep4TokenBalances({
+        address: 'AQ123',
+        selectedTokensByNetwork: {
+          'hash-1': selectedToken,
+        },
+      })
+    ).resolves.toEqual({
+      ok: true,
+      balances: [{ ...selectedToken, balance: 42 }],
+    })
+
+    expect(mocks.oep4Service.queryOep4Balance).toHaveBeenCalledWith('hash-1', 'AQ123', 0)
   })
 })

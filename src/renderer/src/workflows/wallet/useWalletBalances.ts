@@ -24,7 +24,13 @@ export function useWalletBalances({
   t: (key: string) => string
 }) {
   const balance = computed(() => currentWalletStore.balance)
-  const oep4s = computed(() => tokensStore.oep4WithBalances)
+  const oep4s = computed(() => {
+    const selected = Object.values(tokensStore.oep4Tokens[settingStore.network] || {})
+    if (tokensStore.oep4WithBalances && tokensStore.oep4WithBalances.length > 0) {
+      return tokensStore.oep4WithBalances
+    }
+    return selected.map((token) => ({ ...token, balance: 0 }))
+  })
 
   async function getBalance() {
     if (!address.value) return null

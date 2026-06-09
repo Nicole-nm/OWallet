@@ -4,6 +4,7 @@ import {
   queryOep4Decimal,
   queryOep4StringProperty,
   hasOep4Contract,
+  fetchOep4TokenBalances,
 } from '../../../../domains/wallet/oep4Service'
 import {
   queryOep4TransactionHistory,
@@ -79,17 +80,30 @@ export async function createTrackedOep4Token({
 export async function loadTrackedOep4Balances({ oep4s = [], address, network }: Oep4BalanceParams) {
   return tryCatch(
     async () => {
-      const balances = await queryAllOep4Balances(
-        oep4s as Array<TrackedOep4Token & { scriptHash: string }>,
-        address,
-        network
-      )
-      return {
-        balances: oep4s.map((item, index) => ({
-          ...item,
-          balance: balances[index],
-        })),
+      let bulkBalances: { asset_name?: string; balance?: string | number }[] = []
+      try {
+        bulkBalances = await fetchOep4TokenBalances(address)
+      } catch (err) {
+        logger.warn('Failed to fetch bulk OEP4 balances', err)
       }
+
+      const balances = await Promise.all(
+        oep4s.map(async (item) => {
+          if (item.net !== network) {
+            return { ...item, balance: 0 }
+          }
+          const bulkMatch = bulkBalances.find((b) => b.asset_name === item.symbol)
+          if (bulkMatch && bulkMatch.balance !== undefined) {
+            return { ...item, balance: bulkMatch.balance }
+          }
+          const scriptHash = String(
+            item.scriptHash || item.contractHash || item.contract_hash || ''
+          )
+          const balance = await queryOep4Balance(scriptHash, address, item.decimal || 0)
+          return { ...item, balance }
+        })
+      )
+      return { balances }
     },
     {
       context: 'loadTrackedOep4Balances',

@@ -6,6 +6,7 @@ const oep4 = vi.hoisted(() => ({
   queryOep4Decimal: vi.fn(),
   queryOep4StringProperty: vi.fn(),
   hasOep4Contract: vi.fn(),
+  fetchOep4TokenBalances: vi.fn(),
 }))
 const domain = vi.hoisted(() => ({
   queryOep4TransactionHistory: vi.fn(),
@@ -72,25 +73,36 @@ describe('createTrackedOep4Token', () => {
 })
 
 describe('loadTrackedOep4Balances', () => {
-  it('merges fetched balances onto the tracked tokens', async () => {
-    oep4.queryAllOep4Balances.mockResolvedValue([5, 10])
+  it('merges fetched balances from bulk API and falls back to RPC', async () => {
+    oep4.fetchOep4TokenBalances.mockResolvedValue([{ asset_name: 'A', balance: 5 }])
+    oep4.queryOep4Balance.mockResolvedValue(10) // Fallback for B
     const result = await loadTrackedOep4Balances({
-      oep4s: [{ symbol: 'A' }, { symbol: 'B' }] as never,
+      oep4s: [
+        { symbol: 'A', net: 'MAIN_NET' },
+        { symbol: 'B', net: 'MAIN_NET', scriptHash: 'hash-b', decimal: 8 },
+      ] as never,
       address: 'addr',
       network: 'MAIN_NET',
     })
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.balances).toEqual([
-        { symbol: 'A', balance: 5 },
-        { symbol: 'B', balance: 10 },
+        { symbol: 'A', net: 'MAIN_NET', balance: 5 },
+        { symbol: 'B', net: 'MAIN_NET', scriptHash: 'hash-b', decimal: 8, balance: 10 },
       ])
     }
+    expect(oep4.fetchOep4TokenBalances).toHaveBeenCalledWith('addr')
+    expect(oep4.queryOep4Balance).toHaveBeenCalledWith('hash-b', 'addr', 8)
   })
 
   it('returns an empty list on failure', async () => {
-    oep4.queryAllOep4Balances.mockRejectedValue(new Error('boom'))
-    const result = await loadTrackedOep4Balances({ address: 'addr', network: 'MAIN_NET' })
+    oep4.fetchOep4TokenBalances.mockRejectedValue(new Error('boom bulk'))
+    oep4.queryOep4Balance.mockRejectedValue(new Error('boom rpc'))
+    const result = await loadTrackedOep4Balances({
+      oep4s: [{ symbol: 'A', net: 'MAIN_NET' }] as never,
+      address: 'addr',
+      network: 'MAIN_NET',
+    })
     expect(result).toMatchObject({ balances: [] })
   })
 })
