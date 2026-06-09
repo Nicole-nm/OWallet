@@ -36,7 +36,7 @@
           v-if="isCommonWallet"
           v-model:value="password"
           type="password"
-          class="input send-confirm__password"
+          class="ow-input send-confirm__password"
           :placeholder="$t('sharedWalletHome.inputPassToTransfer')"
         ></a-input>
 

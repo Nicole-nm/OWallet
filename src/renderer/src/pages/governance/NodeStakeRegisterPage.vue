@@ -18,7 +18,7 @@
         <p>{{ stakeDetail.commitmentQuantityDisplay }}</p>
       </form-field>
       <form-field :label="$t('nodeStake.stakeQuantity')" label-tag="p">
-        <a-input class="input ow-field-control" v-model:value="stakeQuantity"></a-input>
+        <a-input class="ow-input ow-field-control" v-model:value="stakeQuantity"></a-input>
       </form-field>
     </div>
     <page-footer-actions align="center">
@@ -38,7 +38,7 @@
       <div>
         <p>{{ $t('nodeStake.enterOntidPass') }}</p>
         <a-input
-          class="input"
+          class="ow-input"
           v-model:value="ontidPassword"
           :placeholder="$t('nodeStake.password')"
           type="password"
@@ -55,7 +55,7 @@
       <div v-if="(stakeWallet as { key?: string })?.key">
         <p>{{ $t('nodeStake.enterWalletPass') }}</p>
         <a-input
-          class="input"
+          class="ow-input"
           v-model:value="walletPassword"
           :placeholder="$t('nodeStake.password')"
           type="password"

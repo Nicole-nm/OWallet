@@ -1,0 +1,76 @@
+// Reusable SCSS mixins composed by the pattern/utility layers. These emit no
+// CSS on their own — they only expand where `@include`d.
+
+// Center a fixed-width panel within the available row, capped by
+// `100% - gutter` so it never collides with the page edge.
+@mixin centered-panel($width: var(--ow-layout-form-width), $margin: 0 auto) {
+  width: $width;
+  max-width: calc(100% - var(--ow-layout-gutter));
+  margin: $margin;
+}
+
+// Single-line ellipsis truncation.
+@mixin truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Clamp text to a fixed number of lines.
+@mixin truncate-lines($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+}
+
+// Visible focus ring for interactive surfaces.
+@mixin focus-ring {
+  outline: none;
+  box-shadow: var(--ow-shadow-focus);
+}
+
+// Typography recipes — the single source of truth shared by the `.ow-text-*`
+// utility classes and the pattern layer. Each sets family/size/line-height/color.
+@mixin text-display {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-display);
+  line-height: var(--ow-line-height-display);
+  color: var(--ow-color-text-primary);
+}
+
+@mixin text-title {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-title);
+  line-height: var(--ow-line-height-title);
+  color: var(--ow-color-text-primary);
+}
+
+@mixin text-section {
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-section);
+  line-height: var(--ow-line-height-title);
+  color: var(--ow-color-text-primary);
+}
+
+@mixin text-body {
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
+}
+
+@mixin text-muted {
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-muted);
+}
+
+@mixin text-caption {
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  color: var(--ow-color-text-secondary);
+}

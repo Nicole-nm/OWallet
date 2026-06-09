@@ -3,8 +3,8 @@
     <div class="ow-info-row">
       <span class="ow-info-label">{{ $t(labelKey) }}: </span>
       <a-input
-        class="input add-pos-input"
-        :class="valid ? '' : 'error-input'"
+        class="ow-input add-pos-input"
+        :class="valid ? '' : 'ow-error-input'"
         v-model:value="valueModel"
         @change="emit('validate')"
       ></a-input>

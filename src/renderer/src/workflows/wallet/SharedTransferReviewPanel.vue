@@ -13,7 +13,7 @@
     <section class="shared-transfer-review__section">
       <div class="shared-transfer-review__section-header">
         <span class="shared-transfer-review__section-title">{{
-          $t('sharedWalletHome.signer')
+          $t('sharedWalletHome.copayers')
         }}</span>
         <span class="shared-transfer-review__threshold">
           {{ requiredNumber }} - OF - {{ totalNumber }}

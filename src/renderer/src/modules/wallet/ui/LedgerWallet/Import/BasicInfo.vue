@@ -8,7 +8,7 @@
       </div>
 
       <a-input
-        class="input ledger-import__name-input"
+        class="ow-input ledger-import__name-input"
         :placeholder="$t('importLedgerWallet.label')"
         :value="form.label"
         @update:value="emit('updateField', { field: 'label', value: $event })"

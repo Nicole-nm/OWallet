@@ -1,0 +1,129 @@
+@use '../mixins' as *;
+
+// Tx summary, signer sequence, step circles
+
+.ow-summary-table {
+  padding: 5px 50px;
+}
+
+.ow-summary-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ow-space-4);
+  padding: 10px var(--ow-space-5);
+  border-bottom: 1px solid var(--ow-color-border-default);
+}
+
+.ow-summary-label {
+  flex: 0 0 30%;
+  min-width: 80px;
+  text-align: left;
+}
+
+.ow-summary-value {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.ow-summary-fee {
+  margin-bottom: 50px;
+  padding-top: 10px;
+  padding-left: var(--ow-space-5);
+}
+
+.ow-signer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ow-space-4);
+  margin-bottom: var(--ow-space-5);
+}
+
+.ow-signer-select {
+  display: flex;
+  align-items: center;
+  gap: var(--ow-space-5);
+  margin-bottom: 15px;
+  padding-left: var(--ow-layout-form-indent);
+}
+
+.ow-signer-select .ant-select {
+  flex: 1;
+  min-width: 0;
+}
+
+.ow-signer-sequence {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ow-space-3);
+  margin-top: var(--ow-space-5);
+  padding-left: var(--ow-layout-form-indent);
+}
+
+.ow-signer-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 30px;
+}
+
+.ow-signer-row--sponsor {
+  margin-bottom: var(--ow-space-3);
+  padding-left: var(--ow-layout-form-indent);
+}
+
+.ow-signer-row--hover:hover {
+  background: var(--ow-color-surface-muted);
+}
+
+.ow-signer-row--hover:hover span {
+  color: var(--ow-color-brand) !important;
+}
+
+.ow-draggable {
+  cursor: pointer;
+}
+
+.ow-signer-name {
+  @include truncate;
+  flex: 0 0 150px;
+  color: var(--ow-color-text-primary);
+}
+
+.ow-signer-address {
+  @include truncate;
+  flex: 1;
+  margin-left: auto;
+  color: var(--ow-color-text-secondary);
+  text-align: right;
+}
+
+.ow-step-circle {
+  display: inline-flex;
+  flex: 0 0 1.5rem;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--ow-radius-pill);
+  background: var(--ow-color-accent);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: 1.5rem;
+  color: var(--ow-color-text-primary);
+}
+
+.ow-step-circle--bordered {
+  border: 1px solid var(--ow-color-border-default);
+}
+
+.ow-step-circle--signed {
+  background: var(--ow-color-accent);
+}
+
+.ow-step-circle--unsigned {
+  background: var(--ow-color-surface-muted);
+}

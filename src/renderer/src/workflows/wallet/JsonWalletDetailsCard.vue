@@ -59,7 +59,7 @@
         <div v-if="isCommonWallet">
           <p>{{ $t('common.enterWalletPassword') }}</p>
           <a-input
-            class="input"
+            class="ow-input"
             v-model:value="password"
             :placeholder="$t('common.password')"
             type="password"
@@ -78,12 +78,12 @@
         <div>
           <a-input
             type="password"
-            class="input change-password"
+            class="ow-input change-password"
             :status="changePassErrors.oldPassword ? 'error' : ''"
             v-model:value="oldPassword"
             :placeholder="$t('wallets.oldPassword')"
           ></a-input>
-          <span class="v-validate-span-errors" v-show="changePassErrors.oldPassword">{{
+          <span class="ow-validation-error" v-show="changePassErrors.oldPassword">{{
             changePassErrors.oldPassword
           }}</span>
         </div>
@@ -91,12 +91,12 @@
         <div>
           <a-input
             type="password"
-            class="input change-password"
+            class="ow-input change-password"
             :status="changePassErrors.newPassword ? 'error' : ''"
             v-model:value="newPassword"
             :placeholder="$t('wallets.newPassword')"
           ></a-input>
-          <span class="v-validate-span-errors" v-show="changePassErrors.newPassword">{{
+          <span class="ow-validation-error" v-show="changePassErrors.newPassword">{{
             changePassErrors.newPassword
           }}</span>
         </div>
@@ -104,12 +104,12 @@
         <div>
           <a-input
             type="password"
-            class="input change-password"
+            class="ow-input change-password"
             :status="changePassErrors.reNewPassword ? 'error' : ''"
             v-model:value="reNewPassword"
             :placeholder="$t('wallets.reNewPassword')"
           ></a-input>
-          <span class="v-validate-span-errors" v-show="changePassErrors.reNewPassword">{{
+          <span class="ow-validation-error" v-show="changePassErrors.reNewPassword">{{
             changePassErrors.reNewPassword
           }}</span>
         </div>

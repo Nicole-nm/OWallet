@@ -1,0 +1,68 @@
+@use '../mixins' as *;
+@use '../breakpoints' as *;
+
+// Cross-cutting responsive overrides
+
+@include respond-to(md) {
+  .ow-page-columns {
+    flex-direction: column;
+    gap: var(--ow-space-8);
+  }
+
+  .ow-page-column,
+  .ow-page-column--right {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .ow-flow-content,
+  .ow-signer-select,
+  .ow-signer-sequence,
+  .ow-signer-row--sponsor {
+    padding-left: 0;
+  }
+
+  .ow-summary-table {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+@include respond-to(sm) {
+  .ow-footer-btns {
+    left: 0;
+    width: 100%;
+    height: auto;
+    min-height: 76px;
+  }
+
+  .ow-footer-actions {
+    margin: var(--ow-space-4) auto;
+    flex-wrap: wrap;
+  }
+
+  .ow-footer-actions--between {
+    justify-content: flex-end;
+  }
+
+  .ow-section-tabs {
+    padding: 0 var(--ow-space-4);
+  }
+
+  .ow-action-grid,
+  .ow-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ow-card-grid--padded {
+    padding: var(--ow-space-4) 0 100px; // 100px clears the fixed footer (.ow-footer-btns)
+  }
+
+  .ow-list-card--wallet,
+  .ow-create-card--wallet,
+  .ow-list-card--node,
+  .ow-create-card--node {
+    width: 100%;
+    max-width: none;
+  }
+}

@@ -1,5 +1,5 @@
 <template>
-  <div class="negative-margin-top">
+  <div class="ow-flush-under-nav">
     <a-modal
       v-model:open="redirectNoticeVisible"
       :title="$t('dapps.notification')"

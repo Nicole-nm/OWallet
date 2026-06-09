@@ -1,0 +1,116 @@
+@use '../mixins' as *;
+
+// Key/value rows, data lists, empty state, status pills (base)
+
+.ow-kv-panel {
+  display: grid;
+  gap: var(--ow-space-2);
+}
+
+.ow-kv-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.35fr) minmax(0, 1fr);
+  gap: var(--ow-space-4);
+  padding: var(--ow-space-3) 0;
+  border-bottom: 1px solid var(--ow-color-border-subtle);
+}
+
+.ow-kv-row:last-child {
+  border-bottom: 0;
+}
+
+.ow-kv-label {
+  @include text-caption;
+}
+
+.ow-kv-value {
+  @include text-body;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ow-data-list {
+  display: grid;
+  gap: 0;
+}
+
+.ow-data-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(180px, 1.6fr) minmax(140px, 1fr) minmax(120px, 0.8fr) auto;
+  gap: var(--ow-space-5);
+  align-items: center;
+  min-height: 72px;
+  padding: var(--ow-space-4) 0;
+  border-bottom: 1px solid var(--ow-color-border-subtle);
+}
+
+.ow-data-row:hover {
+  background: var(--ow-color-surface-muted);
+}
+
+.ow-data-title {
+  @include truncate-lines(2);
+  min-width: 0;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-data-label {
+  @include text-caption;
+  margin: 0 0 var(--ow-space-1);
+}
+
+.ow-data-value {
+  @include text-body;
+  margin: 0;
+}
+
+.ow-data-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ow-space-2);
+  white-space: nowrap;
+}
+
+.ow-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  border: 1px dashed var(--ow-color-border-default);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-muted);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  color: var(--ow-color-text-secondary);
+}
+
+.ow-status-pill {
+  @include text-caption;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--ow-space-6);
+  padding: 0 var(--ow-space-2);
+  border-radius: var(--ow-radius-pill);
+  background: var(--ow-color-surface-muted);
+}
+
+.ow-status-pill--success {
+  background: var(--ow-color-success-soft);
+  color: var(--ow-color-success);
+}
+
+.ow-status-pill--danger {
+  background: var(--ow-color-danger-soft);
+  color: var(--ow-color-danger);
+}
+
+.ow-status-pill--info {
+  background: var(--ow-color-info-soft);
+  color: var(--ow-color-info);
+}

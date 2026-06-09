@@ -12,7 +12,7 @@
       <div class="input-pass" v-if="type === 'commonWallet'">
         <a-input
           type="password"
-          class="input"
+          class="ow-input"
           :placeholder="$t('commonWalletHome.inputPass')"
           :value="password"
           @update:value="password = $event"

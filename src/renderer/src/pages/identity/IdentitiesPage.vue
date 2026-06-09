@@ -1,5 +1,5 @@
 <template>
-  <div class="negative-margin-top">
+  <div class="ow-flush-under-nav">
     <a-tabs class="ow-section-tabs">
       <a-tab-pane key="identities" :tab="$t('identities.pageTit')">
         <app-state

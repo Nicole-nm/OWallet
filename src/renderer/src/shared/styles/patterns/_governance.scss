@@ -1,0 +1,226 @@
+@use '../mixins' as *;
+@use '../breakpoints' as *;
+
+// Governance hero, cards, inputs
+
+.ow-governance-page {
+  display: flex;
+  justify-content: center;
+}
+
+.ow-governance-shell {
+  display: grid;
+  gap: var(--ow-space-4);
+  width: min(100%, 860px);
+  padding: var(--ow-space-4);
+}
+
+.ow-governance-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ow-space-4);
+}
+
+.ow-governance-eyebrow {
+  @include text-caption;
+  margin: 0 0 var(--ow-space-1);
+}
+
+.ow-governance-title {
+  @include text-title;
+  margin: 0;
+}
+
+.ow-governance-highlight {
+  display: grid;
+  gap: var(--ow-space-1);
+  min-width: 220px;
+  padding: var(--ow-space-3);
+  border: 1px solid var(--ow-color-border-subtle);
+  border-radius: var(--ow-radius-panel);
+  background: linear-gradient(
+    180deg,
+    var(--ow-color-surface-muted) 0%,
+    var(--ow-color-surface-card) 100%
+  );
+}
+
+.ow-governance-highlight__label,
+.ow-governance-card__label,
+.ow-governance-field-label {
+  @include text-caption;
+}
+
+.ow-governance-highlight__value,
+.ow-governance-card__value {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-body-lg);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.ow-governance-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ow-space-3);
+}
+
+.ow-governance-card {
+  display: grid;
+  gap: var(--ow-space-1);
+  padding: var(--ow-space-3);
+  border: 1px solid var(--ow-color-border-subtle);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-muted);
+}
+
+.ow-governance-card--wide {
+  grid-column: 1 / -1;
+}
+
+.ow-governance-card--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ow-space-2);
+}
+
+.ow-governance-input-panel {
+  display: grid;
+  gap: var(--ow-space-2);
+  padding: var(--ow-space-3);
+  border: 1px solid var(--ow-color-border-default);
+  border-radius: var(--ow-radius-panel);
+  background: linear-gradient(
+    180deg,
+    var(--ow-color-surface-muted) 0%,
+    var(--ow-color-surface-card) 100%
+  );
+}
+
+.ow-governance-input-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ow-space-2);
+  width: fit-content;
+  min-width: 0;
+}
+
+.ow-governance-input-suffix {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-governance-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ow-governance-actions--start {
+  justify-content: flex-start;
+}
+
+@include respond-to(md) {
+  .ow-settings-stack {
+    width: 100%;
+    padding: 0 var(--ow-space-2) var(--ow-space-5);
+  }
+
+  .ow-settings-section-body,
+  .ow-settings-section-header--status {
+    padding-right: 0;
+  }
+
+  .ow-settings-row {
+    grid-template-columns: 1fr;
+    gap: var(--ow-space-4);
+  }
+
+  .ow-settings-section-body--preferences .ow-settings-copy-text,
+  .ow-settings-copy--storage .ow-settings-copy-text {
+    white-space: normal;
+  }
+
+  .ow-settings-storage-header {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .ow-settings-summary-value--storage {
+    justify-self: start;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .ow-settings-section-header,
+  .ow-settings-section-header--status,
+  .ow-settings-summary-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ow-settings-section-header--status {
+    display: flex;
+    gap: var(--ow-space-3);
+  }
+
+  .ow-settings-control,
+  .ow-settings-update-error {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .ow-settings-control--storage {
+    grid-column: auto;
+  }
+
+  .ow-status-pill--wide {
+    min-width: 0;
+  }
+}
+
+@include respond-to(lg) {
+  .ow-two-panel-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@include respond-to(sm) {
+  .ow-governance-shell {
+    padding: var(--ow-space-3);
+  }
+
+  .ow-governance-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ow-governance-highlight {
+    min-width: 0;
+  }
+
+  .ow-governance-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ow-governance-card--wide {
+    grid-column: auto;
+  }
+}
+
+@include respond-to(xs) {
+  .ow-governance-input-control,
+  .ow-governance-actions {
+    width: 100%;
+  }
+
+  .ow-governance-input-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}

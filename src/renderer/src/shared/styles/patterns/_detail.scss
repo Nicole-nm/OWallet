@@ -1,0 +1,112 @@
+@use '../mixins' as *;
+
+// Detail cards (wallet/identity detail surfaces)
+
+.ow-detail-card {
+  position: relative;
+  height: 100%;
+  min-height: 100%;
+}
+
+.ow-detail-main {
+  cursor: pointer;
+}
+
+.ow-detail-kind {
+  margin-top: var(--ow-space-3);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  color: var(--ow-color-brand);
+  cursor: default;
+}
+
+.ow-detail-kind-note {
+  position: absolute;
+  margin-top: 5px;
+  margin-bottom: 0;
+  font-size: var(--ow-font-size-caption);
+  color: var(--ow-color-text-secondary);
+}
+
+.ow-detail-name {
+  height: 6rem;
+  margin-top: var(--ow-space-7);
+  overflow-wrap: anywhere;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-subtitle);
+  line-height: var(--ow-line-height-title);
+  color: var(--ow-color-text-primary);
+  cursor: default;
+}
+
+.ow-detail-name--link {
+  cursor: pointer;
+}
+
+.ow-detail-address {
+  @include text-muted;
+  position: absolute;
+  right: var(--ow-space-7);
+  bottom: var(--ow-space-5);
+  left: 0;
+  overflow: hidden;
+  cursor: default;
+}
+
+.ow-detail-address-text {
+  display: block;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  font-size: var(--ow-font-size-small);
+}
+
+.ow-detail-address--compact {
+  font-size: var(--ow-font-size-small);
+}
+
+.ow-detail-copy {
+  position: absolute;
+  right: var(--ow-space-1);
+  bottom: 25px;
+  cursor: pointer;
+}
+
+.ow-copied-label {
+  position: absolute;
+  top: 9rem;
+  right: 2.69rem;
+  padding: 3px 4px;
+  border-radius: var(--ow-radius-card);
+  background-color: var(--ow-color-overlay-muted);
+  font-size: var(--ow-font-size-micro);
+  font-weight: 100;
+  color: var(--ow-color-text-inverse);
+}
+
+.ow-detail-actions {
+  position: absolute;
+  top: 10px;
+  right: var(--ow-space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--ow-space-2);
+}
+
+.ow-icon-delete,
+.ow-icon-download {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+.ow-icon-delete {
+  background-image: url('../../assets/delete.png');
+}
+
+.ow-icon-download {
+  background-image: url('../../assets/download.png');
+}

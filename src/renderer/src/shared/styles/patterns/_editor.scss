@@ -1,0 +1,65 @@
+@use '../mixins' as *;
+
+// Raw-tx editor shell + info rows
+
+.ow-editor-shell {
+  padding: var(--ow-space-5) 60px;
+  text-align: left;
+}
+
+.ow-editor-title {
+  font-size: var(--ow-font-size-subtitle);
+  font-weight: 500;
+  color: var(--ow-color-text-primary);
+}
+
+.ow-editor-section {
+  margin: 0 30px;
+}
+
+.ow-editor-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.ow-editor-label {
+  flex: 0 0 200px;
+  margin: 0;
+  color: var(--ow-color-text-primary);
+}
+
+.ow-editor-control {
+  flex: 1;
+  min-width: 0;
+}
+
+.ow-editor-control textarea {
+  min-height: 130px;
+}
+
+.ow-editor-actions {
+  margin: 30px auto;
+  text-align: center;
+}
+
+.ow-info-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--ow-space-2);
+}
+
+.ow-info-label {
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-section);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-info-value {
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-secondary);
+}

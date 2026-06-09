@@ -11,7 +11,7 @@
         <div class="oep4-container">
           <div class="home-title">
             <p>OEP-4 Tokens</p>
-            <ReloadOutlined class="refresh-icon" @click="refresh" />
+            <ReloadOutlined class="ow-refresh-icon" @click="refresh" />
           </div>
 
           <div
@@ -74,7 +74,7 @@
       <div>
         <div>
           <p>{{ $t('commonWalletHome.enterScripthash') }}</p>
-          <a-input class="input" v-model:value="scriptHash"></a-input>
+          <a-input class="ow-input" v-model:value="scriptHash"></a-input>
         </div>
       </div>
     </a-modal>

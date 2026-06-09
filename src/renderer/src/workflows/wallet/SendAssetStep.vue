@@ -33,7 +33,7 @@
             v-model:value="amount"
             :placeholder="$t('sharedWalletHome.amount')"
             class="send-step__amount"
-            :class="validAmount ? '' : 'error-amount'"
+            :class="validAmount ? '' : 'ow-error-amount'"
             type="number"
             :enterButton="$t('sharedWalletHome.max')"
             @change="validateAmount"
@@ -80,8 +80,8 @@
 
       <a-input
         v-model:value="to"
-        class="input send-step__recipient-input"
-        :class="validToAddress ? '' : 'error-to'"
+        class="ow-input send-step__recipient-input"
+        :class="validToAddress ? '' : 'ow-error-to'"
         :placeholder="$t('sharedWalletHome.recipient')"
         @change="validateToAddress"
       ></a-input>

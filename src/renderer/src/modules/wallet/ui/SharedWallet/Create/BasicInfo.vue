@@ -7,8 +7,8 @@
 
       <a-input
         v-model:value="label"
-        class="input shared-create__wallet-name"
-        :class="validLabel ? '' : 'error-input'"
+        class="ow-input shared-create__wallet-name"
+        :class="validLabel ? '' : 'ow-error-input'"
         :placeholder="$t('createSharedWallet.label')"
         @change="emit('validateLabel')"
       ></a-input>
@@ -25,15 +25,15 @@
         <div class="shared-create__copayer-row" v-for="(item, index) in pks" :key="index">
           <div class="shared-create__copayer-fields">
             <a-input
-              class="input"
-              :class="item.nameValid ? '' : 'error-input'"
+              class="ow-input"
+              :class="item.nameValid ? '' : 'ow-error-input'"
               :placeholder="$t('createSharedWallet.name')"
               :value="item.name"
               @update:value="emit('updateCopayerName', { index, value: $event })"
             ></a-input>
             <a-input
-              class="input"
-              :class="item.pkValid ? '' : 'error-input'"
+              class="ow-input"
+              :class="item.pkValid ? '' : 'ow-error-input'"
               :placeholder="$t('createSharedWallet.publicKey')"
               :value="item.publickey"
               @update:value="emit('updateCopayerPublicKey', { index, value: $event })"

@@ -1,5 +1,5 @@
 <template>
-  <div class="negative-margin-top">
+  <div class="ow-flush-under-nav">
     <a-tabs class="ow-section-tabs">
       <a-tab-pane key="governance" :tab="$t('vote.node')">
         <div class="ow-card-grid ow-card-grid--padded">

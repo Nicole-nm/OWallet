@@ -17,8 +17,8 @@
       <div class="ow-info-row">
         <span class="ow-info-label">{{ $t('nodeMgmt.unitToCancel') }}: </span>
         <a-input
-          class="input cancel-stake-input"
-          :class="validCancelAmount ? '' : 'error-input'"
+          class="ow-input cancel-stake-input"
+          :class="validCancelAmount ? '' : 'ow-error-input'"
           v-model:value="cancelAmountModel"
           @change="emit('validate')"
         ></a-input>

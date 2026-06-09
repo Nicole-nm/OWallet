@@ -8,7 +8,7 @@
         @help="openHelp"
       ></top-left-nav>
 
-      <div class="container-fluid">
+      <div class="ow-app-content">
         <router-view></router-view>
       </div>
 

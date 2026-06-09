@@ -1,0 +1,105 @@
+@use '../mixins' as *;
+
+// Wallet summary, copayers, panel fields
+
+.ow-wallet-summary {
+  margin-bottom: var(--ow-space-5);
+}
+
+.ow-wallet-title {
+  @include centered-panel($width: var(--ow-layout-summary-width));
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-title);
+  color: var(--ow-color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.ow-wallet-title--section {
+  font-size: var(--ow-font-size-body);
+}
+
+.ow-wallet-address {
+  margin-top: 14px;
+  margin-bottom: var(--ow-space-10);
+}
+
+.ow-wallet-meta {
+  @include centered-panel(
+    $width: var(--ow-layout-summary-width),
+    $margin: 0 auto var(--ow-space-8)
+  );
+  padding-left: 38px;
+}
+
+.ow-wallet-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ow-space-4);
+  padding: 6px 3px;
+  border-bottom: 1px solid var(--ow-color-border-default);
+}
+
+.ow-copayer-list {
+  @include centered-panel(
+    $width: var(--ow-layout-summary-width),
+    $margin: var(--ow-space-5) auto var(--ow-space-10)
+  );
+}
+
+.ow-copayer-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--ow-space-5);
+  margin-bottom: var(--ow-space-5);
+}
+
+.ow-copayer-name {
+  @include truncate;
+  flex: 0 0 150px;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-copayer-address {
+  @include truncate;
+  flex: 1;
+  margin-left: auto;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  color: var(--ow-color-text-secondary);
+  text-align: right;
+}
+
+.ow-copayer-public-key {
+  flex: 1 0 100%;
+  min-width: 0;
+  margin-left: calc(1.5rem + var(--ow-space-5));
+  overflow-wrap: anywhere;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+  color: var(--ow-color-text-secondary);
+}
+
+.ow-panel-field {
+  @include centered-panel($width: var(--ow-layout-summary-width), $margin: 12px auto);
+}
+
+.ow-panel-field .ant-select {
+  width: 100%;
+}
+
+.ow-panel-title {
+  margin: 0 0 var(--ow-space-8);
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-body);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-panel-title--large {
+  margin-bottom: 0;
+  font-size: var(--ow-font-size-title);
+  color: var(--ow-color-text-secondary);
+}

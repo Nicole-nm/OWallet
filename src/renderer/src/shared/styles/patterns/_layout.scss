@@ -1,0 +1,129 @@
+@use '../mixins' as *;
+
+// Page shell, footer, generic panel primitives
+
+.ow-footer-btns {
+  position: fixed;
+  bottom: 0;
+  left: var(--ow-layout-sidebar-width);
+  z-index: 1000;
+  width: calc(100% - var(--ow-layout-sidebar-width));
+  height: 85px;
+  background: var(--ow-color-surface);
+  box-shadow: var(--ow-shadow-footer);
+}
+
+.ow-footer-actions {
+  @include centered-panel($margin: var(--ow-space-5) auto);
+  display: flex;
+  align-items: center;
+  gap: var(--ow-space-4);
+}
+
+.ow-footer-actions--center {
+  justify-content: center;
+  text-align: center;
+}
+
+.ow-footer-actions--between {
+  justify-content: space-between;
+}
+
+.ow-form-panel {
+  @include centered-panel($margin: 20px auto);
+}
+
+.ow-page-shell {
+  height: 100%;
+  padding: 0 var(--ow-space-5);
+}
+
+.ow-page {
+  width: min(100%, var(--ow-layout-page-max-width));
+  margin: 0 auto;
+  padding: var(--ow-space-5);
+}
+
+.ow-page--flush-top {
+  padding-top: 0;
+}
+
+.ow-page-shell--padded {
+  padding-top: var(--ow-space-3);
+}
+
+.ow-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ow-space-5);
+  margin-bottom: var(--ow-space-6);
+}
+
+.ow-page-title {
+  @include text-title;
+  margin: 0;
+}
+
+.ow-page-subtitle {
+  margin: var(--ow-space-1) 0 0;
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-secondary);
+}
+
+.ow-page-columns {
+  display: flex;
+  gap: var(--ow-space-12);
+}
+
+.ow-page-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.ow-page-column--right {
+  padding-left: var(--ow-space-5);
+}
+
+.ow-panel {
+  border: 1px solid var(--ow-color-border-default);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-card);
+  box-shadow: var(--ow-shadow-card);
+}
+
+.ow-panel--flat {
+  box-shadow: none;
+}
+
+.ow-panel--compact {
+  padding: var(--ow-space-3);
+}
+
+.ow-panel--muted {
+  border-color: transparent;
+  background: var(--ow-color-surface-muted);
+}
+
+.ow-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ow-space-4);
+  padding: var(--ow-space-4) var(--ow-space-5);
+  border-bottom: 1px solid var(--ow-color-border-subtle);
+}
+
+.ow-panel-heading {
+  margin: 0;
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-section);
+  line-height: var(--ow-line-height-title);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-panel-body {
+  padding: var(--ow-space-5);
+}

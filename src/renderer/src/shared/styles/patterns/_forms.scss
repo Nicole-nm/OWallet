@@ -1,0 +1,62 @@
+@use '../mixins' as *;
+
+// Form items and field controls
+
+.ow-input {
+  height: var(--ow-button-height) !important;
+  border: 1px solid var(--ow-color-border-default) !important;
+  border-radius: var(--ow-radius-control) !important;
+  background: var(--ow-color-surface) !important;
+}
+
+.ow-error-input,
+.ow-error-to {
+  border-color: var(--ow-color-danger) !important;
+}
+
+.ow-error-amount :first-child {
+  border-color: var(--ow-color-danger) !important;
+}
+
+.ow-form-item,
+.ow-form-item.ant-form-item {
+  margin-bottom: var(--ow-space-5);
+}
+
+.ow-form-item .ant-form-item-label {
+  padding-bottom: 5px;
+}
+
+.ow-form-item .ant-form-item-label > label,
+.ow-form-item__label {
+  display: block;
+  font-family: var(--ow-font-medium);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-form-item .ant-form-item-explain-error,
+.ow-form-item .ant-form-item-extra {
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-caption);
+}
+
+.ow-form-item--compact,
+.ow-form-item--compact.ant-form-item {
+  margin-bottom: var(--ow-space-3);
+}
+
+.ow-form-item--readonly .ant-form-item-control-input {
+  min-height: auto;
+}
+
+.ow-form-item__content {
+  width: 100%;
+}
+
+.ow-form-item__help {
+  margin-top: var(--ow-space-2);
+}
+
+.ow-field-control {
+  width: 100%;
+}

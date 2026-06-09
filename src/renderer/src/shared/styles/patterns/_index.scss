@@ -1,0 +1,19 @@
+// Pattern layer — component-level classes, split by domain.
+// Files are @used in source order to preserve the cascade.
+
+@use 'layout';
+@use 'action-cards';
+@use 'forms';
+@use 'flow';
+@use 'blocks';
+@use 'settings';
+@use 'governance';
+@use 'review';
+@use 'detail';
+@use 'wallet';
+@use 'editor';
+@use 'data-display';
+@use 'stats';
+@use 'card-grid';
+@use 'assets';
+@use 'responsive';

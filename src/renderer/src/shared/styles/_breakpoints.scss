@@ -1,0 +1,23 @@
+@use 'sass:map';
+
+// Single source of truth for responsive breakpoints (desktop-first).
+// `respond-to($name)` emits a `max-width` media query for the named stop.
+$ow-breakpoints: (
+  'xs': 560px,
+  'sm': 720px,
+  'md': 768px,
+  'lg': 840px,
+  'xl': 900px,
+);
+
+@mixin respond-to($name) {
+  $value: map.get($ow-breakpoints, $name);
+
+  @if $value == null {
+    @error "Unknown breakpoint `#{$name}`. Available: #{map.keys($ow-breakpoints)}.";
+  }
+
+  @media (max-width: $value) {
+    @content;
+  }
+}

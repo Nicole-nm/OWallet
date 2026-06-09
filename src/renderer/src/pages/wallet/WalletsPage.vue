@@ -1,5 +1,5 @@
 <template>
-  <div class="negative-margin-top wallets-page">
+  <div class="ow-flush-under-nav wallets-page">
     <a-tabs :activeKey="activeTab" @update:activeKey="activeTab = $event" class="ow-section-tabs">
       <template #rightExtra>
         <a-input

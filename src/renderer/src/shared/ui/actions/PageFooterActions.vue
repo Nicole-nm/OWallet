@@ -1,5 +1,5 @@
 <template>
-  <footer class="footer-btns" aria-label="Page actions">
+  <footer class="ow-footer-btns" aria-label="Page actions">
     <div class="ow-footer-actions" :class="`ow-footer-actions--${align}`">
       <slot />
     </div>

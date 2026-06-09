@@ -1,6 +1,5 @@
 import {
   queryOep4Balance,
-  queryAllOep4Balances,
   queryOep4Decimal,
   queryOep4StringProperty,
   hasOep4Contract,

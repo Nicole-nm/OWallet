@@ -9,8 +9,8 @@
           <div class="allowed-stake-input-group">
             <span class="allowed-stake-label">{{ $t('nodeMgmt.allowedStakeUnits') }}: </span>
             <a-input
-              class="input unit-input"
-              :class="validUnit ? '' : 'error-input'"
+              class="ow-input unit-input"
+              :class="validUnit ? '' : 'ow-error-input'"
               v-model:value="unitModel"
               @change="emit('validateUnit')"
             ></a-input>

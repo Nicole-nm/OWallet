@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="left-nav text-center">
+    <div class="left-nav ow-text-center">
       <router-link class="logo-div" :to="{ name: ROUTE_NAMES.HOME }">
         <img class="logo-img" src="../../../assets/logo.png" alt="" />
       </router-link>

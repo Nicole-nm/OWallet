@@ -94,7 +94,7 @@
                     <a-input
                       v-model:value="stakeAmount"
                       type="number"
-                      :class="validAmount ? '' : 'error-input'"
+                      :class="validAmount ? '' : 'ow-error-input'"
                       @change="validateAmount"
                       :placeholder="$t('nodeApply.inputStakeAmount')"
                     ></a-input>

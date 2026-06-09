@@ -1,0 +1,197 @@
+@use '../mixins' as *;
+
+// Card grid, list cards, create cards
+
+.ow-card-grid {
+  --ow-card-grid-item-width: var(--ow-card-grid-column-width);
+
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, var(--ow-card-grid-item-width)), var(--ow-card-grid-item-width))
+  );
+  gap: var(--ow-card-grid-gap-y) var(--ow-card-grid-gap-x);
+  align-items: stretch;
+  justify-content: start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ow-card-grid > * {
+  min-width: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.ow-card-grid--padded {
+  padding: var(--ow-space-6) var(--ow-space-5) var(--ow-space-4) var(--ow-space-16);
+  position: relative;
+}
+
+.ow-card-grid--nodes {
+  --ow-card-grid-item-width: var(--ow-card-grid-wide-column-width);
+}
+
+.ow-list-card,
+.ow-create-card {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--ow-color-border-default);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-muted);
+  box-shadow: var(--ow-shadow-card);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.ow-list-card:hover,
+.ow-list-card:focus-within {
+  transform: translateY(-2px);
+  border-color: var(--ow-color-brand);
+  background: var(--ow-color-surface-elevated);
+  box-shadow: var(--ow-shadow-elevated);
+}
+
+.ow-list-card--wallet,
+.ow-create-card--wallet {
+  height: var(--ow-card-height);
+  margin: 0;
+}
+
+.ow-list-card--wallet {
+  padding: 0 var(--ow-space-5);
+}
+
+.ow-list-card--wallet:hover {
+  cursor: pointer;
+}
+
+.ow-list-card--node,
+.ow-create-card--node {
+  height: var(--ow-card-height-tall);
+  margin: 0;
+}
+
+.ow-list-card--node {
+  padding: var(--ow-space-5);
+}
+
+.ow-create-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-family: var(--ow-font-medium);
+  cursor: default;
+}
+
+.ow-create-card .ant-card-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ow-space-5);
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  padding: var(--ow-space-5);
+}
+
+.ow-create-card--node {
+  padding: var(--ow-space-5);
+}
+
+.ow-create-card--bordered {
+  border: 1px solid var(--ow-color-border-default);
+}
+
+.ow-create-card--active {
+  background-color: var(--ow-color-card-create-hover);
+}
+
+.ow-create-card__actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--ow-space-5);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
+}
+
+.ow-create-card__actions--single {
+  display: flex;
+  justify-content: center;
+}
+
+.ow-create-card__actions--stacked {
+  display: grid;
+  gap: var(--ow-space-4);
+  justify-items: center;
+}
+
+.ow-create-card__action {
+  width: min(100%, 10.625rem);
+  text-align: center;
+}
+
+.ow-create-card__button {
+  width: 100%;
+  text-decoration: none;
+}
+
+.ow-create-card__visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ow-space-16);
+  height: var(--ow-space-16);
+  transition:
+    opacity 0.15s ease,
+    visibility 0.15s ease;
+}
+
+.ow-create-card__icon {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.ow-create-card:hover,
+.ow-create-card:focus-within {
+  transform: translateY(-2px);
+  border-color: var(--ow-color-brand);
+  background: var(--ow-color-card-create-hover);
+  box-shadow: var(--ow-shadow-elevated);
+}
+
+.ow-create-card:hover .ow-create-card__visual,
+.ow-create-card:focus-within .ow-create-card__visual {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.ow-create-card:hover .ow-create-card__actions,
+.ow-create-card:focus-within .ow-create-card__actions {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.ow-validation-error {
+  display: block;
+  font-size: var(--ow-font-size-caption);
+  color: var(--ow-color-danger);
+}

@@ -1,0 +1,127 @@
+@use '../mixins' as *;
+
+// Asset rows, tx rows, more link, refresh icon
+
+.ow-refresh-icon {
+  display: inline-block;
+  background-image: url('../../assets/refresh.svg');
+  background-size: cover;
+}
+
+.ow-asset-list {
+  height: 40vh;
+  overflow: auto;
+}
+
+.ow-asset-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--ow-color-border-subtle);
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-section);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-asset-header :first-child {
+  float: left;
+  margin-right: var(--ow-space-5);
+}
+
+.ow-asset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 40px;
+  border-bottom: 1px solid var(--ow-color-border-subtle);
+}
+
+.ow-asset-label {
+  float: left;
+  margin-right: var(--ow-space-3);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  color: var(--ow-color-text-secondary);
+}
+
+.ow-asset-amount {
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-subtitle);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-asset-action {
+  width: 120px;
+  height: var(--ow-button-height);
+  margin-right: var(--ow-space-5);
+  margin-bottom: var(--ow-space-5);
+  border: none;
+  border-radius: var(--ow-radius-control);
+  background: var(--ow-color-brand);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  color: var(--ow-color-surface);
+}
+
+.ow-asset-action > i {
+  margin-right: var(--ow-space-1);
+}
+
+.ow-tx-row {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 14px;
+  cursor: pointer;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+}
+
+.ow-tx-row:hover span {
+  color: var(--ow-color-brand) !important;
+}
+
+.ow-tx-row :first-child {
+  flex: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ow-color-text-muted);
+}
+
+.ow-tx-row :last-child {
+  flex: 0.4;
+  text-align: right;
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-caption);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-tx-header {
+  position: relative;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--ow-color-border-subtle);
+}
+
+.ow-tx-header :first-child {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-body);
+  color: var(--ow-color-text-primary);
+  text-align: center;
+}
+
+.ow-more-link {
+  width: 100%;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+  color: var(--ow-color-brand);
+  text-align: center;
+  cursor: pointer;
+}
+
+.ow-more-link:hover {
+  color: var(--ow-color-brand-hover);
+}

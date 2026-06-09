@@ -36,7 +36,7 @@
 
         <a-input
           v-if="signerType === 'CommonWallet'"
-          class="input shared-signature-approval__password"
+          class="ow-input shared-signature-approval__password"
           type="password"
           :placeholder="$t('sharedWalletHome.inputPassToTransfer')"
           :value="password"

@@ -9,7 +9,7 @@
       <div v-if="usesCommonWallet">
         <p>{{ $t('nodeStake.enterWalletPass') }}</p>
         <a-input
-          class="input"
+          class="ow-input"
           v-model:value="walletPassword"
           :placeholder="$t('nodeStake.password')"
           type="password"

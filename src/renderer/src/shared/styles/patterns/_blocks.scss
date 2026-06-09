@@ -1,0 +1,176 @@
+@use '../mixins' as *;
+@use '../breakpoints' as *;
+
+// Button rows, two-panel, form split, toggles, tips, choices, success state
+
+.ow-button-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ow-space-4);
+}
+
+.ow-button-row--between {
+  justify-content: space-between;
+}
+
+.ow-button-row--center {
+  justify-content: center;
+}
+
+.ow-button-row--end {
+  justify-content: flex-end;
+}
+
+.ow-button-row--wrap {
+  flex-wrap: wrap;
+}
+
+.ow-two-panel-layout {
+  display: grid;
+  grid-template-columns: var(--ow-two-panel-columns, minmax(0, 1.35fr) minmax(280px, 0.8fr));
+  gap: var(--ow-space-3);
+  max-width: var(--ow-two-panel-max-width, 980px);
+  margin: 0 auto;
+  align-items: start;
+}
+
+.ow-form-split-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ow-space-5);
+  padding: var(--ow-space-5);
+  border: 1px solid var(--ow-color-border-default);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-card);
+  box-shadow: var(--ow-shadow-card);
+}
+
+.ow-form-split-panel__column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ow-form-split-panel__column .ow-form-item:last-child,
+.ow-form-split-panel__column .ow-form-item.ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+.ow-form-inline-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ow-space-4);
+  min-height: 24px;
+  margin-top: var(--ow-space-4);
+  padding: var(--ow-space-4) var(--ow-space-5);
+  border: 1px solid var(--ow-color-border-subtle);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-muted);
+}
+
+.ow-form-inline-toggle__label {
+  margin: 0;
+  font-family: var(--ow-font-medium);
+  color: var(--ow-color-text-primary);
+}
+
+@include respond-to(xl) {
+  .ow-form-split-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ow-tip-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ow-space-1);
+  padding: 8px var(--ow-space-3);
+  border: 1px solid var(--ow-color-border-subtle);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-muted);
+}
+
+.ow-tip-card__text {
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-caption);
+  line-height: 1.45;
+  color: var(--ow-color-text-primary);
+}
+
+.ow-choice-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ow-space-3);
+  width: 100%;
+}
+
+.ow-choice-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ow-space-5);
+  width: 100%;
+}
+
+.ow-choice-panel {
+  width: 100%;
+  min-height: 40px;
+}
+
+.ow-inline-link-tip {
+  margin-top: var(--ow-space-1);
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  text-align: right;
+}
+
+.ow-inline-link-tip__text {
+  color: var(--ow-color-text-primary);
+  opacity: 0.6;
+}
+
+.ow-inline-link-tip__link {
+  color: var(--ow-color-brand);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ow-success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin-top: -4rem;
+}
+
+.ow-success-state__icon {
+  width: var(--ow-space-20);
+  height: var(--ow-space-20);
+  margin-bottom: var(--ow-space-5);
+}
+
+.ow-success-state__title {
+  margin: 0 0 var(--ow-space-10);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-display);
+  line-height: var(--ow-line-height-display);
+  color: var(--ow-color-text-primary);
+  text-align: center;
+}
+
+.ow-success-state__primary-action {
+  margin-bottom: var(--ow-space-6);
+}
+
+.ow-success-state__secondary-action {
+  margin: 0;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-secondary);
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -3,13 +3,10 @@
     <section class="shared-join-search__section">
       <div class="shared-join-search__section-copy">
         <span class="shared-join-search__section-title">{{ $t('importSharedWallet.import') }}</span>
-        <span class="shared-join-search__section-caption">{{
-          $t('importSharedWallet.inputAddress')
-        }}</span>
       </div>
 
       <a-input
-        class="input shared-join-search__input"
+        class="ow-input shared-join-search__input"
         v-model:value="searchText"
         :placeholder="$t('importSharedWallet.inputAddress')"
       />

@@ -1,5 +1,5 @@
 <template>
-  <div class="negative-margin-top" data-testid="settings-page">
+  <div class="ow-flush-under-nav" data-testid="settings-page">
     <a-tabs class="ow-section-tabs">
       <a-tab-pane key="settings" :tab="t('setting.name')">
         <div class="setting-page">

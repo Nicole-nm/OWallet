@@ -57,7 +57,7 @@
         <div>
           <p>{{ $t('common.enterIdentityPassword') }}</p>
           <a-input
-            class="input"
+            class="ow-input"
             v-model:value="password"
             :placeholder="$t('common.password')"
             type="password"

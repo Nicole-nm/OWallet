@@ -1,0 +1,255 @@
+@use '../mixins' as *;
+
+// Settings stack + status pills (update flow)
+
+.ow-settings-stack {
+  --ow-settings-control-width: var(--ow-layout-settings-control-width);
+  --ow-settings-control-inset: var(--ow-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ow-space-5);
+  width: min(var(--ow-layout-settings-content-width), 100%);
+  margin: 0;
+  padding: 0 0 var(--ow-space-6);
+}
+
+.ow-settings-section {
+  overflow: hidden;
+}
+
+.ow-settings-section-header {
+  align-items: flex-start;
+}
+
+.ow-settings-section-header--status {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(0, var(--ow-settings-control-width));
+  gap: var(--ow-space-7);
+  align-items: center;
+  padding-right: var(--ow-settings-control-inset);
+}
+
+.ow-settings-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ow-settings-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-right: var(--ow-settings-control-inset);
+}
+
+.ow-settings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  gap: var(--ow-space-6);
+  align-items: start;
+}
+
+.ow-settings-row--compact,
+.ow-settings-row--storage,
+.ow-settings-row--updates {
+  grid-template-columns: minmax(320px, 1fr) minmax(0, var(--ow-settings-control-width));
+}
+
+.ow-settings-row--compact {
+  align-items: center;
+}
+
+.ow-settings-row--storage,
+.ow-settings-row--updates {
+  column-gap: var(--ow-space-7);
+}
+
+.ow-settings-row--updates {
+  row-gap: var(--ow-space-7);
+}
+
+.ow-settings-row--storage {
+  row-gap: 6px;
+}
+
+.ow-settings-row + .ow-settings-row {
+  margin-top: var(--ow-space-6);
+  padding-top: var(--ow-space-6);
+  border-top: 1px solid var(--ow-color-border-subtle);
+}
+
+.ow-settings-row--compact + .ow-settings-row--compact {
+  margin-top: var(--ow-space-4);
+  padding-top: var(--ow-space-4);
+}
+
+.ow-settings-storage-header {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--ow-space-2);
+  align-items: baseline;
+}
+
+.ow-settings-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ow-space-2);
+  padding-top: var(--ow-space-1);
+}
+
+.ow-settings-copy--storage {
+  gap: var(--ow-space-1);
+  padding-top: 0;
+}
+
+.ow-settings-copy--updates {
+  gap: 10px;
+  padding-top: 2px;
+}
+
+.ow-settings-control {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+  width: min(100%, var(--ow-settings-control-width));
+  margin-left: auto;
+}
+
+.ow-settings-control--storage {
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  align-self: stretch;
+  grid-column: 2;
+}
+
+.ow-settings-control--updates {
+  align-items: flex-end;
+}
+
+.ow-settings-label {
+  margin: 0;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
+}
+
+.ow-settings-copy-text {
+  margin: 0;
+  font-family: var(--ow-font-regular);
+  font-size: var(--ow-font-size-body);
+  line-height: 1.6;
+  color: var(--ow-color-text-secondary);
+}
+
+.ow-settings-section-body--preferences .ow-settings-copy-text {
+  font-size: var(--ow-font-size-small);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.ow-settings-copy--storage .ow-settings-copy-text {
+  white-space: nowrap;
+}
+
+.ow-settings-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ow-space-4);
+  color: var(--ow-color-text-primary);
+  font-size: var(--ow-font-size-body);
+  line-height: 1.6;
+}
+
+.ow-settings-summary-row--inline {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.ow-settings-summary-label {
+  margin: 0;
+  color: var(--ow-color-text-secondary);
+  font-size: var(--ow-font-size-small);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ow-settings-summary-row--inline .ow-settings-summary-label {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ow-settings-summary-value {
+  margin: 0;
+  color: var(--ow-color-text-primary);
+  font-size: var(--ow-font-size-body-lg);
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+.ow-settings-summary-value--inline {
+  font-size: var(--ow-font-size-body);
+  line-height: 1.6;
+}
+
+.ow-settings-summary-value--storage {
+  min-width: 0;
+  justify-self: end;
+  text-align: right;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: 1.4;
+}
+
+.ow-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ow-space-3);
+}
+
+.ow-settings-actions--end {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.ow-settings-update-error {
+  width: max-content;
+  max-width: none;
+  margin: 0 0 0 auto;
+  color: var(--ow-color-danger);
+  font-size: var(--ow-font-size-small);
+  line-height: 1.6;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.ow-status-pill--wide {
+  min-width: 92px;
+  padding: var(--ow-space-2) 14px;
+  white-space: nowrap;
+}
+
+.ow-status-pill--idle {
+  background: var(--ow-color-surface-muted);
+  color: var(--ow-color-text-secondary);
+}
+
+.ow-status-pill--checking {
+  background: var(--ow-color-info-soft);
+  color: var(--ow-color-brand);
+}
+
+.ow-status-pill--warning {
+  background: var(--ow-color-warning-soft);
+  color: var(--ow-color-warning);
+}
+
+.ow-status-pill--failed {
+  background: var(--ow-color-danger-soft);
+  color: var(--ow-color-danger);
+}

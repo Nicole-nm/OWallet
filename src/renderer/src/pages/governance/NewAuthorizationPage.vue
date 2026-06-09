@@ -46,10 +46,10 @@
               type="text"
               inputmode="numeric"
               autocomplete="off"
-              class="input new-authorization-input"
+              class="ow-input new-authorization-input"
               v-model:value="units"
               @change="handleChange"
-              :class="validInput ? '' : 'error-input'"
+              :class="validInput ? '' : 'ow-error-input'"
             ></a-input>
             <span class="ow-governance-input-suffix">ONT</span>
           </div>
