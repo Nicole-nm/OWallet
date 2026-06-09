@@ -28,7 +28,7 @@ vi.mock('../../shared/chain/loadOntologySdk', () => {
   return { loadOntologySdk: vi.fn(async () => ({ Crypto: { Address: FakeAddress } })) }
 })
 
-vi.mock('./transactionBuilder', () => mocks.builder)
+vi.mock('./governanceStorageReader', () => mocks.builder)
 
 import {
   fetchAuthorizationInfo,

@@ -9,14 +9,14 @@ const mocks = vi.hoisted(() => ({
   walletPersistenceService: { persistWallet: vi.fn() },
 }))
 
-vi.mock('../../../../domains/wallet/accountService', () => ({
+vi.mock('../../../../shared/chain/walletSdk', () => ({
   createMultiSigWalletAddress: (...args: unknown[]) =>
     mocks.accountService.createMultiSigWalletAddress(...args),
   deriveAddressFromPublicKey: (...args: unknown[]) =>
     mocks.accountService.deriveAddressFromPublicKey(...args),
 }))
 
-vi.mock('../../../../domains/sharedWallet/sharedWalletDomainService', () => ({
+vi.mock('../../../../domains/wallet/shared', () => ({
   createSharedWallet: (...args: unknown[]) => mocks.sharedWalletService.createSharedWallet(...args),
 }))
 

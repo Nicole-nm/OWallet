@@ -9,15 +9,38 @@
       @receive="showReceive"
       @send="showTransferBox"
     >
+      <template #address-actions>
+        <a-tooltip v-if="registered === true" :title="$t('sharedWalletHome.registered')">
+          <span
+            class="wallet-dashboard__icon-button registration-button registration-button--registered"
+          >
+            <CheckCircleFilled />
+          </span>
+        </a-tooltip>
+        <a-tooltip v-else-if="registered === false" :title="$t('sharedWalletHome.registerPrompt')">
+          <button
+            type="button"
+            class="wallet-dashboard__icon-button registration-button registration-button--unregistered"
+            :disabled="registering"
+            @click="handleRegister"
+          >
+            <a-spin v-if="registering" size="small" />
+            <ExclamationCircleFilled v-else />
+          </button>
+        </a-tooltip>
+        <span
+          v-else
+          class="wallet-dashboard__icon-button registration-button registration-button--loading"
+        >
+          <a-spin size="small" />
+        </span>
+      </template>
       <template #extra-actions>
         <a-dropdown>
           <template #overlay>
             <a-menu>
               <a-menu-item key="1" @click="showTxMgmt()">
                 <span>{{ $t('sharedWalletHome.txMgmt') }}</span>
-              </a-menu-item>
-              <a-menu-item key="2" @click="toCopayerDetail()">
-                <span>{{ $t('sharedWalletHome.copayers') }}</span>
               </a-menu-item>
             </a-menu>
           </template>
@@ -84,7 +107,7 @@ import WalletBalancePanel from '../../modules/wallet/ui/WalletBalancePanel.vue'
 import WalletMaintenancePanel from '../../modules/wallet/ui/WalletMaintenancePanel.vue'
 import WalletTransactionsPanel from '../../modules/wallet/ui/WalletTransactionsPanel.vue'
 import { useSharedWalletHomePage } from '../../workflows/wallet/useSharedWalletHomePage'
-import { DownOutlined } from '@ant-design/icons-vue'
+import { CheckCircleFilled, DownOutlined, ExclamationCircleFilled } from '@ant-design/icons-vue'
 
 defineOptions({
   name: 'SharedWalletHomePage',
@@ -96,6 +119,7 @@ const {
   refresh,
   addOep4,
   handleBack,
+  handleRegister,
   balanceDisplay,
   oep4sDisplay,
   redeemOng,
@@ -103,7 +127,6 @@ const {
   showTransferBox,
   showReceive,
   showTxMgmt,
-  toCopayerDetail,
   pendingTx,
   completedTx,
   pendingTxDetail,
@@ -118,6 +141,8 @@ const {
   handleOep4SelectionOpenChange,
   handleOep4SelectionPageChange,
   toggleOep4Selection,
+  registered,
+  registering,
 } = useSharedWalletHomePage()
 </script>
 
@@ -145,6 +170,36 @@ const {
   border-radius: var(--ow-radius-control);
   font-family: var(--ow-font-medium);
   color: var(--ow-color-brand);
+}
+
+.registration-button {
+  font-size: 16px;
+}
+
+.registration-button--registered {
+  --wallet-dashboard-icon-button-color: var(--ow-color-success, #52c41a);
+  --wallet-dashboard-icon-button-hover-border-color: var(--ow-color-success, #52c41a);
+  --wallet-dashboard-icon-button-hover-color: var(--ow-color-success, #52c41a);
+  cursor: default;
+}
+
+.registration-button--unregistered {
+  --wallet-dashboard-icon-button-color: var(--ow-color-warning, #faad14);
+  --wallet-dashboard-icon-button-hover-border-color: var(--ow-color-warning, #faad14);
+  --wallet-dashboard-icon-button-hover-color: var(--ow-color-warning, #faad14);
+}
+
+.registration-button--loading {
+  cursor: default;
+}
+
+.registration-button :deep(.ant-spin) {
+  color: inherit;
+  line-height: 1;
+}
+
+.registration-button :deep(.ant-spin-dot-item) {
+  background-color: currentColor;
 }
 
 @media (max-width: 960px) {

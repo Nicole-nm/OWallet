@@ -7,13 +7,16 @@
       :payers="pendingTx.coPayerSignDtos"
       :recipient="pendingTx.receiveaddress"
       :required-number="sharedWallet.requiredNumber"
-      :title-key="isRedeem ? 'sharedWalletHome.redeemOng' : 'sharedWalletHome.send'"
+      :title-key="isRedeem ? 'sharedWalletHome.redeemOng' : 'sharedWalletHome.transaction'"
       :total-number="sharedWallet.totalNumber"
     ></shared-transfer-review-panel>
 
-    <page-footer-actions v-if="showSign" align="center" class="pending-confirm__actions">
-      <a-button type="primary" variant="primary" @click="next">{{
-        $t('sharedWalletHome.sign')
+    <page-footer-actions align="between" class="pending-confirm__actions">
+      <a-button type="default" variant="secondary" @click="cancel">{{
+        $t('sharedWalletHome.cancel')
+      }}</a-button>
+      <a-button type="primary" variant="primary" :disabled="!showSign" @click="next">{{
+        $t('sharedWalletHome.next')
       }}</a-button>
     </page-footer-actions>
   </div>
@@ -64,6 +67,10 @@ async function updateShowSign() {
 
 function next() {
   emit('signEvent')
+}
+
+function cancel() {
+  emit('cancelEvent')
 }
 </script>
 

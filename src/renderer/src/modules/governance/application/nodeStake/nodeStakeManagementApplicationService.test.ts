@@ -49,7 +49,7 @@ vi.mock('../../../../domains/governance/governanceDomainService', () => ({
     mocks.governanceService.createWithdrawPeerUnboundOngTransaction(...args),
 }))
 
-vi.mock('../../../../domains/nodeStake/nodeStakeDomainService', () => ({
+vi.mock('../../../../domains/governance/nodeStakeDomainService', () => ({
   createDelegatedStakeTransactionBody: (...args: any[]) =>
     mocks.nodeStakeService.createDelegatedStakeTransactionBody(...args),
   submitDelegatedStakeTransaction: (...args: any[]) =>

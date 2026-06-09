@@ -17,7 +17,6 @@ export const ROUTE_NAMES = Object.freeze({
   SHARED_WALLET_HOME: 'SharedWalletHome',
   SHARED_WALLET_SEND_TRANSFER: 'SharedWalletSendTransfer',
   SHARED_WALLET_PENDING_TX_HOME: 'SharedWalletPendingTxHome',
-  SHARED_WALLET_COPAYER: 'SharedWalletCopayer',
   SHARED_TX_MGMT: 'SharedTxMgmt',
   NODE_VOTE: 'NodeVote',
   VOTE_LOGIN: 'VoteLogin',

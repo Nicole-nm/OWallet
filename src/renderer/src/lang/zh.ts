@@ -340,6 +340,7 @@ export default {
 
   sharedWalletHome: {
     send: '发送',
+    transaction: '交易',
     transferDetails: '转账信息',
     reviewAndSend: '确认发送',
     reviewTransaction: '确认交易',
@@ -364,6 +365,7 @@ export default {
     submit: '提交',
     asset: '资产',
     sponsor: '发起人',
+    signer: '共同签名人',
     dragDecide: '拖动序号决定顺序',
     fee: '费用',
     inputPassword: '输入密码',
@@ -386,6 +388,12 @@ export default {
     createTransferFailed: '创建转账交易失败',
     createTransferSuccess: '创建转账交易成功',
     txSendingTochain: '该交易正在发送上链。',
+    registered: '已在当前网络服务器注册',
+    notRegistered: '未注册',
+    registerPrompt: '该共享钱包未在当前网络服务器上注册，点击注册后即可发送交易。',
+    register: '注册',
+    registerSuccess: '注册成功',
+    registerFailed: '注册失败',
   },
 
   sharedTx: {

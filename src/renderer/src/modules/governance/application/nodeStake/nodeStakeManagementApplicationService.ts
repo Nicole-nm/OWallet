@@ -5,10 +5,10 @@ import {
 import {
   createDelegatedStakeTransactionBody,
   submitDelegatedStakeTransaction,
-} from '../../../../domains/nodeStake/nodeStakeDomainService'
+} from '../../../../domains/governance/nodeStakeDomainService'
 import { submitWithAdapter } from '../../../../domains/transaction/submitWithAdapter'
 import { createLogger } from '../../../../shared/lib/logger'
-import { tryCreateTransaction } from '../../../../domains/transaction/transactionHelper'
+import { tryCreateTransaction } from '../../../../domains/transaction/transactionResults'
 import type { TransactionDraftResult } from '../../../../shared/types'
 import { NetworkId } from '../../../../shared/lib/types'
 import type {

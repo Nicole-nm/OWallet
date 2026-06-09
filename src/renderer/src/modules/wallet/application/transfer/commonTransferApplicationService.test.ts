@@ -2,14 +2,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   transactionService: {
-    createTransferTransaction: vi.fn(),
+    buildTransfer: vi.fn(),
     sendTransaction: vi.fn(),
   },
 }))
 
+vi.mock('../../../../domains/transaction/assetBuilder', () => ({
+  buildTransfer: (...args: any[]) => mocks.transactionService.buildTransfer(...args),
+}))
+
 vi.mock('../../../../domains/transaction/transactionDomainService', () => ({
-  createTransferTransaction: (...args: any[]) =>
-    mocks.transactionService.createTransferTransaction(...args),
   sendTransaction: (...args: any[]) => mocks.transactionService.sendTransaction(...args),
 }))
 
@@ -57,7 +59,7 @@ describe('commonTransferApplicationService', () => {
     const signed = { id: 'signed-tx' }
     const submitResult = { ok: true, txHash: 'hash-1' }
 
-    mocks.transactionService.createTransferTransaction.mockResolvedValue(tx)
+    mocks.transactionService.buildTransfer.mockResolvedValue(tx)
     mocks.transactionService.sendTransaction.mockResolvedValue(submitResult)
 
     const adapter = makeAdapter(commonCapabilities, signed)
@@ -66,33 +68,21 @@ describe('commonTransferApplicationService', () => {
       submitCommonTransfer({
         address: 'AQ123',
         adapter,
-        transfer: {
-          asset: 'ONT',
-          to: 'AQ999',
-          amount: 1,
-          gas: 0.02,
-        },
+        transfer: { asset: 'ONT', to: 'AQ999', amount: 1, gas: 0.02 },
         password: 'secret123',
       })
     ).resolves.toEqual(submitResult)
 
-    expect(mocks.transactionService.createTransferTransaction).toHaveBeenCalledWith({
-      fromAddress: 'AQ123',
-      transfer: {
-        asset: 'ONT',
-        to: 'AQ999',
-        amount: 1,
-        gas: 0.02,
-        gasPrice: '1000',
-        gasLimit: '20000',
-      },
-    })
+    expect(mocks.transactionService.buildTransfer).toHaveBeenCalledWith(
+      { asset: 'ONT', to: 'AQ999', amount: 1, gas: 0.02, gasPrice: '1000', gasLimit: '20000' },
+      'AQ123'
+    )
     expect(adapter.signTransaction).toHaveBeenCalledWith(tx, { password: 'secret123' })
     expect(mocks.transactionService.sendTransaction).toHaveBeenCalledWith(signed)
   })
 
   it('maps null sign result to common.pwdErr when adapter requires password', async () => {
-    mocks.transactionService.createTransferTransaction.mockResolvedValue({ id: 'tx-1' })
+    mocks.transactionService.buildTransfer.mockResolvedValue({ id: 'tx-1' })
 
     await expect(
       submitCommonTransfer({

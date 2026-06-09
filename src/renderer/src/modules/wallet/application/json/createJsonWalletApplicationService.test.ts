@@ -25,7 +25,7 @@ vi.mock('../../../../domains/wallet/detailService', () => ({
   validateWalletWif: (...args: unknown[]) => mocks.detailService.validateWalletWif(...args),
 }))
 
-vi.mock('../../../../domains/wallet/accountService', () => ({
+vi.mock('../../../../shared/chain/walletSdk', () => ({
   generateWalletKeyPair: (...args: unknown[]) =>
     mocks.accountService.generateWalletKeyPair(...args),
 }))

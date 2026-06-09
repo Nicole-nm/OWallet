@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { varifyPositiveInt } from '../../shared/lib/validators'
+import { verifyPositiveInt } from '../../shared/lib/validators'
 import { handleTransactionFeedback } from '../../shared/lib/transactionFeedback'
 import {
   createAddInitPosManagementTransaction,
@@ -13,6 +13,7 @@ import {
 } from '../../modules/governance/application/nodeStake/nodeStakeManagementApplicationService'
 import { notifyError } from '../../shared/ui/feedback'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
+import { resolveWalletOrNotify, stageSignableTx } from './governanceTxHelpers'
 import { WalletAdapterFactory } from '../../modules/wallet/application/adapter/WalletAdapterFactory'
 import { notifyGovernanceSigningFailure } from './governanceSigningFeedback'
 import {
@@ -172,64 +173,47 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
   }
 
   async function handleRecall() {
-    const wallet = resolveStakeWallet()
-    if (!wallet) {
-      notifyError('nodeStake.selectIndividualWallet')
-      return
-    }
+    const wallet = resolveWalletOrNotify(resolveStakeWallet)
+    if (!wallet) return
 
     const result = await createNodeRecallTransaction({
       stakeWalletAddress: wallet.address,
       nodePublicKey: nodePublicKey.value,
     })
-    if (notifyFailure(result)) return result
-
-    tx.value = result.tx
-    walletPassModal.value = true
+    stageSignableTx(result, { tx, walletPassModal })
     return result
   }
 
   async function handleRefund() {
-    const wallet = resolveStakeWallet()
-    if (!wallet) {
-      notifyError('nodeStake.selectIndividualWallet')
-      return
-    }
+    const wallet = resolveWalletOrNotify(resolveStakeWallet)
+    if (!wallet) return
 
     const result = await createNodeRefundTransaction({
       stakeWalletAddress: wallet.address,
       nodePublicKey: nodePublicKey.value,
       claimableAmount: authorizationInfo.value.claimableVal,
     })
-    if (notifyFailure(result)) return result
-
-    tx.value = result.tx
-    walletPassModal.value = true
+    stageSignableTx(result, { tx, walletPassModal })
     return result
   }
 
   async function handleQuitNode() {
-    const wallet = resolveStakeWallet()
-    if (!wallet) {
-      notifyError('nodeStake.selectIndividualWallet')
-      return
-    }
+    const wallet = resolveWalletOrNotify(resolveStakeWallet)
+    if (!wallet) return
 
     const result = await createQuitNodeManagementTransaction({
       stakeWalletAddress: wallet.address,
       nodePublicKey: nodePublicKey.value,
       claimableAmount: authorizationInfo.value.claimableVal,
     })
-    if (notifyFailure(result)) return result
-
-    tx.value = result.tx
-    isQuit.value = true
-    walletPassModal.value = true
+    if (stageSignableTx(result, { tx, walletPassModal })) {
+      isQuit.value = true
+    }
     return result
   }
 
   function validateAddPos() {
-    validAddPos.value = Boolean(addPos.value && varifyPositiveInt(addPos.value))
+    validAddPos.value = Boolean(addPos.value && verifyPositiveInt(addPos.value))
     return validAddPos.value
   }
 
@@ -249,11 +233,8 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
   }
 
   async function handleAddPosOk() {
-    const wallet = resolveStakeWallet()
-    if (!wallet) {
-      notifyError('nodeStake.selectIndividualWallet')
-      return
-    }
+    const wallet = resolveWalletOrNotify(resolveStakeWallet)
+    if (!wallet) return
 
     if (!validateAddPos()) {
       notifyError('nodeMgmt.invalidInput')
@@ -265,21 +246,16 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       stakeWalletAddress: wallet.address,
       amount: addPos.value,
     })
-    if (notifyFailure(result)) return result
-
-    addPosVisible.value = false
-    tx.value = result.tx
-    walletPassModal.value = true
-    isDelegateSendTx.value = false
+    if (stageSignableTx(result, { tx, walletPassModal })) {
+      addPosVisible.value = false
+      isDelegateSendTx.value = false
+    }
     return result
   }
 
   async function handleReducePosOk() {
-    const wallet = resolveStakeWallet()
-    if (!wallet) {
-      notifyError('nodeStake.selectIndividualWallet')
-      return
-    }
+    const wallet = resolveWalletOrNotify(resolveStakeWallet)
+    if (!wallet) return
 
     if (!validateReducePos()) {
       return
@@ -290,33 +266,26 @@ export function useNodeStakeTransactions(deps: NodeStakeTransactionsDeps) {
       stakeWalletAddress: wallet.address,
       amount: reducePos.value,
     })
-    if (notifyFailure(result)) return result
-
-    reducePosVisible.value = false
-    tx.value = result.tx
-    walletPassModal.value = true
-    isDelegateSendTx.value = false
+    if (stageSignableTx(result, { tx, walletPassModal })) {
+      reducePosVisible.value = false
+      isDelegateSendTx.value = false
+    }
     return result
   }
 
   async function handleRedeemPosOk() {
-    const wallet = resolveStakeWallet()
-    if (!wallet) {
-      notifyError('nodeStake.selectIndividualWallet')
-      return
-    }
+    const wallet = resolveWalletOrNotify(resolveStakeWallet)
+    if (!wallet) return
 
     const result = await createRedeemInitPosManagementTransaction({
       stakeWalletAddress: wallet.address,
       nodePublicKey: nodePublicKey.value,
       claimableAmount: authorizationInfo.value.claimableVal,
     })
-    if (notifyFailure(result)) return result
-
-    redeemPosVisible.value = false
-    tx.value = result.tx
-    walletPassModal.value = true
-    isDelegateSendTx.value = false
+    if (stageSignableTx(result, { tx, walletPassModal })) {
+      redeemPosVisible.value = false
+      isDelegateSendTx.value = false
+    }
     return result
   }
 

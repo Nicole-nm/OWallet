@@ -77,7 +77,7 @@ const summary = computed(() =>
         asset: transfer.value.asset,
         fee: transfer.value.gas,
         recipient: transfer.value.to,
-        titleKey: 'sharedWalletHome.send',
+        titleKey: 'sharedWalletHome.transaction',
       }
 )
 

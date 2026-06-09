@@ -5,6 +5,7 @@
         <span class="wallet-dashboard__address-label">{{ $t('sharedWalletHome.address') }}</span>
         <div class="wallet-dashboard__address-bar">
           <span class="wallet-dashboard__address">{{ address }}</span>
+          <slot name="address-actions"></slot>
           <div class="wallet-dashboard__qr-trigger">
             <button type="button" class="wallet-dashboard__icon-button">
               <QrcodeOutlined />
@@ -148,17 +149,37 @@ defineEmits<{
   font-family: var(--ow-font-medium);
 }
 
-.wallet-dashboard__icon-button {
+.wallet-dashboard__address-bar :global(.wallet-dashboard__icon-button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  flex-shrink: 0;
+  width: var(--ow-button-height-compact);
+  height: var(--ow-button-height-compact);
   padding: 0;
-  border: 1px solid var(--ow-color-border-subtle);
+  border: 1px solid var(--wallet-dashboard-icon-button-border-color, var(--ow-color-border-subtle));
   border-radius: var(--ow-radius-pill);
-  background: var(--ow-color-surface-muted);
-  color: var(--ow-color-brand);
+  background: var(--wallet-dashboard-icon-button-background, var(--ow-color-surface-muted));
+  color: var(--wallet-dashboard-icon-button-color, var(--ow-color-brand));
   cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.wallet-dashboard__address-bar :global(.wallet-dashboard__icon-button:hover),
+.wallet-dashboard__address-bar :global(.wallet-dashboard__icon-button:focus-visible) {
+  border-color: var(--wallet-dashboard-icon-button-hover-border-color, var(--ow-color-brand));
+  background: var(
+    --wallet-dashboard-icon-button-hover-background,
+    var(--ow-color-surface-selected)
+  );
+  color: var(--wallet-dashboard-icon-button-hover-color, var(--ow-color-brand));
+}
+
+.wallet-dashboard__address-bar :global(.wallet-dashboard__icon-button:disabled) {
+  cursor: default;
+  opacity: 1;
 }
 </style>

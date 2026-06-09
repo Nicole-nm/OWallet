@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../../../domains/sharedWallet/sharedWalletDomainService', () => ({
+vi.mock('../../../../domains/wallet/shared', () => ({
   countSerializedSharedTransactionSignatures: (...args: any[]) =>
     mocks.sharedWalletService.countSerializedSharedTransactionSignatures(...args),
   createSerializedSharedInvokeTransaction: (...args: any[]) =>
@@ -39,12 +39,12 @@ vi.mock('../../../../domains/sharedWallet/sharedWalletDomainService', () => ({
     mocks.sharedWalletService.submitPendingSharedSignature(...args),
 }))
 
-vi.mock('../../../../domains/wallet/accountService', () => ({
+vi.mock('../../../../shared/chain/walletSdk', () => ({
   validateWalletAddress: (...args: any[]) =>
     mocks.walletAccountService.validateWalletAddress(...args),
 }))
 
-vi.mock('../../../../domains/transaction/signingService', () => ({
+vi.mock('../../../../domains/transaction/signing/sharedSigning', () => ({
   signSharedTx: (...args: any[]) => mocks.signingService.signSharedTx(...args),
   signSharedTxWithLedger: (...args: any[]) => mocks.signingService.signSharedTxWithLedger(...args),
 }))

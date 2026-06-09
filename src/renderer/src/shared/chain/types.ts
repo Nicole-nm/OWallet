@@ -23,6 +23,12 @@ export interface SdkPrivateKeyLike {
   getPublicKey(): SdkPublicKeyLike
   sign(data: unknown, schema?: unknown): SdkSignatureLike
   algorithm?: { defaultSchema?: unknown }
+  encrypt?(
+    password: string,
+    address: SdkAddressLike,
+    salt: string,
+    scrypt: ScryptParams
+  ): { key: string }
 }
 
 export interface SdkTxSignatureLike {

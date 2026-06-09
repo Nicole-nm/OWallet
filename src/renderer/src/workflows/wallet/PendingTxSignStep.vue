@@ -5,6 +5,8 @@
     :ledger-ready="Boolean(ledgerPk)"
     :ledger-status="ledgerStatus"
     :sending="sending"
+    :signer-address="currentSigner.address"
+    :signer-name="currentSigner.name || currentSigner.label"
     :signer-type="currentSigner.type"
     @back="back"
     @submit="submit"

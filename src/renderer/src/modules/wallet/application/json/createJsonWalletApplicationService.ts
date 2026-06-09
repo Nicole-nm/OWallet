@@ -1,6 +1,6 @@
 import { buildJsonWallet } from '../../../../domains/wallet/jsonWalletService'
 import { downloadWalletFile, validateWalletWif } from '../../../../domains/wallet/detailService'
-import { generateWalletKeyPair } from '../../../../domains/wallet/accountService'
+import { generateWalletKeyPair } from '../../../../shared/chain/walletSdk'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
 import { persistWallet } from '../persistence/walletPersistenceService'

@@ -51,151 +51,69 @@
           </a-tab-pane>
 
           <a-tab-pane key="mnemonic" :tab="$t('createJsonWallet.mnemonic')">
-            <div class="json-import__tab-panel">
-              <text-field
-                compact
-                :label="$t('importJsonWallet.label')"
-                :error="validationErrors.mnemonicLabel"
-                :model-value="form.mnemonicLabel"
-                @update:model-value="emit('updateField', { field: 'mnemonicLabel', value: $event })"
-                required
-              />
-
-              <form-field
-                compact
-                :label="$t('createJsonWallet.mnemonic')"
-                :error="validationErrors.mnemonic"
-                required
-              >
-                <a-textarea
-                  class="json-import__multiline-secret ow-field-control"
-                  id="import-json-mnemonic"
-                  :rows="3"
-                  :status="validationErrors.mnemonic ? 'error' : ''"
-                  :placeholder="$t('importJsonWallet.mnemonic')"
-                  :value="form.mnemonic"
-                  @update:value="emit('updateField', { field: 'mnemonic', value: $event })"
-                ></a-textarea>
-              </form-field>
-
-              <password-field
-                compact
-                :label="$t('importJsonWallet.setPassword')"
-                :error="validationErrors.mnemonicPassword"
-                :model-value="form.mnemonicPassword"
-                @update:model-value="
-                  emit('updateField', { field: 'mnemonicPassword', value: $event })
-                "
-                required
-              />
-
-              <password-field
-                compact
-                :label="$t('importJsonWallet.rePassword')"
-                :error="validationErrors.mnemonicRePassword"
-                :model-value="form.mnemonicRePassword"
-                @update:model-value="
-                  emit('updateField', { field: 'mnemonicRePassword', value: $event })
-                "
-                required
-              />
-            </div>
+            <secret-import-tab
+              label-key="mnemonicLabel"
+              :label-value="form.mnemonicLabel"
+              :label-error="validationErrors.mnemonicLabel"
+              secret-key="mnemonic"
+              :secret-value="form.mnemonic"
+              :secret-error="validationErrors.mnemonic"
+              secret-label-key="createJsonWallet.mnemonic"
+              secret-placeholder-key="importJsonWallet.mnemonic"
+              secret-id="import-json-mnemonic"
+              password-key="mnemonicPassword"
+              :password-value="form.mnemonicPassword"
+              :password-error="validationErrors.mnemonicPassword"
+              re-password-key="mnemonicRePassword"
+              :re-password-value="form.mnemonicRePassword"
+              :re-password-error="validationErrors.mnemonicRePassword"
+              re-password-label-key="importJsonWallet.rePassword"
+              @update-field="emit('updateField', $event)"
+            />
           </a-tab-pane>
 
           <a-tab-pane key="wif" :tab="$t('createJsonWallet.priavteKeywif')">
-            <div class="json-import__tab-panel">
-              <text-field
-                compact
-                :label="$t('importJsonWallet.label')"
-                :error="validationErrors.wifLabel"
-                :model-value="form.wifLabel"
-                @update:model-value="emit('updateField', { field: 'wifLabel', value: $event })"
-                required
-              />
-
-              <form-field
-                compact
-                :label="$t('createJsonWallet.priavteKeywif')"
-                :error="validationErrors.wif"
-                required
-              >
-                <a-textarea
-                  class="json-import__multiline-secret ow-field-control"
-                  id="import-json-wif"
-                  :rows="3"
-                  :status="validationErrors.wif ? 'error' : ''"
-                  :placeholder="$t('importJsonWallet.wifTip')"
-                  :value="form.wif"
-                  @update:value="emit('updateField', { field: 'wif', value: $event })"
-                ></a-textarea>
-              </form-field>
-
-              <password-field
-                compact
-                :label="$t('importJsonWallet.setPassword')"
-                :error="validationErrors.wifPassword"
-                :model-value="form.wifPassword"
-                @update:model-value="emit('updateField', { field: 'wifPassword', value: $event })"
-                required
-              />
-
-              <password-field
-                compact
-                :label="$t('importJsonWallet.rePassword')"
-                :error="validationErrors.wifRePassword"
-                :model-value="form.wifRePassword"
-                @update:model-value="emit('updateField', { field: 'wifRePassword', value: $event })"
-                required
-              />
-            </div>
+            <secret-import-tab
+              label-key="wifLabel"
+              :label-value="form.wifLabel"
+              :label-error="validationErrors.wifLabel"
+              secret-key="wif"
+              :secret-value="form.wif"
+              :secret-error="validationErrors.wif"
+              secret-label-key="createJsonWallet.priavteKeywif"
+              secret-placeholder-key="importJsonWallet.wifTip"
+              secret-id="import-json-wif"
+              password-key="wifPassword"
+              :password-value="form.wifPassword"
+              :password-error="validationErrors.wifPassword"
+              re-password-key="wifRePassword"
+              :re-password-value="form.wifRePassword"
+              :re-password-error="validationErrors.wifRePassword"
+              re-password-label-key="importJsonWallet.rePassword"
+              @update-field="emit('updateField', $event)"
+            />
           </a-tab-pane>
 
           <a-tab-pane key="pk" :tab="$t('createJsonWallet.privateKey64Hex')">
-            <div class="json-import__tab-panel">
-              <text-field
-                compact
-                :label="$t('importJsonWallet.label')"
-                :error="validationErrors.pkLabel"
-                :model-value="form.pkLabel"
-                @update:model-value="emit('updateField', { field: 'pkLabel', value: $event })"
-                required
-              />
-
-              <form-field
-                compact
-                :label="$t('importJsonWallet.privateKey')"
-                :error="validationErrors.pk"
-                required
-              >
-                <a-textarea
-                  class="json-import__multiline-secret ow-field-control"
-                  id="import-json-private-key"
-                  :rows="3"
-                  :status="validationErrors.pk ? 'error' : ''"
-                  :placeholder="$t('importJsonWallet.privateKeyTip')"
-                  :value="form.pk"
-                  @update:value="emit('updateField', { field: 'pk', value: $event })"
-                ></a-textarea>
-              </form-field>
-
-              <password-field
-                compact
-                :label="$t('importJsonWallet.setPassword')"
-                :error="validationErrors.pkPassword"
-                :model-value="form.pkPassword"
-                @update:model-value="emit('updateField', { field: 'pkPassword', value: $event })"
-                required
-              />
-
-              <password-field
-                compact
-                :label="$t('createJsonWallet.rePassword')"
-                :error="validationErrors.pkRePassword"
-                :model-value="form.pkRePassword"
-                @update:model-value="emit('updateField', { field: 'pkRePassword', value: $event })"
-                required
-              />
-            </div>
+            <secret-import-tab
+              label-key="pkLabel"
+              :label-value="form.pkLabel"
+              :label-error="validationErrors.pkLabel"
+              secret-key="pk"
+              :secret-value="form.pk"
+              :secret-error="validationErrors.pk"
+              secret-label-key="importJsonWallet.privateKey"
+              secret-placeholder-key="importJsonWallet.privateKeyTip"
+              secret-id="import-json-private-key"
+              password-key="pkPassword"
+              :password-value="form.pkPassword"
+              :password-error="validationErrors.pkPassword"
+              re-password-key="pkRePassword"
+              :re-password-value="form.pkRePassword"
+              :re-password-error="validationErrors.pkRePassword"
+              re-password-label-key="createJsonWallet.rePassword"
+              @update-field="emit('updateField', $event)"
+            />
           </a-tab-pane>
         </a-tabs>
       </section>
@@ -231,6 +149,7 @@ import PageFooterActions from '../../../../../shared/ui/actions/PageFooterAction
 import FormField from '../../../../../shared/ui/forms/FormField.vue'
 import TextField from '../../../../../shared/ui/forms/TextField.vue'
 import PasswordField from '../../../../../shared/ui/forms/PasswordField.vue'
+import SecretImportTab from './SecretImportTab.vue'
 
 defineOptions({
   name: 'BasicInfo',

@@ -23,9 +23,9 @@ const mocks = vi.hoisted(() => ({
     notifyError: vi.fn(),
   },
   validators: {
-    varifyPositiveInt: vi.fn((v: unknown) => Number(v) > 0 && Number.isInteger(Number(v))),
-    varifyOngValue: vi.fn((v: unknown) => Number(v) > 0),
-    varifyOpe4Value: vi.fn((v: unknown) => Number(v) > 0),
+    verifyPositiveInt: vi.fn((v: unknown) => Number(v) > 0 && Number.isInteger(Number(v))),
+    verifyOngValue: vi.fn((v: unknown) => Number(v) > 0),
+    verifyOep4Value: vi.fn((v: unknown) => Number(v) > 0),
   },
   validateSharedTransferAddress: vi.fn(),
 }))
@@ -51,9 +51,9 @@ vi.mock('../../shared/ui/feedback', () => ({
 }))
 
 vi.mock('../../shared/lib/validators', () => ({
-  varifyPositiveInt: (v: unknown) => mocks.validators.varifyPositiveInt(v),
-  varifyOngValue: (v: unknown) => mocks.validators.varifyOngValue(v),
-  varifyOpe4Value: (v: unknown) => mocks.validators.varifyOpe4Value(v),
+  verifyPositiveInt: (v: unknown) => mocks.validators.verifyPositiveInt(v),
+  verifyOngValue: (v: unknown) => mocks.validators.verifyOngValue(v),
+  verifyOep4Value: (v: unknown) => mocks.validators.verifyOep4Value(v),
 }))
 
 vi.mock(
@@ -86,11 +86,11 @@ describe('useSendAsset', () => {
       amount: 0,
       to: '',
     }
-    mocks.validators.varifyPositiveInt.mockImplementation(
+    mocks.validators.verifyPositiveInt.mockImplementation(
       (v: unknown) => Number(v) > 0 && Number.isInteger(Number(v))
     )
-    mocks.validators.varifyOngValue.mockImplementation((v: unknown) => Number(v) > 0)
-    mocks.validators.varifyOpe4Value.mockImplementation((v: unknown) => Number(v) > 0)
+    mocks.validators.verifyOngValue.mockImplementation((v: unknown) => Number(v) > 0)
+    mocks.validators.verifyOep4Value.mockImplementation((v: unknown) => Number(v) > 0)
   })
 
   describe('initialization', () => {
@@ -200,7 +200,7 @@ describe('useSendAsset', () => {
     it('marks malformed and overdrawn OEP-4 amounts invalid', () => {
       const sendAsset = useSendAsset(createEmit())
       sendAsset.changeAsset('0xtoken')
-      mocks.validators.varifyOpe4Value.mockReturnValueOnce(false)
+      mocks.validators.verifyOep4Value.mockReturnValueOnce(false)
       sendAsset.amount.value = 'invalid'
       sendAsset.validateAmount()
       expect(sendAsset.validAmount.value).toBe(false)

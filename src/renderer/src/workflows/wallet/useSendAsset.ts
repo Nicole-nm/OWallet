@@ -1,6 +1,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { BigNumber } from 'bignumber.js'
-import { varifyPositiveInt, varifyOngValue, varifyOpe4Value } from '../../shared/lib/validators'
+import { verifyPositiveInt, verifyOngValue, verifyOep4Value } from '../../shared/lib/validators'
 import { validateSharedTransferAddress } from '../../modules/wallet/application/sharedWallet/sharedWalletTransactionApplicationService'
 import { notifyError } from '../../shared/ui/feedback'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
@@ -51,9 +51,9 @@ export function useSendAsset(emit: SendAssetEmit) {
   const oep4BySymbol = computed(() => new Map(oep4s.value.map((item) => [item.symbol, item])))
 
   function isAmountFormatValid(): boolean {
-    if (asset.value === NATIVE_ASSET_ONT) return varifyPositiveInt(amount.value)
-    if (asset.value === NATIVE_ASSET_ONG) return varifyOngValue(amount.value)
-    return varifyOpe4Value(amount.value, decimal.value)
+    if (asset.value === NATIVE_ASSET_ONT) return verifyPositiveInt(amount.value)
+    if (asset.value === NATIVE_ASSET_ONG) return verifyOngValue(amount.value)
+    return verifyOep4Value(amount.value, decimal.value)
   }
 
   function exceedsBalance(): boolean {

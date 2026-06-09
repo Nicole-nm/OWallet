@@ -17,7 +17,8 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('./transactionBuilder', () => mocks.transactionBuilder)
+vi.mock('./authorizeTransactionBuilder', () => mocks.transactionBuilder)
+vi.mock('./candidateTransactionBuilder', () => mocks.transactionBuilder)
 
 import {
   createRegisterCandidateTransaction,

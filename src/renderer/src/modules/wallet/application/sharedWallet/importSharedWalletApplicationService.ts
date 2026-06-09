@@ -1,4 +1,4 @@
-import { querySharedWallet } from '../../../../domains/sharedWallet/sharedWalletDomainService'
+import { querySharedWallet } from '../../../../domains/wallet/shared'
 import { persistWallet } from '../persistence/walletPersistenceService'
 
 export async function queryImportableSharedWallet({

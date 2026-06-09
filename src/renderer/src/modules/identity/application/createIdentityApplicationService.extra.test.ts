@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   identityService: { buildIdentityRegistration: vi.fn() },
   transactionService: { sendTransaction: vi.fn() },
-  accountService: { createChainAddress: vi.fn(), generateWalletKeyPair: vi.fn() },
+  accountService: { createSdkAddress: vi.fn(), generateWalletKeyPair: vi.fn() },
   walletService: { fetchCommonWalletDocs: vi.fn(), insertIdentity: vi.fn() },
 }))
 
@@ -16,8 +16,8 @@ vi.mock('../../../domains/transaction/transactionDomainService', () => ({
   sendTransaction: (...args: unknown[]) => mocks.transactionService.sendTransaction(...args),
 }))
 
-vi.mock('../../../domains/wallet/accountService', () => ({
-  createChainAddress: (...args: unknown[]) => mocks.accountService.createChainAddress(...args),
+vi.mock('../../../shared/chain/walletSdk', () => ({
+  createSdkAddress: (...args: unknown[]) => mocks.accountService.createSdkAddress(...args),
   generateWalletKeyPair: (...args: unknown[]) =>
     mocks.accountService.generateWalletKeyPair(...args),
 }))
@@ -110,7 +110,7 @@ describe('createIdentityRegistrationDraft guards', () => {
   })
 
   it('builds the draft for a connected ledger wallet with a default password', async () => {
-    mocks.accountService.createChainAddress.mockResolvedValue('sdk-address')
+    mocks.accountService.createSdkAddress.mockResolvedValue('sdk-address')
     mocks.accountService.generateWalletKeyPair.mockResolvedValue({ privateKey: 'priv' })
     mocks.identityService.buildIdentityRegistration.mockResolvedValue({
       label: 'L',

@@ -2,14 +2,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   transactionService: {
-    createRedeemTransaction: vi.fn(),
+    buildClaimOng: vi.fn(),
     sendTransaction: vi.fn(),
   },
 }))
 
+vi.mock('../../../../domains/transaction/assetBuilder', () => ({
+  buildClaimOng: (...args: any[]) => mocks.transactionService.buildClaimOng(...args),
+}))
+
 vi.mock('../../../../domains/transaction/transactionDomainService', () => ({
-  createRedeemTransaction: (...args: any[]) =>
-    mocks.transactionService.createRedeemTransaction(...args),
   sendTransaction: (...args: any[]) => mocks.transactionService.sendTransaction(...args),
 }))
 
@@ -60,27 +62,22 @@ describe('commonRedeemApplicationService', () => {
     const signed = { id: 'signed-tx' }
     const submitResult = { ok: true, txHash: 'hash-1' }
 
-    mocks.transactionService.createRedeemTransaction.mockResolvedValue(tx)
+    mocks.transactionService.buildClaimOng.mockResolvedValue(tx)
     mocks.transactionService.sendTransaction.mockResolvedValue(submitResult)
 
     const adapter = makeAdapter(commonCapabilities, signed)
 
     await expect(
-      submitWalletRedeem({
-        address: 'AQ123',
-        adapter,
-        claimableOng: '1',
-        password: 'secret123',
-      })
+      submitWalletRedeem({ address: 'AQ123', adapter, claimableOng: '1', password: 'secret123' })
     ).resolves.toEqual(submitResult)
 
-    expect(mocks.transactionService.createRedeemTransaction).toHaveBeenCalled()
+    expect(mocks.transactionService.buildClaimOng).toHaveBeenCalled()
     expect(adapter.signTransaction).toHaveBeenCalledWith(tx, { password: 'secret123' })
     expect(mocks.transactionService.sendTransaction).toHaveBeenCalledWith(signed)
   })
 
   it('maps null sign result to common.pwdErr when adapter requires password', async () => {
-    mocks.transactionService.createRedeemTransaction.mockResolvedValue({ id: 'tx-1' })
+    mocks.transactionService.buildClaimOng.mockResolvedValue({ id: 'tx-1' })
 
     await expect(
       submitWalletRedeem({
@@ -94,7 +91,7 @@ describe('commonRedeemApplicationService', () => {
   })
 
   it('creates ledger redeem transactions with the ledger default gas price', async () => {
-    mocks.transactionService.createRedeemTransaction.mockResolvedValue({ id: 'tx-1' })
+    mocks.transactionService.buildClaimOng.mockResolvedValue({ id: 'tx-1' })
     mocks.transactionService.sendTransaction.mockResolvedValue({ ok: true, txHash: 'hash-1' })
 
     await submitWalletRedeem({
@@ -103,11 +100,11 @@ describe('commonRedeemApplicationService', () => {
       claimableOng: '1',
     })
 
-    expect(mocks.transactionService.createRedeemTransaction).toHaveBeenCalledWith({
-      address: 'AQ123',
-      claimableOng: '1',
-      gasPrice: '2500',
-      gasLimit: '20000',
-    })
+    expect(mocks.transactionService.buildClaimOng).toHaveBeenCalledWith(
+      'AQ123',
+      '1',
+      '2500',
+      '20000'
+    )
   })
 })

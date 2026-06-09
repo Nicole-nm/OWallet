@@ -17,9 +17,3 @@ export function isHexString(str: unknown) {
   const value = String(str)
   return /^[0-9a-fA-F]+$/.test(value) && value.length % 2 === 0
 }
-
-export {
-  verifyPositiveInt as varifyPositiveInt,
-  verifyOngValue as varifyOngValue,
-  verifyOep4Value as varifyOpe4Value,
-}

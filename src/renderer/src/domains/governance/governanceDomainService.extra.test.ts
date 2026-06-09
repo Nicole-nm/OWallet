@@ -15,7 +15,8 @@ const builder = vi.hoisted(() => ({
   buildWithdrawPeerUnboundOng: vi.fn(() => 'withdrawUnbound'),
 }))
 
-vi.mock('./transactionBuilder', () => builder)
+vi.mock('./authorizeTransactionBuilder', () => builder)
+vi.mock('./candidateTransactionBuilder', () => builder)
 
 import {
   createAddInitPosTransaction,

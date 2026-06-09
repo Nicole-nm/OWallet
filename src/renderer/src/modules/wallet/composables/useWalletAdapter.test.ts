@@ -16,18 +16,21 @@ const mocks = vi.hoisted(() => ({
   saveWalletsTabSession: vi.fn(),
 }))
 
-vi.mock('../../../domains/transaction/signingService', () => ({
+vi.mock('../../../domains/transaction/signing/walletSigning', () => ({
   signWithWallet: (...args: unknown[]) => mocks.signWithWallet(...args),
   signMessageWithWallet: (...args: unknown[]) => mocks.signMessageWithWallet(...args),
-  signWithLedger: (...args: unknown[]) => mocks.signWithLedger(...args),
-  signSharedTx: (...args: unknown[]) => mocks.signSharedTx(...args),
-  signSharedTxWithLedger: (...args: unknown[]) => mocks.signSharedTxWithLedger(...args),
+  addWalletSignature: (...args: unknown[]) => mocks.addWalletSignature(...args),
 }))
 
-vi.mock('../../../domains/transaction/walletSigningOrchestrator', () => ({
-  addWalletSignature: (...args: unknown[]) => mocks.addWalletSignature(...args),
+vi.mock('../../../domains/transaction/signing/ledgerSigning', () => ({
+  signWithLedger: (...args: unknown[]) => mocks.signWithLedger(...args),
   addLedgerSignature: (...args: unknown[]) => mocks.addLedgerSignature(...args),
   signLedgerPayload: (...args: unknown[]) => mocks.signLedgerPayload(...args),
+}))
+
+vi.mock('../../../domains/transaction/signing/sharedSigning', () => ({
+  signSharedTx: (...args: unknown[]) => mocks.signSharedTx(...args),
+  signSharedTxWithLedger: (...args: unknown[]) => mocks.signSharedTxWithLedger(...args),
 }))
 
 vi.mock('../../../shared/persistence/appStateService', () => ({

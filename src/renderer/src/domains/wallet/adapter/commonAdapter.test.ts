@@ -6,13 +6,9 @@ const mocks = vi.hoisted(() => ({
   addWalletSignature: vi.fn(),
 }))
 
-vi.mock('../../transaction/signingService', () => ({
+vi.mock('../../transaction/signing/walletSigning', () => ({
   signWithWallet: (...args: unknown[]) => mocks.signWithWallet(...args),
   signMessageWithWallet: (...args: unknown[]) => mocks.signMessageWithWallet(...args),
-  signWithLedger: vi.fn(),
-}))
-
-vi.mock('../../transaction/walletSigningOrchestrator', () => ({
   addWalletSignature: (...args: unknown[]) => mocks.addWalletSignature(...args),
 }))
 

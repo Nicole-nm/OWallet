@@ -24,7 +24,12 @@ export async function tryDecryptWallet(
   const encryptedKey = new Crypto.PrivateKey(wallet.key) as SdkPrivateKeyLike
 
   try {
-    return encryptedKey.decrypt(password, new Crypto.Address(wallet.address), wallet.salt, scrypt)
+    return encryptedKey.decrypt(
+      password,
+      new Crypto.Address(wallet.address),
+      wallet.salt,
+      scrypt
+    ) as SdkPrivateKeyLike
   } catch {
     return null
   }

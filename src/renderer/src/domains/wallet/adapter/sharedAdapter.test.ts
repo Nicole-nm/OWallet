@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({
   signSharedTxWithLedger: vi.fn(),
 }))
 
-vi.mock('../../transaction/signingService', () => ({
+vi.mock('../../transaction/signing/sharedSigning', () => ({
   signSharedTx: (...args: unknown[]) => mocks.signSharedTx(...args),
   signSharedTxWithLedger: (...args: unknown[]) => mocks.signSharedTxWithLedger(...args),
 }))

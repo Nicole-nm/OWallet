@@ -4,9 +4,6 @@
       <div class="send-step__section-header">
         <div class="send-step__section-copy">
           <span class="send-step__section-title">{{ $t('sharedWalletHome.send') }}</span>
-          <span class="send-step__section-caption"
-            >{{ $t('sharedWalletHome.asset') }} / {{ $t('sharedWalletHome.amount') }}</span
-          >
         </div>
         <div class="send-step__balance-pill">
           <span class="send-step__balance-label">{{ $t('sharedWalletHome.balance') }}</span>
@@ -78,7 +75,6 @@
       <div class="send-step__section-header">
         <div class="send-step__section-copy">
           <span class="send-step__section-title">{{ $t('sharedWalletHome.to') }}</span>
-          <span class="send-step__section-caption">{{ $t('sharedWalletHome.recipient') }}</span>
         </div>
       </div>
 
@@ -165,7 +161,6 @@ const {
   color: var(--ow-color-text-primary);
 }
 
-.send-step__section-caption,
 .send-step__balance-label,
 .send-step__label,
 .send-step__fee-unit {

@@ -1,5 +1,5 @@
 import type { CommonWallet, HardwareWalletSigner } from '../../../shared/lib/types'
-import { signSharedTx, signSharedTxWithLedger } from '../../transaction/signingService'
+import { signSharedTx, signSharedTxWithLedger } from '../../transaction/signing/sharedSigning'
 import type { SigningContext, WalletAdapter, WalletIdentity } from './WalletAdapter'
 import type { WalletCapabilities } from './WalletCapabilities'
 

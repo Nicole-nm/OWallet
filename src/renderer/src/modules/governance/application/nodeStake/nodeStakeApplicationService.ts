@@ -6,7 +6,7 @@ import {
   serializeNodeStakeInfo,
   updateLedgerNodeInfo as updateLedgerNodeInfoFromService,
   updateNodeInfo as updateNodeInfoFromService,
-} from '../../../../domains/nodeStake/nodeStakeDomainService'
+} from '../../../../domains/governance/nodeStakeDomainService'
 import { createLogger } from '../../../../shared/lib/logger'
 import { normalizeMutationResult, tryCatch } from '../../../../shared/lib/result'
 import { createEmptyStakeDetail, mapStakeDetail } from '../../domain/stakeMapper'
@@ -121,80 +121,39 @@ function translateStakeStatus(key: string) {
   return i18n.global.t('nodeStakeStatus.' + key)
 }
 
-export function describeStakeStatus(status: number) {
-  let status1 = ''
-  let status2 = ''
-  let status3 = ''
-  let current = 0
-  let statusTip = ''
+interface StakeStatusEntry {
+  keys: [string, string, string]
+  current?: number
+  tip?: string
+}
 
-  switch (status) {
-    case 0:
-      status1 = translateStakeStatus('transfering')
-      status2 = translateStakeStatus('audit')
-      status3 = translateStakeStatus('stake')
-      statusTip = translateStakeStatus('transferNeedTime')
-      break
-    case 1:
-      status1 = translateStakeStatus('transferFailed')
-      status2 = translateStakeStatus('audit')
-      status3 = translateStakeStatus('stake')
-      break
-    case 2:
-      status1 = translateStakeStatus('transfered')
-      status2 = translateStakeStatus('auditing')
-      status3 = translateStakeStatus('stake')
-      statusTip = translateStakeStatus('auditNeedTime')
-      current = 1
-      break
-    case 3:
-      status1 = translateStakeStatus('transfered')
-      status2 = translateStakeStatus('auditFailed')
-      status3 = translateStakeStatus('stake')
-      current = 1
-      break
-    case 4:
-      status1 = translateStakeStatus('nodeExited')
-      status2 = translateStakeStatus('refund')
-      status3 = translateStakeStatus('quitStake')
-      statusTip = translateStakeStatus('unfrozenToRefund')
-      break
-    case 5:
-      status1 = translateStakeStatus('nodeExited')
-      status2 = translateStakeStatus('refunding')
-      status3 = translateStakeStatus('quitStake')
-      statusTip = translateStakeStatus('refundNeedTime')
-      current = 1
-      break
-    case 6:
-      status1 = translateStakeStatus('nodeExited')
-      status2 = translateStakeStatus('refunded')
-      status3 = translateStakeStatus('stakeExited')
-      current = 2
-      break
-    case 7:
-      status1 = translateStakeStatus('nodeExited')
-      status2 = translateStakeStatus('refundFailed')
-      status3 = translateStakeStatus('stakeExited')
-      current = 1
-      break
-    case 8:
-      status1 = translateStakeStatus('transfered')
-      status2 = translateStakeStatus('audited')
-      status3 = translateStakeStatus('staked')
-      current = 2
-      break
-    case 9:
-    case 10:
-      status1 = translateStakeStatus('nodeExited')
-      status2 = translateStakeStatus('refund')
-      status3 = translateStakeStatus('quitStake')
-      break
-    default:
-      break
+const STAKE_STATUS_TABLE: Record<number, StakeStatusEntry> = {
+  0: { keys: ['transfering', 'audit', 'stake'], tip: 'transferNeedTime' },
+  1: { keys: ['transferFailed', 'audit', 'stake'] },
+  2: { keys: ['transfered', 'auditing', 'stake'], current: 1, tip: 'auditNeedTime' },
+  3: { keys: ['transfered', 'auditFailed', 'stake'], current: 1 },
+  4: { keys: ['nodeExited', 'refund', 'quitStake'], tip: 'unfrozenToRefund' },
+  5: { keys: ['nodeExited', 'refunding', 'quitStake'], current: 1, tip: 'refundNeedTime' },
+  6: { keys: ['nodeExited', 'refunded', 'stakeExited'], current: 2 },
+  7: { keys: ['nodeExited', 'refundFailed', 'stakeExited'], current: 1 },
+  8: { keys: ['transfered', 'audited', 'staked'], current: 2 },
+  9: { keys: ['nodeExited', 'refund', 'quitStake'] },
+  10: { keys: ['nodeExited', 'refund', 'quitStake'] },
+}
+
+export function describeStakeStatus(status: number) {
+  const entry = STAKE_STATUS_TABLE[status]
+  if (!entry) {
+    return { status1: '', status2: '', status3: '', current: 0, statusTip: '' }
   }
 
-  return { status1, status2, status3, current, statusTip }
+  return {
+    status1: translateStakeStatus(entry.keys[0]),
+    status2: translateStakeStatus(entry.keys[1]),
+    status3: translateStakeStatus(entry.keys[2]),
+    current: entry.current ?? 0,
+    statusTip: entry.tip ? translateStakeStatus(entry.tip) : '',
+  }
 }
 
 export async function loadStakeDetail({

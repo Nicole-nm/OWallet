@@ -2,23 +2,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   ledgerService: {
-    fetchLedgerConnectionSnapshot: vi.fn(),
-    fetchLedgerDeviceInfo: vi.fn(),
-    fetchLedgerPublicKey: vi.fn(),
+    getConnectionSnapshot: vi.fn(),
+    getDeviceInfo: vi.fn(),
+    getPublicKey: vi.fn(),
   },
   accountService: {
     deriveAddressFromPublicKey: vi.fn(),
   },
 }))
 
-vi.mock('../../../../domains/wallet/ledgerService', () => ({
-  fetchLedgerConnectionSnapshot: (...args: unknown[]) =>
-    mocks.ledgerService.fetchLedgerConnectionSnapshot(...args),
-  fetchLedgerDeviceInfo: (...args: unknown[]) => mocks.ledgerService.fetchLedgerDeviceInfo(...args),
-  fetchLedgerPublicKey: (...args: unknown[]) => mocks.ledgerService.fetchLedgerPublicKey(...args),
+vi.mock('../../../../shared/chain/ledgerSigner', () => ({
+  getConnectionSnapshot: (...args: unknown[]) => mocks.ledgerService.getConnectionSnapshot(...args),
+  getDeviceInfo: (...args: unknown[]) => mocks.ledgerService.getDeviceInfo(...args),
+  getPublicKey: (...args: unknown[]) => mocks.ledgerService.getPublicKey(...args),
 }))
 
-vi.mock('../../../../domains/wallet/accountService', () => ({
+vi.mock('../../../../shared/chain/walletSdk', () => ({
   deriveAddressFromPublicKey: (...args: unknown[]) =>
     mocks.accountService.deriveAddressFromPublicKey(...args),
 }))
@@ -37,13 +36,13 @@ describe('ledgerWalletConnectionService', () => {
 
   it('reads ledger device metadata', async () => {
     const device = { name: 'Ledger Nano X' }
-    mocks.ledgerService.fetchLedgerDeviceInfo.mockResolvedValue(device)
+    mocks.ledgerService.getDeviceInfo.mockResolvedValue(device)
 
     await expect(readLedgerDeviceInfo()).resolves.toEqual({ ok: true, deviceInfo: device })
   })
 
   it('loads derived ledger account selections', async () => {
-    mocks.ledgerService.fetchLedgerPublicKey.mockResolvedValue('pk-1')
+    mocks.ledgerService.getPublicKey.mockResolvedValue('pk-1')
     mocks.accountService.deriveAddressFromPublicKey.mockResolvedValue('AQ123')
 
     await expect(loadLedgerAccountSelection({ acct: 2, neo: true })).resolves.toEqual({
@@ -59,7 +58,7 @@ describe('ledgerWalletConnectionService', () => {
 
   it('reads device info and the first ledger selection in a single call', async () => {
     const deviceInfo = { product: 'Ledger Nano X' }
-    mocks.ledgerService.fetchLedgerConnectionSnapshot.mockResolvedValue({
+    mocks.ledgerService.getConnectionSnapshot.mockResolvedValue({
       deviceInfo,
       publicKey: 'pk-1',
     })
@@ -78,7 +77,7 @@ describe('ledgerWalletConnectionService', () => {
   })
 
   it('loads ledger account pages sequentially by account index', async () => {
-    mocks.ledgerService.fetchLedgerPublicKey
+    mocks.ledgerService.getPublicKey
       .mockResolvedValueOnce('pk-0')
       .mockResolvedValueOnce('pk-1')
       .mockResolvedValueOnce('pk-2')

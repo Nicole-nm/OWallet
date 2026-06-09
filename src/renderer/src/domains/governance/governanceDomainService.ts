@@ -2,16 +2,18 @@ import {
   buildAddInitPos,
   buildAuthorizeForPeer,
   buildChangeAuthorization,
-  buildQuitNode,
   buildReduceInitPos,
-  buildRegisterCandidate,
-  buildSetFeePercentage,
   buildUnauthorizeForPeer,
-  buildUnregisterCandidate,
   buildWithdraw,
   buildWithdrawFee,
   buildWithdrawPeerUnboundOng,
-} from './transactionBuilder'
+} from './authorizeTransactionBuilder'
+import {
+  buildQuitNode,
+  buildRegisterCandidate,
+  buildSetFeePercentage,
+  buildUnregisterCandidate,
+} from './candidateTransactionBuilder'
 import { GAS_PRICE } from '../../shared/lib/constants'
 
 export async function createAuthorizationTransaction({

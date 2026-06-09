@@ -54,7 +54,6 @@ describe('router route definitions', () => {
     expect(childNames.has(ROUTE_NAMES.SHARED_WALLET_HOME)).toBe(true)
     expect(childNames.has(ROUTE_NAMES.SHARED_WALLET_SEND_TRANSFER)).toBe(true)
     expect(childNames.has(ROUTE_NAMES.SHARED_WALLET_PENDING_TX_HOME)).toBe(true)
-    expect(childNames.has(ROUTE_NAMES.SHARED_WALLET_COPAYER)).toBe(true)
     expect(childNames.has(ROUTE_NAMES.SHARED_TX_MGMT)).toBe(true)
   })
 

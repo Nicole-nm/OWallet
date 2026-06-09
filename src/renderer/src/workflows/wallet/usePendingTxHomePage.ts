@@ -34,6 +34,10 @@ export function usePendingTxHomePage() {
     router.push({ path: ROUTE_PATHS.sharedWalletHome })
   }
 
+  function handleCancelEvent() {
+    router.push({ path: ROUTE_PATHS.sharedWalletHome })
+  }
+
   return {
     routes,
     currentStep,
@@ -43,5 +47,6 @@ export function usePendingTxHomePage() {
     handleBackEvent,
     handleSignEvent,
     handleSubmitEvent,
+    handleCancelEvent,
   }
 }

@@ -2,16 +2,19 @@ import {
   buildCancelTopicTx,
   buildCreateTopicTx,
   buildVoteTx,
-  handleSignTx,
   loadVoteSdk,
 } from '../../../../domains/governance/voteService'
 import { serializeTx } from '../../../../domains/transaction/serializationService'
+import { submitWithAdapter } from '../../../../domains/transaction/submitWithAdapter'
+import { setUnsignedTransactionGasPrice } from '../../../../domains/transaction/transactionGasPrice'
 import { getRestClient } from '../../../../shared/chain/restClient'
-import { GAS_PRICE, GAS_LIMIT_HIGH } from '../../../../shared/lib/constants'
+import { assertSdkTransactionLike } from '../../../../shared/chain/sdkBoundary'
+import { GAS_PRICE, GAS_LIMIT_HIGH, resolveDefaultGasPrice } from '../../../../shared/lib/constants'
 import { tryCatch } from '../../../../shared/lib/result'
 import type { NetworkId, WalletSigner } from '../../../../shared/lib/types'
 import type { TransactionDraftResult } from '../../../../shared/types'
 import type { SdkTransactionLike } from '../../../../shared/chain/types'
+import type { WalletAdapter } from '../../../../domains/wallet/adapter'
 import {
   getRequiredVoteContractHash,
   NETWORK_ERROR_KEY,
@@ -23,32 +26,44 @@ async function setVotersAndSend(
   contractHash: string,
   hash: string,
   voters: string[],
-  wallet: WalletSigner,
-  password?: string,
-  walletType?: string
+  adapter: WalletAdapter,
+  password?: string
 ) {
   const { TransactionBuilder, Crypto, utils, Parameter, ParameterType } = await loadVoteSdk()
   const client = getRestClient()
   const contract = new Crypto.Address(utils.reverseHex(contractHash))
-  const addr = new Crypto.Address(wallet.address)
+  const addr = new Crypto.Address(adapter.identity.address)
   const params = [
     new Parameter('', ParameterType.H256, hash),
     new Parameter('', ParameterType.Array, voters),
   ]
-  let tx: unknown = TransactionBuilder.makeWasmVmInvokeTransaction(
-    'setVoterForTopic',
-    params,
-    contract,
-    GAS_PRICE,
-    GAS_LIMIT_HIGH,
-    addr
+  const unsignedTx = assertSdkTransactionLike(
+    TransactionBuilder.makeWasmVmInvokeTransaction(
+      'setVoterForTopic',
+      params,
+      contract,
+      GAS_PRICE,
+      GAS_LIMIT_HIGH,
+      addr
+    ),
+    'vote.setVotersAndSend.build'
   )
-  tx = await handleSignTx(tx, wallet, password, walletType)
-  if (!tx) return undefined
-  return client.sendRawTransaction(
-    serializeTx(tx as SdkTransactionLike, 'vote.setVotersAndSend.serialize'),
-    false
-  )
+
+  return submitWithAdapter({
+    tx:
+      adapter.identity.type === 'ledger'
+        ? setUnsignedTransactionGasPrice(unsignedTx, resolveDefaultGasPrice('ledger'))
+        : unsignedTx,
+    adapter,
+    password,
+    networkErrorKey: adapter.capabilities.requiresHardwareDevice
+      ? 'ledgerWallet.signFailed'
+      : 'common.unexpectedError',
+    logger: voteTopicLogger,
+    errorContext: 'setVotersAndSend',
+    submit: (signedTx: SdkTransactionLike) =>
+      client.sendRawTransaction(serializeTx(signedTx, 'vote.setVotersAndSend.serialize'), false),
+  })
 }
 
 export async function createVoteDecisionTransaction({
@@ -178,17 +193,15 @@ export async function setVoteTopicVoters({
   network,
   hash,
   voters,
-  wallet,
+  adapter,
   password,
-  walletType,
 }: {
   contractHash?: string
   network: NetworkId
   hash: string
   voters: string[]
-  wallet: WalletSigner
+  adapter: WalletAdapter
   password?: string
-  walletType: string
 }) {
   return tryCatch(
     async () => {
@@ -196,15 +209,8 @@ export async function setVoteTopicVoters({
         contractHash,
         network,
       })
-      const response = await setVotersAndSend(
-        resolvedContractHash,
-        hash,
-        voters,
-        wallet,
-        password,
-        walletType
-      )
-      return { contractHash: resolvedContractHash, response }
+      const result = await setVotersAndSend(resolvedContractHash, hash, voters, adapter, password)
+      return { contractHash: resolvedContractHash, result }
     },
     {
       context: 'setVoteTopicVoters',

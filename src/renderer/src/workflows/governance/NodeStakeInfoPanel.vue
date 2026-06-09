@@ -6,65 +6,26 @@
       @backEvent="handleRouteBack"
     ></breadcrumb>
     <div class="nodeStake-container">
-      <section class="stake-progress-card ow-panel ow-panel--compact">
-        <div class="stake-progress">
-          <a-steps progressDot :current="currentStep">
-            <a-step></a-step>
-            <a-step></a-step>
-            <a-step></a-step>
-          </a-steps>
-          <div
-            class="step-item-container"
-            :class="{ 'step-item-container--loading': !stakeStatusLoaded }"
-          >
-            <div>
-              {{ statusStep1 }}
-            </div>
-            <div>
-              {{ statusStep2 }}
-            </div>
-            <div>
-              {{ statusStep3 }}
-            </div>
-          </div>
-        </div>
-        <div v-if="statusTip" class="stake-status-tip ow-tip-card">
-          <InfoCircleOutlined />
-          <span class="ow-tip-card__text">{{ statusTip }}</span>
-        </div>
-      </section>
+      <stake-status-card
+        :current-step="currentStep"
+        :status-step1="statusStep1"
+        :status-step2="statusStep2"
+        :status-step3="statusStep3"
+        :stake-status-loaded="stakeStatusLoaded"
+        :status-tip="statusTip"
+      />
 
-      <section class="stake-summary-grid ow-stat-grid">
-        <article class="stake-summary-card ow-stat-card">
-          <span class="ow-stat-label">{{ $t('nodeStake.commitmentQuantity') }}</span>
-          <p class="ow-stat-value">{{ commitmentQuantityDisplay }}</p>
-        </article>
-        <article class="stake-summary-card ow-stat-card">
-          <span class="ow-stat-label">{{ $t('nodeStake.stakeQuantity') }}</span>
-          <p class="ow-stat-value">{{ stakeQuantityDisplay }}</p>
-        </article>
-        <article class="stake-summary-card ow-stat-card">
-          <span class="ow-stat-label">{{ $t('nodeStake.claimableQuantity') }}</span>
-          <p class="ow-stat-value">{{ claimableQuantityDisplay }}</p>
-        </article>
-      </section>
+      <stake-summary-grid
+        :commitment-quantity-display="commitmentQuantityDisplay"
+        :stake-quantity-display="stakeQuantityDisplay"
+        :claimable-quantity-display="claimableQuantityDisplay"
+      />
 
-      <section class="stake-detail-panel ow-panel">
-        <div class="ow-panel-body ow-kv-panel">
-          <div class="ow-kv-row stake-detail-row">
-            <span class="ow-kv-label">{{ $t('nodeStake.stakeWalletAddress') }}</span>
-            <span class="ow-kv-value">{{ detail.stakeWalletAddress }}</span>
-          </div>
-          <div class="ow-kv-row stake-detail-row">
-            <span class="ow-kv-label">{{ $t('nodeStake.nodePk') }}</span>
-            <span class="ow-kv-value">{{ nodePublicKey }}</span>
-          </div>
-          <div class="ow-kv-row stake-detail-row">
-            <span class="ow-kv-label">{{ $t('nodeStake.contract') }}</span>
-            <span class="ow-kv-value">{{ detail.contract }}</span>
-          </div>
-        </div>
-      </section>
+      <stake-detail-panel
+        :stake-wallet-address="detail.stakeWalletAddress"
+        :node-public-key="nodePublicKey"
+        :contract="detail.contract"
+      />
 
       <!-- 只有成为节点后可以操作初始质押部分 -->
       <div
@@ -112,41 +73,27 @@
       </div>
     </page-footer-actions>
 
-    <a-modal
-      :title="$t('nodeMgmt.addInitPos')"
+    <stake-amount-modal
       v-model:open="addPosVisible"
+      title-key="nodeMgmt.addInitPos"
+      label-key="nodeMgmt.amountToAdd"
+      :valid="validAddPos"
+      v-model:value="addPos"
+      @validate="validateAddPos"
       @ok="handleAddPosOk"
       @cancel="handleAddPosCancel"
-    >
-      <div class="ow-info-row">
-        <span class="ow-info-label">{{ $t('nodeMgmt.amountToAdd') }}: </span>
-        <a-input
-          class="input add-pos-input"
-          :class="validAddPos ? '' : 'error-input'"
-          v-model:value="addPos"
-          @change="validateAddPos"
-        ></a-input>
-        <span class="ow-info-value">ONT</span>
-      </div>
-    </a-modal>
+    />
 
-    <a-modal
-      :title="$t('nodeMgmt.reduceInitPos')"
+    <stake-amount-modal
       v-model:open="reducePosVisible"
+      title-key="nodeMgmt.reduceInitPos"
+      label-key="nodeMgmt.amountToReduce"
+      :valid="validReducePos"
+      v-model:value="reducePos"
+      @validate="validateReducePos"
       @ok="handleReducePosOk"
       @cancel="handleReducePosCancel"
-    >
-      <div class="ow-info-row">
-        <span class="ow-info-label">{{ $t('nodeMgmt.amountToReduce') }}: </span>
-        <a-input
-          class="input add-pos-input"
-          :class="validReducePos ? '' : 'error-input'"
-          v-model:value="reducePos"
-          @change="validateReducePos"
-        ></a-input>
-        <span class="ow-info-value">ONT</span>
-      </div>
-    </a-modal>
+    />
 
     <a-modal
       :title="$t('nodeMgmt.redeemInitPos')"
@@ -194,9 +141,12 @@
 <script setup lang="ts">
 import Breadcrumb from '../../shared/ui/navigation/Breadcrumb.vue'
 import { useNodeStakeInfoPanel } from './useNodeStakeInfoPanel'
-import { InfoCircleOutlined } from '@ant-design/icons-vue'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
+import StakeStatusCard from './nodeStakeInfo/StakeStatusCard.vue'
+import StakeSummaryGrid from './nodeStakeInfo/StakeSummaryGrid.vue'
+import StakeDetailPanel from './nodeStakeInfo/StakeDetailPanel.vue'
+import StakeAmountModal from './nodeStakeInfo/StakeAmountModal.vue'
 
 defineOptions({
   name: 'NodeStakeInfo',
@@ -270,64 +220,6 @@ const {
   padding-bottom: calc(var(--ow-space-4) + 5.3rem);
 }
 
-.stake-progress-card {
-  margin-bottom: var(--ow-space-2);
-}
-
-.stake-progress {
-  margin-bottom: 0;
-}
-
-.step-item-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-top: 6px;
-  margin-bottom: var(--ow-space-2);
-  min-height: 20px;
-}
-
-.step-item-container div {
-  width: 30%;
-  min-height: 20px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  text-align: center;
-  font-family: var(--ow-font-medium);
-  color: var(--ow-color-text-secondary);
-  font-size: var(--ow-font-size-small);
-  line-height: 1.25;
-}
-
-.step-item-container--loading div {
-  visibility: hidden;
-}
-
-.stake-progress :deep(.ant-steps) {
-  margin-bottom: 0;
-}
-
-.stake-summary-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-bottom: var(--ow-space-2);
-}
-
-.stake-summary-card {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 92px;
-}
-
-.stake-detail-panel {
-  margin-bottom: var(--ow-space-2);
-}
-
-.stake-status-tip {
-  margin-top: var(--ow-space-2);
-}
-
 .stake-modal-summary {
   gap: 0;
 }
@@ -344,22 +236,9 @@ const {
   margin-bottom: 0;
 }
 
-.stake-status-tip :deep(.anticon) {
-  margin-top: 2px;
-  color: var(--ow-color-info);
-}
-
-.add-pos-input {
-  width: 200px;
-}
-
 @media (max-width: 720px) {
   .nodeStake-container {
     width: 100%;
-  }
-
-  .stake-summary-grid {
-    grid-template-columns: 1fr;
   }
 
   .initPos-btns {
@@ -367,15 +246,6 @@ const {
   }
 
   .initPos-btns button {
-    width: 100%;
-  }
-
-  .step-item-container {
-    flex-direction: column;
-    gap: var(--ow-space-1);
-  }
-
-  .step-item-container div {
     width: 100%;
   }
 }

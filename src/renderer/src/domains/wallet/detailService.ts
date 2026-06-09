@@ -1,12 +1,13 @@
 import FileHelper from '../../shared/persistence/fileHelper'
 import { DEFAULT_SCRYPT } from '../../shared/lib/constants'
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
+import { tryDecryptWallet } from '../../shared/chain/transactionSdk'
 import {
   removeWallet as removeWalletFromDomain,
   updateWalletField as updateWalletFieldFromDomain,
 } from './walletDomainService'
 import { WalletType } from '../../shared/types/wallet'
-import type { CommonWallet, HardwareWallet, ScryptParams } from '../../shared/lib/types'
+import type { CommonWallet, HardwareWallet } from '../../shared/lib/types'
 
 export async function downloadWalletFile(wallet: CommonWallet) {
   const { Wallet, Account } = await loadOntologySdk()
@@ -19,45 +20,13 @@ export async function downloadWalletFile(wallet: CommonWallet) {
   FileHelper.downloadFile(walletFile.toJsonObj(), wallet.label)
 }
 
-interface DecryptedPrivateKeyLike {
-  serializeWIF(): string
-  encrypt(password: string, address: unknown, salt: string, scrypt: ScryptParams): { key: string }
-}
-
-function decryptWalletWithSdk(
-  Crypto: unknown,
-  wallet: CommonWallet,
-  password: string,
-  scrypt: ScryptParams = DEFAULT_SCRYPT
-) {
-  const sdkCrypto = Crypto as {
-    PrivateKey: new (key: string) => {
-      decrypt(...args: never[]): DecryptedPrivateKeyLike
-    }
-    Address: new (address: string) => unknown
-  }
-  const enc = new sdkCrypto.PrivateKey(wallet.key)
-
-  try {
-    return enc.decrypt(
-      password as never,
-      new sdkCrypto.Address(wallet.address) as never,
-      wallet.salt as never,
-      scrypt as never
-    )
-  } catch {
-    return null
-  }
-}
-
 function base64ToHex(value: string) {
   const binary = atob(value)
   return Array.from(binary, (char) => char.charCodeAt(0).toString(16).padStart(2, '0')).join('')
 }
 
 export async function exportWalletWif(wallet: CommonWallet, password: string) {
-  const { Crypto } = await loadOntologySdk()
-  const privateKey = decryptWalletWithSdk(Crypto, wallet, password)
+  const privateKey = await tryDecryptWallet(wallet, password)
   if (!privateKey) {
     return null
   }
@@ -66,8 +35,7 @@ export async function exportWalletWif(wallet: CommonWallet, password: string) {
 }
 
 export async function validateWalletPassword(wallet: CommonWallet, password: string) {
-  const { Crypto } = await loadOntologySdk()
-  return Boolean(decryptWalletWithSdk(Crypto, wallet, password))
+  return Boolean(await tryDecryptWallet(wallet, password))
 }
 
 export async function validateWalletWif(walletWif: string, address: string) {
@@ -89,12 +57,12 @@ export async function changeStoredWalletPassword(
   oldPassword: string,
   newPassword: string
 ) {
-  const { Crypto } = await loadOntologySdk()
-  const privateKey = decryptWalletWithSdk(Crypto, wallet, oldPassword)
-  if (!privateKey) {
+  const privateKey = await tryDecryptWallet(wallet, oldPassword)
+  if (!privateKey?.encrypt) {
     return null
   }
 
+  const { Crypto } = await loadOntologySdk()
   const saltHex = base64ToHex(wallet.salt)
   const address = new Crypto.Address(wallet.address)
   const nextEncryption = privateKey.encrypt(newPassword, address, saltHex, DEFAULT_SCRYPT)

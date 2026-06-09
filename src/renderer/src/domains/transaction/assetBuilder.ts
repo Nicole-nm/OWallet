@@ -3,6 +3,7 @@ import { GAS_LIMIT, GAS_PRICE } from '../../shared/lib/constants'
 import { loadOntologySdk } from '../../shared/chain/loadOntologySdk'
 import { assertSdkTransactionLike } from '../../shared/chain/sdkBoundary'
 import type { SdkTransactionLike } from '../../shared/chain/types'
+import type { TransferParams } from '../../shared/lib/types'
 
 export async function buildNativeTransfer(
   asset: string,
@@ -70,5 +71,40 @@ export async function buildClaimOng(
   return assertSdkTransactionLike(
     OntAssetTxBuilder.makeWithdrawOngTx(addr, addr, amount, addr, gasPrice, gasLimit),
     'OntAssetTxBuilder.makeWithdrawOngTx'
+  )
+}
+
+/**
+ * Build a transfer transaction for any asset — native (ONT/ONG) or OEP-4 —
+ * paid for by the sender. Dispatches to the matching low-level builder.
+ */
+export function buildTransfer(
+  transfer: TransferParams,
+  fromAddress: string
+): Promise<SdkTransactionLike> {
+  const gasPrice = String(transfer.gasPrice)
+  const gasLimit = String(transfer.gasLimit)
+
+  if (transfer.asset === 'ONT' || transfer.asset === 'ONG') {
+    return buildNativeTransfer(
+      transfer.asset,
+      fromAddress,
+      transfer.to,
+      transfer.amount,
+      fromAddress,
+      gasPrice,
+      gasLimit
+    )
+  }
+
+  return buildOep4Transfer(
+    transfer.scriptHash || '',
+    fromAddress,
+    transfer.to,
+    transfer.amount,
+    transfer.decimal || 0,
+    fromAddress,
+    gasPrice,
+    gasLimit
   )
 }

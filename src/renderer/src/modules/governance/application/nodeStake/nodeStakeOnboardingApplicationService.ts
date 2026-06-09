@@ -5,15 +5,15 @@ import {
   fetchQualifiedState,
   saveStakeInfo,
   submitDelegatedStakeTransaction,
-} from '../../../../domains/nodeStake/nodeStakeDomainService'
+} from '../../../../domains/governance/nodeStakeDomainService'
 import {
-  applyPrivateKeyTransactionSignature,
-  decryptWalletPrivateKey,
-} from '../../../../domains/transaction/transactionDomainService'
+  signTransactionWithPrivateKey,
+  tryDecryptWallet,
+} from '../../../../shared/chain/transactionSdk'
 import { fetchNativeBalance } from '../../../../domains/wallet/walletDomainService'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
-import { varifyPositiveInt } from '../../../../shared/lib/validators'
+import { verifyPositiveInt } from '../../../../shared/lib/validators'
 import { loadStakeDetail } from './nodeStakeApplicationService'
 import { normalizeNodePublicKey } from '../../domain/nodeMapper'
 import { NetworkId, Identity, CommonWallet } from '../../../../shared/lib/types'
@@ -124,7 +124,7 @@ export async function createNodeStakeRegistrationDraft({
 }) {
   const detail = normalizeStakeRegistrationDetail(stakeDetail)
 
-  if (!stakeQuantity || !varifyPositiveInt(stakeQuantity)) {
+  if (!stakeQuantity || !verifyPositiveInt(stakeQuantity)) {
     return { ok: false, errorKey: 'nodeStake.stakeQuantityEmpty' }
   }
 
@@ -176,13 +176,13 @@ export async function signNodeStakeRegistrationOntid({
 
   const result = await tryCatch(
     async () => {
-      const privateKey = await decryptWalletPrivateKey({
-        wallet: identityWallet as unknown as CommonWallet, // Cast since decryptWalletPrivateKey expects a stricter wallet interface
+      const privateKey = await tryDecryptWallet(
+        identityWallet as unknown as CommonWallet, // Cast: tryDecryptWallet expects { key, address, salt }
         password,
-        scrypt: ONTID_DECRYPT_OPTIONS,
-      })
+        ONTID_DECRYPT_OPTIONS
+      )
       if (!privateKey) return { privateKey: '' as const }
-      await applyPrivateKeyTransactionSignature({ tx: tx as SdkTransactionLike, privateKey })
+      await signTransactionWithPrivateKey(tx as SdkTransactionLike, privateKey)
       return { privateKey }
     },
     { context: 'signNodeStakeRegistrationOntid', errorKey: 'common.networkErr', logger }

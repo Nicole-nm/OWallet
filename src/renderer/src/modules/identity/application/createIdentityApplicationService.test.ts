@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
     sendTransaction: vi.fn(),
   },
   accountService: {
-    createChainAddress: vi.fn(),
+    createSdkAddress: vi.fn(),
     generateWalletKeyPair: vi.fn(),
   },
   walletService: {
@@ -26,8 +26,8 @@ vi.mock('../../../domains/transaction/transactionDomainService', () => ({
   sendTransaction: (...args: any[]) => mocks.transactionService.sendTransaction(...args),
 }))
 
-vi.mock('../../../domains/wallet/accountService', () => ({
-  createChainAddress: (...args: any[]) => mocks.accountService.createChainAddress(...args),
+vi.mock('../../../shared/chain/walletSdk', () => ({
+  createSdkAddress: (...args: any[]) => mocks.accountService.createSdkAddress(...args),
   generateWalletKeyPair: (...args: any[]) => mocks.accountService.generateWalletKeyPair(...args),
 }))
 
@@ -140,7 +140,7 @@ describe('createIdentityApplicationService', () => {
     const privateKey = { id: 'pk-1' }
     const tx = { id: 'tx-1' }
 
-    mocks.accountService.createChainAddress.mockResolvedValue('sdk-address')
+    mocks.accountService.createSdkAddress.mockResolvedValue('sdk-address')
     mocks.accountService.generateWalletKeyPair.mockResolvedValue({ privateKey })
     mocks.identityService.buildIdentityRegistration.mockResolvedValue({
       label: 'Alice',
@@ -165,7 +165,7 @@ describe('createIdentityApplicationService', () => {
       tx,
     })
 
-    expect(mocks.accountService.createChainAddress).toHaveBeenCalledWith('AQ123')
+    expect(mocks.accountService.createSdkAddress).toHaveBeenCalledWith('AQ123')
     expect(mocks.identityService.buildIdentityRegistration).toHaveBeenCalledWith({
       label: 'Alice',
       privateKey,

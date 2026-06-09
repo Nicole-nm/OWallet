@@ -6,8 +6,8 @@ import {
   createWithdrawPeerUnboundOngTransaction,
 } from '../../../../domains/governance/governanceDomainService'
 import { createLogger } from '../../../../shared/lib/logger'
-import { tryCreateTransaction } from '../../../../domains/transaction/transactionHelper'
-import { varifyPositiveInt } from '../../../../shared/lib/validators'
+import { tryCreateTransaction } from '../../../../domains/transaction/transactionResults'
+import { verifyPositiveInt } from '../../../../shared/lib/validators'
 import { normalizeNodePublicKey } from '../../domain/nodeMapper'
 import type { SdkTransactionLike } from '../../../../shared/chain/types'
 import type {
@@ -37,7 +37,7 @@ export function resolveNewAuthorizationInput({
 }): AuthorizationInputResult {
   const normalizedUnits = String(units).trim()
 
-  if (!normalizedUnits || !varifyPositiveInt(normalizedUnits)) {
+  if (!normalizedUnits || !verifyPositiveInt(normalizedUnits)) {
     return {
       ok: false,
       validInput: false,
@@ -118,7 +118,7 @@ export function validateCancelAuthorizationAmount({
 }): CancelAuthorizationAmountResult {
   const normalizedAmount = String(cancelAmount).trim()
 
-  if (!normalizedAmount || !varifyPositiveInt(normalizedAmount)) {
+  if (!normalizedAmount || !verifyPositiveInt(normalizedAmount)) {
     return {
       ok: false,
       validCancelAmount: false,

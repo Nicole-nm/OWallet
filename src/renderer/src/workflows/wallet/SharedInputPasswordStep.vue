@@ -5,6 +5,8 @@
     :ledger-ready="Boolean(ledgerPk)"
     :ledger-status="ledgerStatus"
     :sending="sending"
+    :signer-address="sponsorWallet.address"
+    :signer-name="sponsorWallet.name || sponsorWallet.label"
     :signer-type="sponsorWallet.type"
     @back="back"
     @submit="submit"

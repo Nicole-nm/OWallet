@@ -1,4 +1,4 @@
-import { varifyPositiveInt } from '../../../../shared/lib/validators'
+import { verifyPositiveInt } from '../../../../shared/lib/validators'
 import type { ServiceResult } from '../../../../shared/types'
 
 interface ReduceValidationPeer {
@@ -21,7 +21,7 @@ export function validateReduceInitPosAmount({
   detail?: ReduceValidationDetail
   posLimit?: string | number
 }): ServiceResult {
-  if (!amount || !varifyPositiveInt(amount)) {
+  if (!amount || !verifyPositiveInt(amount)) {
     return { ok: false, errorKey: 'nodeMgmt.invalidInput' }
   }
 
@@ -55,7 +55,7 @@ export function validateStakeAuthorizationUnit({
 }) {
   const normalizedUnit = String(unit).trim()
 
-  if (!normalizedUnit || (normalizedUnit !== '0' && !varifyPositiveInt(normalizedUnit))) {
+  if (!normalizedUnit || (normalizedUnit !== '0' && !verifyPositiveInt(normalizedUnit))) {
     return { ok: false, errorKey: 'nodeMgmt.invalidInput' }
   }
 

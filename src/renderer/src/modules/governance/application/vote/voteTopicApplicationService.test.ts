@@ -42,12 +42,12 @@ vi.mock('../../../../domains/governance/voteService', () => ({
   fetchCurrentStakes: (...args: any[]) => mocks.voteDomain.fetchCurrentStakes(...args),
 }))
 
-vi.mock('../../../../domains/nodeStake/nodeStakeDomainService', () => ({
+vi.mock('../../../../domains/governance/nodeStakeDomainService', () => ({
   fetchVoteContractAddress: (...args: any[]) =>
     mocks.nodeStakeService.fetchVoteContractAddress(...args),
 }))
 
-vi.mock('../../../../domains/wallet/accountService', () => ({
+vi.mock('../../../../shared/chain/walletSdk', () => ({
   deriveAddressFromPublicKey: (...args: any[]) =>
     mocks.walletService.deriveAddressFromPublicKey(...args),
 }))

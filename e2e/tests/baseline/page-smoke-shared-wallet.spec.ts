@@ -87,9 +87,9 @@ test.describe('Baseline Page Smoke: shared wallet routes', () => {
     await gotoHash(appPage, '#/sharedWallet/sendTransfer')
     await expect(appPage.locator('.shared-wallet-send-shell')).toBeVisible()
 
-    await gotoHash(appPage, '#/sharedWallet/copayers')
+    await gotoHash(appPage, '#/commonWalletReceive/sharedWallet')
+    await expect(appPage.locator('.receive-shell__copayers')).toBeVisible()
     await expect(appPage.locator('.ow-copayer-list')).toBeVisible()
-    await expect(appPage.locator('.shared-wallet-copayers__panel')).toBeVisible()
     await expect(
       appPage.getByText(TEST_SHARED_WALLET.coPayers[0].name, { exact: true })
     ).toBeVisible()
@@ -115,10 +115,13 @@ test.describe('Baseline Page Smoke: shared wallet routes', () => {
     await appPage.waitForURL(/sharedWallet\/pendingTxHome/i)
 
     await expect(appPage.locator('.pending-container')).toBeVisible()
-    await expect(appPage.getByText(/sponsor/i)).toBeVisible()
+    await expect(appPage.getByText(/signer/i)).toBeVisible()
     await expect(appPage.locator('.ow-flow-shell__progress .ow-flow-shell__step')).toHaveCount(2)
 
-    await appPage.getByRole('button', { name: /^sign$/i }).click()
+    await appPage
+      .locator('.pending-confirm__actions')
+      .getByRole('button', { name: /next/i })
+      .click()
     await expect(appPage.locator('.shared-signature-approval')).toBeVisible()
   })
 

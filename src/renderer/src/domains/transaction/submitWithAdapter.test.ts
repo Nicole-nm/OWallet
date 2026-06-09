@@ -10,7 +10,7 @@ vi.mock('./transactionDomainService', () => ({
   sendTransaction: (...args: unknown[]) => mocks.applicationService.sendTransaction(...args),
 }))
 
-import { submitWithAdapter } from './submitWithAdapter'
+import { buildAndSubmit, submitWithAdapter } from './submitWithAdapter'
 import { createFakeTransaction } from '../../shared/chain/__fixtures__/fakeSdk'
 import type { SdkTransactionLike } from '../../shared/chain/types'
 import type { WalletAdapter, WalletCapabilities } from '../wallet/adapter'
@@ -210,5 +210,55 @@ describe('submitWithAdapter', () => {
     })
 
     expect(logger.error).toHaveBeenCalledWith('submitFoo', error)
+  })
+})
+
+describe('buildAndSubmit', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('builds the tx then submits it through the adapter', async () => {
+    const signed = makeTx('signed-tx')
+    const sendResult = { ok: true, response: {}, txHash: 'hash-1' }
+    mocks.applicationService.sendTransaction.mockResolvedValue(sendResult)
+    const adapter = makeAdapter(commonCapabilities, signed)
+    const built = makeTx('built-tx')
+
+    await expect(
+      buildAndSubmit({ adapter, password: 'secret', build: async () => built })
+    ).resolves.toEqual(sendResult)
+
+    expect(adapter.signTransaction).toHaveBeenCalledWith(built, { password: 'secret' })
+    expect(mocks.applicationService.sendTransaction).toHaveBeenCalledWith(signed)
+  })
+
+  it('maps a build failure to the default network error key', async () => {
+    const error = new Error('build failed')
+    const adapter = makeAdapter()
+
+    await expect(
+      buildAndSubmit({
+        adapter,
+        build: async () => {
+          throw error
+        },
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'common.networkErr', error })
+    expect(adapter.signTransaction).not.toHaveBeenCalled()
+  })
+
+  it('honours a custom networkErrorKey on build failure', async () => {
+    const error = new Error('build failed')
+
+    await expect(
+      buildAndSubmit({
+        adapter: makeAdapter(),
+        networkErrorKey: 'custom.buildErr',
+        build: async () => {
+          throw error
+        },
+      })
+    ).resolves.toEqual({ ok: false, errorKey: 'custom.buildErr', error })
   })
 })

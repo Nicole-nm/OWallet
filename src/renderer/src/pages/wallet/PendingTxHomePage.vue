@@ -29,7 +29,11 @@
       </div>
 
       <div class="ow-flow-shell__body">
-        <pending-confirm v-if="!showInputPass" @signEvent="handleSignEvent"></pending-confirm>
+        <pending-confirm
+          v-if="!showInputPass"
+          @signEvent="handleSignEvent"
+          @cancelEvent="handleCancelEvent"
+        ></pending-confirm>
         <pending-tx-sign
           v-if="showInputPass"
           @backEvent="handleBackEvent"
@@ -59,5 +63,6 @@ const {
   handleSignEvent,
   handleBackEvent,
   handleSubmitEvent,
+  handleCancelEvent,
 } = usePendingTxHomePage()
 </script>

@@ -4,12 +4,18 @@ import {
   getLocalCopayers,
   hasLocalCopayer,
 } from '../../../../domains/wallet/walletDomainService'
-import { queryPendingTransfer } from '../../../../domains/sharedWallet/sharedWalletDomainService'
+import {
+  createSharedWallet,
+  queryPendingTransfer,
+  querySharedWallet,
+} from '../../../../domains/wallet/shared'
+import { asBoolean, asString, pick } from '../../../../shared/lib/coercion'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
 import type {
   PendingSharedTransfer,
   SharedCopayer,
+  SharedWalletSession,
   SharedWalletSigner,
 } from '../../../../shared/types'
 
@@ -26,44 +32,25 @@ type PendingSharedTransferResponse = {
   >
 }
 
-function stringValue(value: unknown): string {
-  return value === undefined || value === null ? '' : String(value)
-}
-
-function booleanValue(value: unknown): boolean {
-  if (typeof value === 'boolean') {
-    return value
-  }
-  if (typeof value === 'number') {
-    return value !== 0
-  }
-  if (typeof value === 'string') {
-    const normalized = value.trim().toLowerCase()
-    if (['true', '1', 'yes'].includes(normalized)) return true
-    if (['false', '0', 'no'].includes(normalized)) return false
-  }
-  return false
-}
-
 function normalizePendingSigner(item: unknown): SharedCopayer | null {
   if (!item || typeof item !== 'object') {
     return null
   }
 
   const record = item as Record<string, unknown>
-  const address = stringValue(record.address).trim()
+  const address = asString(record.address).trim()
   if (!address) {
     return null
   }
 
-  const publickey = stringValue(record.publickey ?? record.publicKey).trim()
+  const publickey = asString(pick(record, 'publickey', 'publicKey')).trim()
 
   return {
     address,
-    name: stringValue(record.name).trim(),
+    name: asString(record.name).trim(),
     publickey,
     publicKey: publickey,
-    isSign: booleanValue(record.isSign ?? record.is_sign ?? record.signed),
+    isSign: asBoolean(pick(record, 'isSign', 'is_sign', 'signed')),
   }
 }
 
@@ -80,29 +67,29 @@ function normalizePendingSigners(value: unknown): SharedCopayer[] {
 function normalizePendingSharedTransfer(
   item: Record<string, unknown>
 ): PendingSharedTransfer | null {
-  const transactionIdHash = stringValue(item.transactionIdHash ?? item.transactionidhash).trim()
-  const transactionBodyHash = stringValue(
-    item.transactionBodyHash ?? item.transactionbodyhash
+  const transactionIdHash = asString(pick(item, 'transactionIdHash', 'transactionidhash')).trim()
+  const transactionBodyHash = asString(
+    pick(item, 'transactionBodyHash', 'transactionbodyhash')
   ).trim()
 
   if (!transactionIdHash || !transactionBodyHash) {
     return null
   }
 
-  const assetName = stringValue(item.assetName)
-  const rawAmount = item.amount === undefined || item.amount === null ? 0 : stringValue(item.amount)
+  const assetName = asString(item.assetName)
+  const rawAmount = item.amount === undefined || item.amount === null ? 0 : asString(item.amount)
   const amount =
-    assetName.toLowerCase() === 'ong' ? new BigNumber(rawAmount).div(1e9).toFixed(9) : rawAmount
+    assetName.toLowerCase() === 'ong' ? new BigNumber(rawAmount).div(1e9).toString() : rawAmount
 
   return {
     amount,
     assetName,
-    receiveaddress: stringValue(item.receiveaddress ?? item.receiveAddress),
-    sendaddress: stringValue(item.sendaddress ?? item.sendAddress),
-    gasprice: (item.gasprice ?? item.gasPrice ?? 0) as string | number,
-    gaslimit: (item.gaslimit ?? item.gasLimit ?? 0) as string | number,
+    receiveaddress: asString(pick(item, 'receiveaddress', 'receiveAddress')),
+    sendaddress: asString(pick(item, 'sendaddress', 'sendAddress')),
+    gasprice: (pick(item, 'gasprice', 'gasPrice') ?? 0) as string | number,
+    gaslimit: (pick(item, 'gaslimit', 'gasLimit') ?? 0) as string | number,
     coPayerSignDtos: normalizePendingSigners(
-      item.coPayerSignDtos ?? item.coPayerSignVOS ?? item.coPayerSignVos
+      pick(item, 'coPayerSignDtos', 'coPayerSignVOS', 'coPayerSignVos')
     ),
     transactionBodyHash,
     transactionIdHash,
@@ -119,9 +106,9 @@ function localAccountToSigner(account?: {
 
   return {
     ...account.wallet,
-    type: stringValue(account.type),
-    address: stringValue(account.wallet.address),
-    publicKey: stringValue(account.wallet.publicKey ?? account.wallet.publickey),
+    type: asString(account.type),
+    address: asString(account.wallet.address),
+    publicKey: asString(pick(account.wallet, 'publicKey', 'publickey')),
   }
 }
 
@@ -206,4 +193,56 @@ export async function checkSharedWalletHasLocalCopayer(copayers: SharedCopayer[]
     logger,
     onFailure: () => ({ hasLocalCopayer: false }),
   })
+}
+
+export async function checkSharedWalletRegistrationStatus(
+  network: string,
+  sharedWalletAddress: string
+) {
+  return tryCatch(
+    async () => {
+      const result = (await querySharedWallet(network, sharedWalletAddress)) as {
+        sharedWalletAddress?: string
+      }
+      return { registered: Boolean(result?.sharedWalletAddress) }
+    },
+    {
+      context: 'checkSharedWalletRegistrationStatus',
+      errorKey: 'common.networkErr',
+      logger,
+      onFailure: () => ({ registered: false }),
+    }
+  )
+}
+
+export async function registerSharedWalletOnNetwork(
+  network: string,
+  sharedWallet: SharedWalletSession
+) {
+  return tryCatch(
+    async () => {
+      const body = {
+        sharedWalletAddress: sharedWallet.sharedWalletAddress,
+        sharedWalletName: sharedWallet.sharedWalletName,
+        totalNumber: Number(sharedWallet.totalNumber),
+        requiredNumber: Number(sharedWallet.requiredNumber),
+        coPayers: (sharedWallet.coPayers || []).map((payer) => ({
+          name: String(payer.name || ''),
+          publickey: String(payer.publickey || payer.publicKey || ''),
+          address: String(payer.address || ''),
+        })),
+      }
+      const response = (await createSharedWallet(network, body)) as { Error?: number } | undefined
+      if (response?.Error !== 0) {
+        return { ok: false as const, errorKey: 'sharedWalletHome.registerFailed' }
+      }
+      return { ok: true as const }
+    },
+    {
+      context: 'registerSharedWalletOnNetwork',
+      errorKey: 'sharedWalletHome.registerFailed',
+      logger,
+      onFailure: () => ({ ok: false as const, errorKey: 'sharedWalletHome.registerFailed' }),
+    }
+  )
 }

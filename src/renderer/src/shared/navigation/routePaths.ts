@@ -2,7 +2,6 @@ export const SHARED_WALLET_CHILD_PATHS = Object.freeze({
   home: 'home',
   sendTransfer: 'sendTransfer',
   pendingTxHome: 'pendingTxHome',
-  copayers: 'copayers',
   txMgmt: 'txMgmt',
 })
 
@@ -32,7 +31,6 @@ export const ROUTE_PATHS = Object.freeze({
   sharedWalletHome: '/sharedWallet/home',
   sharedWalletSendTransfer: '/sharedWallet/sendTransfer',
   sharedWalletPendingTxHome: '/sharedWallet/pendingTxHome',
-  sharedWalletCopayers: '/sharedWallet/copayers',
   sharedWalletTxMgmt: '/sharedWallet/txMgmt',
   vote: '/vote',
   voteLogin: '/vote/login',

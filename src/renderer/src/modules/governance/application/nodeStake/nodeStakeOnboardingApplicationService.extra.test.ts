@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   nodeStakeApplicationService: { loadStakeDetail: vi.fn() },
 }))
 
-vi.mock('../../../../domains/nodeStake/nodeStakeDomainService', () => ({
+vi.mock('../../../../domains/governance/nodeStakeDomainService', () => ({
   createDelegatedStakeTransactionBody: (...a: unknown[]) =>
     mocks.nodeStakeService.createDelegatedStakeTransactionBody(...a),
   createNodeStakeRegistrationTransaction: (...a: unknown[]) =>

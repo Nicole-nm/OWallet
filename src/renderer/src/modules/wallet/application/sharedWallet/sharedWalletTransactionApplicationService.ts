@@ -7,16 +7,17 @@ import {
   signSharedTransactionDraft,
   submitCreatedSharedTransfer,
   submitPendingSharedSignature as submitPendingSharedSignatureFromDomain,
-} from '../../../../domains/sharedWallet/sharedWalletDomainService'
-import { validateWalletAddress } from '../../../../domains/wallet/accountService'
+} from '../../../../domains/wallet/shared'
+import { validateWalletAddress } from '../../../../shared/chain/walletSdk'
+import { asString } from '../../../../shared/lib/coercion'
 import { createLogger } from '../../../../shared/lib/logger'
 import { WalletAdapterFactory, type SharedCosignerInput } from '../adapter/WalletAdapterFactory'
 
-import type { CreatedSharedTransferResult } from '../../../../domains/sharedWallet/sharedWalletDraftService'
+import type { CreatedSharedTransferResult } from '../../../../domains/wallet/shared/draftService'
 import type {
   PendingSharedSignatureResult,
   SharedWalletSendResult,
-} from '../../../../domains/sharedWallet/sharedWalletSigningService'
+} from '../../../../domains/wallet/shared/signingService'
 import type { CommonWallet, HardwareWalletSigner, SharedWallet } from '../../../../shared/lib/types'
 import type {
   PendingSharedTransfer,
@@ -51,18 +52,18 @@ function buildCosigner(
       wallet: {
         ...wallet,
         address: signer.address,
-        label: String(wallet.label ?? signer.label ?? signer.name ?? ''),
-        publicKey: String(wallet.publicKey ?? signer.publicKey ?? signer.publickey ?? ''),
-        key: String(wallet.key ?? signer.key ?? ''),
-        salt: String(wallet.salt ?? signer.salt ?? ''),
-        algorithm: String(wallet.algorithm ?? ''),
+        label: asString(wallet.label ?? signer.label ?? signer.name),
+        publicKey: asString(wallet.publicKey ?? signer.publicKey ?? signer.publickey),
+        key: asString(wallet.key ?? signer.key),
+        salt: asString(wallet.salt ?? signer.salt),
+        algorithm: asString(wallet.algorithm),
         parameters: (wallet.parameters as CommonWallet['parameters']) ?? { curve: '' },
         scrypt: (wallet.scrypt as CommonWallet['scrypt']) ?? {},
       } as CommonWallet,
     }
   }
 
-  const publicKey = String(wallet.publicKey ?? signer.publicKey ?? signer.publickey ?? '')
+  const publicKey = asString(wallet.publicKey ?? signer.publicKey ?? signer.publickey)
   if (!publicKey) return null
   return {
     type: 'ledger',
@@ -94,7 +95,7 @@ function buildSharedAdapter(
     ''
   const threshold = Number((sharedWallet as SharedWallet).requiredNumber ?? 0)
   const coPayers = (sharedWallet as { coPayers?: { publickey?: string }[] }).coPayers ?? []
-  const publicKeys = coPayers.map((cp) => String(cp.publickey ?? ''))
+  const publicKeys = coPayers.map((cp) => asString(cp.publickey))
 
   return WalletAdapterFactory.create({
     kind: 'shared',

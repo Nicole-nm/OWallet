@@ -1,7 +1,7 @@
 import { GAS_LIMIT } from '../../../../shared/lib/constants'
 import { convertTransferFeeToGasPrice } from '../../../../shared/lib/transferGas'
-import { createTransferTransaction } from '../../../../domains/transaction/transactionDomainService'
-import { submitWithAdapter } from '../../../../domains/transaction/submitWithAdapter'
+import { buildTransfer } from '../../../../domains/transaction/assetBuilder'
+import { buildAndSubmit } from '../../../../domains/transaction/submitWithAdapter'
 import type { TransferState } from '../../../../shared/types'
 import type {
   SendTransactionResult,
@@ -32,19 +32,17 @@ export async function submitCommonTransfer({
   transfer: CommonTransferInput
   password?: string
 }): Promise<CommonTransferSubmissionResult> {
-  let tx: SdkTransactionLike
-  try {
-    tx = (await createTransferTransaction({
-      fromAddress: address,
-      transfer: {
-        ...transfer,
-        gasPrice: buildTransferGasPrice(transfer.gas),
-        gasLimit: GAS_LIMIT,
-      },
-    })) as SdkTransactionLike
-  } catch (error: unknown) {
-    return { ok: false, errorKey: 'common.networkErr', error }
-  }
-
-  return submitWithAdapter({ tx, adapter, password })
+  return buildAndSubmit({
+    adapter,
+    password,
+    build: async () =>
+      (await buildTransfer(
+        {
+          ...transfer,
+          gasPrice: buildTransferGasPrice(transfer.gas),
+          gasLimit: GAS_LIMIT,
+        },
+        address
+      )) as SdkTransactionLike,
+  })
 }

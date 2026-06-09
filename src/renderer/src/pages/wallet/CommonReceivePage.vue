@@ -15,7 +15,16 @@
           </div>
 
           <div class="receive-shell__content">
-            <h1 class="receive-shell__title">{{ walletName }}</h1>
+            <div class="receive-shell__title-row">
+              <h1 class="receive-shell__title">{{ walletName }}</h1>
+              <span
+                v-if="isSharedWallet"
+                class="receive-shell__threshold"
+                :title="$t('importSharedWallet.requiredCopayerNumber')"
+              >
+                {{ requiredNumber }}- OF -{{ totalNumber }}
+              </span>
+            </div>
 
             <div class="receive-shell__details">
               <div class="receive-shell__detail">
@@ -48,6 +57,41 @@
                 </div>
               </div>
             </div>
+
+            <div v-if="isSharedWallet && coPayers.length" class="receive-shell__copayers">
+              <span class="receive-shell__label">{{ $t('sharedWalletHome.copayers') }}</span>
+              <div class="ow-copayer-list receive-shell__copayer-list">
+                <div
+                  v-for="(copayer, index) in coPayers"
+                  :key="copayer.publickey || copayer.publicKey || copayer.address"
+                  class="ow-copayer-row receive-shell__copayer-row"
+                >
+                  <span class="ow-step-circle">{{ index + 1 }}</span>
+                  <div class="receive-shell__copayer-copy">
+                    <span class="ow-copayer-name receive-shell__copayer-name">
+                      {{ copayer.name }}
+                      <span
+                        v-if="isLocalCopayer(copayer.address)"
+                        class="receive-shell__local-marker"
+                        :aria-label="$t('sharedWalletHome.localWallet')"
+                        :title="$t('sharedWalletHome.localWallet')"
+                      >
+                        <UserOutlined />
+                      </span>
+                    </span>
+                    <span class="ow-copayer-address receive-shell__copayer-address">{{
+                      copayer.address
+                    }}</span>
+                    <span
+                      v-if="copayer.publickey || copayer.publicKey"
+                      class="ow-copayer-public-key receive-shell__copayer-key"
+                    >
+                      {{ copayer.publickey || copayer.publicKey }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -59,7 +103,7 @@
 import { computed } from 'vue'
 import Breadcrumb from '../../shared/ui/navigation/Breadcrumb.vue'
 import VueQrcode from 'qrcode.vue'
-import { CopyOutlined } from '@ant-design/icons-vue'
+import { CopyOutlined, UserOutlined } from '@ant-design/icons-vue'
 import { useClipboardNotice } from '../../shared/composables/useClipboardNotice'
 import { useCommonReceivePage } from '../../workflows/wallet/useCommonReceivePage'
 
@@ -67,7 +111,15 @@ defineOptions({
   name: 'CommonReceivePage',
 })
 
-const { walletContext, goBackToWallets } = useCommonReceivePage()
+const {
+  walletContext,
+  goBackToWallets,
+  isSharedWallet,
+  coPayers,
+  requiredNumber,
+  totalNumber,
+  isLocalCopayer,
+} = useCommonReceivePage()
 const { copyText } = useClipboardNotice()
 
 const walletName = computed(() => String(walletContext.value.walletName || ''))
@@ -98,7 +150,7 @@ async function copy(value: string) {
   display: grid;
   grid-template-columns: 280px minmax(360px, 460px);
   gap: var(--ow-space-5);
-  align-items: center;
+  align-items: start;
   justify-content: center;
 }
 
@@ -108,12 +160,87 @@ async function copy(value: string) {
   justify-items: center;
 }
 
+.receive-shell__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ow-space-3);
+}
+
 .receive-shell__title {
   margin: 0;
   font-family: var(--ow-font-bold);
   font-size: var(--ow-font-size-section);
   line-height: var(--ow-line-height-title);
   color: var(--ow-color-text-primary);
+}
+
+.receive-shell__threshold {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: var(--ow-radius-pill);
+  background: var(--ow-color-surface-muted);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+  color: var(--ow-color-brand);
+  white-space: nowrap;
+}
+
+.receive-shell__copayers {
+  display: grid;
+  gap: var(--ow-space-2);
+}
+
+.receive-shell__copayer-list {
+  width: 100%;
+  max-width: none;
+  display: grid;
+  gap: var(--ow-space-2);
+  margin: 0;
+}
+
+.receive-shell__copayer-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--ow-space-3);
+  align-items: start;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--ow-color-border-subtle);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-muted);
+}
+
+.receive-shell__copayer-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.receive-shell__copayer-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ow-space-1);
+  width: auto;
+  margin: 0;
+  overflow: visible;
+  white-space: normal;
+}
+
+.receive-shell__local-marker {
+  display: inline-flex;
+  color: var(--ow-color-brand);
+}
+
+.receive-shell__copayer-address,
+.receive-shell__copayer-key {
+  width: auto;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  text-align: left;
+  white-space: normal;
 }
 
 .receive-shell__qr-frame {

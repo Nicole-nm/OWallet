@@ -5,8 +5,23 @@
         <span class="shared-signature-approval__section-title">{{
           $t('sharedWalletHome.confirmation')
         }}</span>
-        <span class="shared-signature-approval__section-caption">{{
-          $t('sharedWalletHome.signTransaction')
+      </div>
+
+      <div v-if="signerAddress" class="shared-signature-approval__signer">
+        <span class="shared-signature-approval__signer-avatar">
+          <UserOutlined />
+        </span>
+        <div class="shared-signature-approval__signer-copy">
+          <span class="shared-signature-approval__signer-label">{{
+            $t('sharedWalletHome.signer')
+          }}</span>
+          <span v-if="signerName" class="shared-signature-approval__signer-name">{{
+            signerName
+          }}</span>
+          <span class="shared-signature-approval__signer-address">{{ signerAddress }}</span>
+        </div>
+        <span v-if="signerTypeLabel" class="shared-signature-approval__signer-badge">{{
+          $t(signerTypeLabel)
         }}</span>
       </div>
 
@@ -55,6 +70,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { UserOutlined } from '@ant-design/icons-vue'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
 
@@ -69,14 +85,28 @@ const props = withDefaults(
     ledgerStatus?: string
     password: string
     sending?: boolean
+    signerAddress?: string
+    signerName?: string
     signerType: string
   }>(),
   {
     ledgerReady: false,
     ledgerStatus: '',
     sending: false,
+    signerAddress: '',
+    signerName: '',
   }
 )
+
+const signerTypeLabel = computed(() => {
+  if (props.signerType === 'HardwareWallet') {
+    return 'common.hardwareWallet'
+  }
+  if (props.signerType === 'CommonWallet') {
+    return 'common.normalWallet'
+  }
+  return ''
+})
 
 defineEmits<{
   back: []
@@ -121,12 +151,6 @@ const submitDisabled = computed(
   color: var(--ow-color-text-primary);
 }
 
-.shared-signature-approval__section-caption {
-  font-size: var(--ow-font-size-caption);
-  line-height: var(--ow-line-height-caption);
-  color: var(--ow-color-text-secondary);
-}
-
 .shared-signature-approval__card {
   display: grid;
   gap: var(--ow-space-2);
@@ -141,6 +165,73 @@ const submitDisabled = computed(
   font-family: var(--ow-font-medium);
   font-size: var(--ow-font-size-body);
   color: var(--ow-color-text-primary);
+}
+
+.shared-signature-approval__signer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ow-space-3);
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--ow-color-border-subtle);
+  border-radius: var(--ow-radius-panel);
+  background: var(--ow-color-surface-card);
+}
+
+.shared-signature-approval__signer-avatar {
+  display: inline-flex;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ow-radius-pill);
+  background: var(--ow-color-surface-muted);
+  color: var(--ow-color-brand);
+  font-size: 18px;
+}
+
+.shared-signature-approval__signer-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.shared-signature-approval__signer-label {
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  color: var(--ow-color-text-secondary);
+}
+
+.shared-signature-approval__signer-name {
+  overflow: hidden;
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shared-signature-approval__signer-address {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  color: var(--ow-color-text-secondary);
+}
+
+.shared-signature-approval__signer-badge {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 4px 10px;
+  border-radius: var(--ow-radius-pill);
+  background: var(--ow-color-surface-muted);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+  color: var(--ow-color-brand);
+  white-space: nowrap;
 }
 
 .shared-signature-approval__password {

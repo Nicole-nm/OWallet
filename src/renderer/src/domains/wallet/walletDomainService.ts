@@ -3,7 +3,7 @@ import { getExplorerApiBaseUrl } from '../../shared/lib/constants'
 import { createLogger } from '../../shared/lib/logger'
 import type { NativeBalance, WalletCollections } from '../../shared/lib/types'
 import type { Result } from '../../shared/lib/result'
-import { success, failure } from '../../shared/lib/result'
+import { success, failure, tryResult } from '../../shared/lib/result'
 import { mapNetworkError, mapStorageError } from '../../shared/lib/errors'
 import { getBalanceUrl } from '../../shared/lib/urlBuilder'
 import { findIdentityCollection, findWalletCollections } from './repository'
@@ -26,23 +26,21 @@ export {
 const logger = createLogger('walletDomainService')
 
 export async function fetchWalletCollections(): Promise<Result<WalletCollections>> {
-  try {
-    const data = await findWalletCollections()
-    return success(data)
-  } catch (err: unknown) {
-    logger.error('fetchWalletCollections', err)
-    return failure('common.savedbFailed', undefined, mapStorageError(err))
-  }
+  return tryResult(() => findWalletCollections(), {
+    context: 'fetchWalletCollections',
+    errorKey: 'common.savedbFailed',
+    logger,
+    mapError: mapStorageError,
+  })
 }
 
 export async function fetchIdentityCollection(): Promise<Result<unknown[]>> {
-  try {
-    const data = await findIdentityCollection()
-    return success(data)
-  } catch (err: unknown) {
-    logger.error('fetchIdentityCollection', err)
-    return failure('common.savedbFailed', undefined, mapStorageError(err))
-  }
+  return tryResult(() => findIdentityCollection(), {
+    context: 'fetchIdentityCollection',
+    errorKey: 'common.savedbFailed',
+    logger,
+    mapError: mapStorageError,
+  })
 }
 
 interface NativeBalanceItem {
@@ -57,14 +55,14 @@ export async function fetchNativeBalance(address: string): Promise<Result<Native
     const res = await httpClient.get<{ result?: NativeBalanceItem[] }>(url)
     if (!res.result) return failure('common.networkErr')
 
-    const balance: Partial<NativeBalance> = {}
+    const balance: NativeBalance = { ont: '0', ong: '0' }
     for (const item of res.result) {
       if (item.asset_name === 'ong') balance.ong = item.balance
       if (item.asset_name === 'waitboundong') balance.waitBoundOng = item.balance
       if (item.asset_name === 'unboundong') balance.unboundOng = item.balance
       if (item.asset_name === 'ont') balance.ont = item.balance
     }
-    return success(balance as NativeBalance)
+    return success(balance)
   } catch (err: unknown) {
     logger.error('fetchNativeBalance', err)
     return failure('common.networkErr', undefined, mapNetworkError(err))
@@ -77,13 +75,12 @@ export async function registerOep4Contract(
 ): Promise<Result<unknown>> {
   const base = getExplorerApiBaseUrl(network)
   const url = base + '/api/v1/explorer/oep4/info'
-  try {
-    const result = await httpClient.post(url, { scriptHash }, { silent: true })
-    return success(result)
-  } catch (err: unknown) {
-    logger.error('registerOep4Contract', err)
-    return failure('common.networkErr', undefined, mapNetworkError(err))
-  }
+  return tryResult(() => httpClient.post(url, { scriptHash }, { silent: true }), {
+    context: 'registerOep4Contract',
+    errorKey: 'common.networkErr',
+    logger,
+    mapError: mapNetworkError,
+  })
 }
 
 export async function queryOep4TransactionHistory(
@@ -94,15 +91,18 @@ export async function queryOep4TransactionHistory(
 ): Promise<Result<unknown>> {
   const base = getExplorerApiBaseUrl(network)
   const url = `${base}/api/v1/explorer/address/${address}/${pageSize}/${pageNum}`
-  try {
-    const res = await httpClient.get<{ Result?: unknown }>(url)
-    if (res && res.Result) {
-      return success(res.Result)
+  return tryResult(
+    async () => {
+      const res = await httpClient.get<{ Result?: unknown }>(url)
+      return res?.Result ?? null
+    },
+    {
+      context: 'queryOep4TransactionHistory',
+      errorKey: 'common.networkErr',
+      logger,
+      mapError: mapNetworkError,
     }
-    return success(null)
-  } catch (err: unknown) {
-    return failure('common.networkErr', undefined, mapNetworkError(err))
-  }
+  )
 }
 
 export async function fetchWalletTransactionGroups({
@@ -122,10 +122,16 @@ export async function fetchWalletTransactionGroups({
     `${getExplorerApiBaseUrl(network)}/v2/addresses/${address}/transactions` +
     `?page_size=${pageSize}&page_number=${pageNumber}`
 
-  try {
-    const response = await httpClient.get<{ result?: unknown[] }>(url)
-    return success(response?.result || [])
-  } catch (err: unknown) {
-    return failure('common.networkErr', undefined, mapNetworkError(err))
-  }
+  return tryResult(
+    async () => {
+      const response = await httpClient.get<{ result?: unknown[] }>(url)
+      return response?.result || []
+    },
+    {
+      context: 'fetchWalletTransactionGroups',
+      errorKey: 'common.networkErr',
+      logger,
+      mapError: mapNetworkError,
+    }
+  )
 }

@@ -1,4 +1,4 @@
-import { deriveAddressFromPublicKey } from '../../../../domains/wallet/accountService'
+import { deriveAddressFromPublicKey } from '../../../../shared/chain/walletSdk'
 
 export async function verifyLedgerLogin({ publicKey, currentWallet }: Record<string, unknown>) {
   const wallet = currentWallet as { address?: string } | null | undefined

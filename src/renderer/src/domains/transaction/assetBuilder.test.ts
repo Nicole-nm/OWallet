@@ -39,7 +39,12 @@ vi.mock('../../shared/chain/loadOntologySdk', () => ({
   loadOntologySdk: vi.fn(async () => sdk.loaded),
 }))
 
-import { buildClaimOng, buildNativeTransfer, buildOep4Transfer } from './assetBuilder'
+import {
+  buildClaimOng,
+  buildNativeTransfer,
+  buildOep4Transfer,
+  buildTransfer,
+} from './assetBuilder'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -76,5 +81,48 @@ describe('buildClaimOng', () => {
     await buildClaimOng('addr', '1.5')
     const args = sdk.makeWithdrawOngTx.mock.calls[0] as unknown[]
     expect(args[2]).toBe('1500000000')
+  })
+})
+
+describe('buildTransfer', () => {
+  it('routes ONT/ONG transfers through the native builder with stringified gas', async () => {
+    await buildTransfer(
+      { asset: 'ONT', to: 'to', amount: '5', gasPrice: '500', gasLimit: '20000' } as never,
+      'from'
+    )
+    const args = sdk.makeTransferTx.mock.calls[0] as unknown[]
+    expect(args[0]).toBe('ONT')
+    expect(args[3]).toBe('5')
+    expect(args[4]).toBe('500')
+    expect(args[5]).toBe('20000')
+    expect((args[6] as { value: string }).value).toBe('from')
+  })
+
+  it('routes other assets through the OEP-4 builder, defaulting scriptHash and decimal', async () => {
+    await buildTransfer(
+      { asset: 'WING', to: 'to', amount: '2', gasPrice: '500', gasLimit: '20000' } as never,
+      'from'
+    )
+    expect(sdk.oep4Transfer).toHaveBeenCalled()
+    const args = sdk.oep4Transfer.mock.calls[0] as unknown[]
+    // decimal defaults to 0 → amount passes through unscaled
+    expect(args[2]).toBe('2')
+  })
+
+  it('forwards an explicit scriptHash and decimal for OEP-4 transfers', async () => {
+    await buildTransfer(
+      {
+        asset: 'WING',
+        scriptHash: 'abcd',
+        decimal: 9,
+        to: 'to',
+        amount: '3',
+        gasPrice: '500',
+        gasLimit: '20000',
+      } as never,
+      'from'
+    )
+    const args = sdk.oep4Transfer.mock.calls[0] as unknown[]
+    expect(args[2]).toBe('3000000000')
   })
 })

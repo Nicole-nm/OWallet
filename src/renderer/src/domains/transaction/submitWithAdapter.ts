@@ -64,3 +64,25 @@ export async function submitWithAdapter<TResult = SendTransactionResult>({
     return { ok: false, ...payload, errorKey: resolvedErrorKey, error }
   }
 }
+
+/**
+ * Build a draft transaction then submit it through the adapter. Wraps the
+ * "create the tx (mapping any throw to the network error key) then hand off to
+ * {@link submitWithAdapter}" shape shared by the common transfer/redeem flows.
+ */
+export async function buildAndSubmit({
+  build,
+  ...submitInput
+}: Omit<SubmitWithAdapterInput, 'tx'> & {
+  build: () => Promise<SdkTransactionLike>
+}): Promise<SendTransactionResult | TransactionFailureResult> {
+  const networkErrorKey = submitInput.networkErrorKey ?? 'common.networkErr'
+  let tx: SdkTransactionLike
+  try {
+    tx = await build()
+  } catch (error: unknown) {
+    return { ok: false, errorKey: networkErrorKey, error }
+  }
+
+  return submitWithAdapter({ ...submitInput, tx })
+}

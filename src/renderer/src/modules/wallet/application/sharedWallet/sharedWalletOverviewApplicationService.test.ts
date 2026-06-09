@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   },
   sharedWalletService: {
     queryPendingTransfer: vi.fn(),
+    querySharedWallet: vi.fn(),
+    createSharedWallet: vi.fn(),
   },
 }))
 
@@ -17,17 +19,21 @@ vi.mock('../../../../domains/wallet/walletDomainService', () => ({
   hasLocalCopayer: (...args: unknown[]) => mocks.walletService.hasLocalCopayer(...args),
 }))
 
-vi.mock('../../../../domains/sharedWallet/sharedWalletDomainService', () => ({
+vi.mock('../../../../domains/wallet/shared', () => ({
   queryPendingTransfer: (...args: unknown[]) =>
     mocks.sharedWalletService.queryPendingTransfer(...args),
+  querySharedWallet: (...args: unknown[]) => mocks.sharedWalletService.querySharedWallet(...args),
+  createSharedWallet: (...args: unknown[]) => mocks.sharedWalletService.createSharedWallet(...args),
 }))
 
 import {
   checkSharedWalletHasLocalCopayer,
+  checkSharedWalletRegistrationStatus,
   findLocalSharedSigner,
   findNextLocalSharedSigner,
   loadLocalSharedCopayers,
   loadPendingSharedTransfers,
+  registerSharedWalletOnNetwork,
 } from './sharedWalletOverviewApplicationService'
 
 describe('sharedWalletOverviewApplicationService', () => {
@@ -61,7 +67,7 @@ describe('sharedWalletOverviewApplicationService', () => {
       ok: true,
       transfers: [
         {
-          amount: '1.000000000',
+          amount: '1',
           assetName: 'ONG',
           receiveaddress: 'AQ2',
           sendaddress: 'AS1',
@@ -154,5 +160,106 @@ describe('sharedWalletOverviewApplicationService', () => {
       { address: 'AQ2', name: 'Bob', isSign: false },
       { address: 'AQ3', name: 'Carol', isSign: false },
     ])
+  })
+
+  describe('checkSharedWalletRegistrationStatus', () => {
+    it('returns registered=true when the server has the shared wallet', async () => {
+      mocks.sharedWalletService.querySharedWallet.mockResolvedValue({
+        sharedWalletAddress: 'AShared123',
+        sharedWalletName: 'Team Wallet',
+      })
+
+      await expect(checkSharedWalletRegistrationStatus('MAIN_NET', 'AShared123')).resolves.toEqual({
+        ok: true,
+        registered: true,
+      })
+      expect(mocks.sharedWalletService.querySharedWallet).toHaveBeenCalledWith(
+        'MAIN_NET',
+        'AShared123'
+      )
+    })
+
+    it('returns registered=false when the server response lacks sharedWalletAddress', async () => {
+      mocks.sharedWalletService.querySharedWallet.mockResolvedValue({})
+
+      await expect(checkSharedWalletRegistrationStatus('TEST_NET', 'AShared123')).resolves.toEqual({
+        ok: true,
+        registered: false,
+      })
+    })
+
+    it('returns registered=false on network error', async () => {
+      mocks.sharedWalletService.querySharedWallet.mockRejectedValue(new Error('network down'))
+
+      const result = await checkSharedWalletRegistrationStatus('TEST_NET', 'AShared123')
+      expect(result.ok).toBe(false)
+      expect('registered' in result ? result.registered : undefined).toBe(false)
+    })
+  })
+
+  describe('registerSharedWalletOnNetwork', () => {
+    it('returns ok=true when the server accepts the registration', async () => {
+      mocks.sharedWalletService.createSharedWallet.mockResolvedValue({ Error: 0 })
+
+      const wallet = {
+        sharedWalletAddress: 'AShared123',
+        sharedWalletName: 'Team Wallet',
+        totalNumber: 3,
+        requiredNumber: 2,
+        coPayers: [
+          { name: 'Alice', publickey: 'pk1', address: 'AQ1' },
+          { name: 'Bob', publicKey: 'pk2', address: 'AQ2' },
+        ],
+      }
+
+      await expect(registerSharedWalletOnNetwork('TEST_NET', wallet as never)).resolves.toEqual({
+        ok: true,
+      })
+      expect(mocks.sharedWalletService.createSharedWallet).toHaveBeenCalledWith('TEST_NET', {
+        sharedWalletAddress: 'AShared123',
+        sharedWalletName: 'Team Wallet',
+        totalNumber: 3,
+        requiredNumber: 2,
+        coPayers: [
+          { name: 'Alice', publickey: 'pk1', address: 'AQ1' },
+          { name: 'Bob', publickey: 'pk2', address: 'AQ2' },
+        ],
+      })
+    })
+
+    it('returns ok=false when the server rejects the registration', async () => {
+      mocks.sharedWalletService.createSharedWallet.mockResolvedValue({ Error: 1, Desc: 'exists' })
+
+      const wallet = {
+        sharedWalletAddress: 'AShared123',
+        sharedWalletName: 'Team Wallet',
+        totalNumber: 3,
+        requiredNumber: 2,
+        coPayers: [],
+      }
+
+      await expect(registerSharedWalletOnNetwork('TEST_NET', wallet as never)).resolves.toEqual({
+        ok: false,
+        errorKey: 'sharedWalletHome.registerFailed',
+      })
+    })
+
+    it('returns ok=false on network error', async () => {
+      mocks.sharedWalletService.createSharedWallet.mockRejectedValue(new Error('timeout'))
+
+      const wallet = {
+        sharedWalletAddress: 'AShared123',
+        sharedWalletName: 'Team Wallet',
+        totalNumber: 3,
+        requiredNumber: 2,
+        coPayers: [],
+      }
+
+      const result = await registerSharedWalletOnNetwork('TEST_NET', wallet as never)
+      expect(result.ok).toBe(false)
+      expect('errorKey' in result ? result.errorKey : undefined).toBe(
+        'sharedWalletHome.registerFailed'
+      )
+    })
   })
 })

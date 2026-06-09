@@ -13,11 +13,14 @@ const mocks = vi.hoisted(() => ({
   },
   feedback: {
     notifyError: vi.fn(),
+    notifySuccess: vi.fn(),
     notifyWarning: vi.fn(),
   },
   overview: {
     checkSharedWalletHasLocalCopayer: vi.fn(),
+    checkSharedWalletRegistrationStatus: vi.fn(),
     loadPendingSharedTransfers: vi.fn(),
+    registerSharedWalletOnNetwork: vi.fn(),
   },
   sharedWalletSessionStore: {
     wallet: {
@@ -71,6 +74,7 @@ vi.mock('../../shared/composables/usePollingTask', () => ({
 
 vi.mock('../../shared/ui/feedback', () => ({
   notifyError: (...args: unknown[]) => mocks.feedback.notifyError(...args),
+  notifySuccess: (...args: unknown[]) => mocks.feedback.notifySuccess(...args),
   notifyWarning: (...args: unknown[]) => mocks.feedback.notifyWarning(...args),
 }))
 
@@ -83,8 +87,12 @@ vi.mock(
   () => ({
     checkSharedWalletHasLocalCopayer: (...args: unknown[]) =>
       mocks.overview.checkSharedWalletHasLocalCopayer(...args),
+    checkSharedWalletRegistrationStatus: (...args: unknown[]) =>
+      mocks.overview.checkSharedWalletRegistrationStatus(...args),
     loadPendingSharedTransfers: (...args: unknown[]) =>
       mocks.overview.loadPendingSharedTransfers(...args),
+    registerSharedWalletOnNetwork: (...args: unknown[]) =>
+      mocks.overview.registerSharedWalletOnNetwork(...args),
   })
 )
 
@@ -123,9 +131,16 @@ describe('useSharedWalletHomePage', () => {
       ok: true,
       hasLocalCopayer: true,
     })
+    mocks.overview.checkSharedWalletRegistrationStatus.mockResolvedValue({
+      ok: true,
+      registered: true,
+    })
     mocks.overview.loadPendingSharedTransfers.mockResolvedValue({
       ok: true,
       transfers: [],
+    })
+    mocks.overview.registerSharedWalletOnNetwork.mockResolvedValue({
+      ok: true,
     })
   })
 
@@ -145,7 +160,10 @@ describe('useSharedWalletHomePage', () => {
       filterGovernanceOng: true,
       txSliceCount: 6,
     })
-    expect(mocks.dashboard.refresh).toHaveBeenCalledWith(true, [expect.any(Function)])
+    expect(mocks.dashboard.refresh).toHaveBeenCalledWith(true, [
+      expect.any(Function),
+      expect.any(Function),
+    ])
     expect(mocks.polling.startPolling).toHaveBeenCalledWith({ immediate: true })
   })
 
@@ -160,14 +178,13 @@ describe('useSharedWalletHomePage', () => {
     })
   })
 
-  it('handleBack, showReceive, showTxMgmt, toCopayerDetail and checkMoreOep4 all push routes', () => {
+  it('handleBack, showReceive, showTxMgmt and checkMoreOep4 all push routes', () => {
     const page = useSharedWalletHomePage()
     page.handleBack()
     page.showReceive()
     page.showTxMgmt()
-    page.toCopayerDetail()
     page.checkMoreOep4()
-    expect(mocks.router.push).toHaveBeenCalledTimes(5)
+    expect(mocks.router.push).toHaveBeenCalledTimes(4)
   })
 
   it('copy copies the shared wallet address', async () => {
@@ -265,5 +282,84 @@ describe('useSharedWalletHomePage', () => {
     await Promise.resolve()
     await Promise.resolve()
     expect(page.hasLocalCopayer.value).toBe(false)
+  })
+
+  describe('registration status', () => {
+    it('checks registration status on mount', async () => {
+      useSharedWalletHomePage()
+      await Promise.resolve()
+      await Promise.resolve()
+      expect(mocks.overview.checkSharedWalletRegistrationStatus).toHaveBeenCalledWith(
+        'MAIN_NET',
+        'AShared123'
+      )
+    })
+
+    it('exposes registered=true when the wallet is registered', async () => {
+      mocks.overview.checkSharedWalletRegistrationStatus.mockResolvedValue({
+        ok: true,
+        registered: true,
+      })
+      const page = useSharedWalletHomePage()
+      await Promise.resolve()
+      await Promise.resolve()
+      expect(page.registered.value).toBe(true)
+    })
+
+    it('exposes registered=false when the wallet is not registered', async () => {
+      mocks.overview.checkSharedWalletRegistrationStatus.mockResolvedValue({
+        ok: true,
+        registered: false,
+      })
+      const page = useSharedWalletHomePage()
+      await Promise.resolve()
+      await Promise.resolve()
+      expect(page.registered.value).toBe(false)
+    })
+
+    it('registers the wallet and sets registered=true on success', async () => {
+      mocks.overview.checkSharedWalletRegistrationStatus.mockResolvedValue({
+        ok: true,
+        registered: false,
+      })
+      const page = useSharedWalletHomePage()
+      await Promise.resolve()
+      await Promise.resolve()
+
+      await page.handleRegister()
+
+      expect(mocks.overview.registerSharedWalletOnNetwork).toHaveBeenCalledWith(
+        'MAIN_NET',
+        mocks.sharedWalletSessionStore.wallet
+      )
+      expect(page.registered.value).toBe(true)
+      expect(mocks.feedback.notifySuccess).toHaveBeenCalledWith('sharedWalletHome.registerSuccess')
+    })
+
+    it('shows an error when registration fails', async () => {
+      mocks.overview.checkSharedWalletRegistrationStatus.mockResolvedValue({
+        ok: true,
+        registered: false,
+      })
+      mocks.overview.registerSharedWalletOnNetwork.mockResolvedValueOnce({
+        ok: false,
+        errorKey: 'sharedWalletHome.registerFailed',
+      })
+      const page = useSharedWalletHomePage()
+      await Promise.resolve()
+      await Promise.resolve()
+
+      await page.handleRegister()
+
+      expect(page.registered.value).toBe(false)
+      expect(mocks.feedback.notifyError).toHaveBeenCalledWith('sharedWalletHome.registerFailed')
+    })
+
+    it('includes checkRegistration in the refresh task list', async () => {
+      const page = useSharedWalletHomePage()
+      await page.refresh(false)
+
+      expect(mocks.overview.checkSharedWalletRegistrationStatus).toHaveBeenCalled()
+    })
   })
 })

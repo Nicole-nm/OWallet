@@ -343,6 +343,7 @@ export default {
 
   sharedWalletHome: {
     send: 'Send',
+    transaction: 'Transaction',
     transferDetails: 'Transfer details',
     reviewAndSend: 'Review and send',
     reviewTransaction: 'Review transaction',
@@ -367,6 +368,7 @@ export default {
     submit: 'Submit',
     asset: 'Asset',
     sponsor: 'Sponsor',
+    signer: 'Co-signers',
     dragDecide: 'Drag to decide sign sequence',
     fee: 'Fee',
     inputPassword: 'Input Password',
@@ -389,6 +391,13 @@ export default {
     createTransferFailed: 'Create transfer transaction failed.',
     createTransferSuccess: 'Create transfer transaction succeed.',
     txSendingTochain: 'This transaction is sending to the blockchain now.',
+    registered: 'This shared wallet is registered on the current network server',
+    notRegistered: 'Not registered',
+    registerPrompt:
+      'This shared wallet is not registered on the current network server. Click to register before sending transactions.',
+    register: 'Register',
+    registerSuccess: 'Registered successfully',
+    registerFailed: 'Registration failed',
   },
 
   sharedTx: {
@@ -396,7 +405,7 @@ export default {
     signTx: 'Sign multi-sign transaction',
     inputPassword: 'Input password',
     ledgerSignMultiTimes: 'You may have to sign multiple times on your Ledger device',
-    selectSponsor: 'Select sponsor',
+    selectSponsor: 'Select signer',
     createTx: 'Create transaction',
     contractHash: 'Contract hash',
     method: 'Method',

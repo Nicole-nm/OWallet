@@ -13,10 +13,10 @@ vi.mock('../../../../shared/lib/constants', () => ({
 vi.mock('../../../../shared/lib/logger', () => ({
   createLogger: () => ({ error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() }),
 }))
-vi.mock('../../../../domains/wallet/accountService', () => ({
+vi.mock('../../../../shared/chain/walletSdk', () => ({
   deriveAddressFromPublicKey: deps.deriveAddressFromPublicKey,
 }))
-vi.mock('../../../../domains/nodeStake/nodeStakeDomainService', () => ({
+vi.mock('../../../../domains/governance/nodeStakeDomainService', () => ({
   fetchVoteContractAddress: deps.fetchVoteContractAddress,
 }))
 vi.mock('../../../../domains/governance/voteService', () => ({

@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../../../domains/sharedWallet/sharedWalletDomainService', () => ({
+vi.mock('../../../../domains/wallet/shared', () => ({
   querySharedWallet: (...args: unknown[]) => mocks.sharedWalletService.querySharedWallet(...args),
 }))
 

@@ -1,6 +1,6 @@
 import { GAS_LIMIT, resolveDefaultGasPrice } from '../../../../shared/lib/constants'
-import { createRedeemTransaction } from '../../../../domains/transaction/transactionDomainService'
-import { submitWithAdapter } from '../../../../domains/transaction/submitWithAdapter'
+import { buildClaimOng } from '../../../../domains/transaction/assetBuilder'
+import { buildAndSubmit } from '../../../../domains/transaction/submitWithAdapter'
 import type {
   SendTransactionResult,
   TransactionFailureResult,
@@ -20,17 +20,15 @@ export async function submitWalletRedeem({
   claimableOng: number | string
   password?: string
 }): Promise<CommonRedeemSubmissionResult> {
-  let tx: SdkTransactionLike
-  try {
-    tx = (await createRedeemTransaction({
-      address,
-      claimableOng,
-      gasPrice: resolveDefaultGasPrice(adapter.identity.type === 'ledger' ? 'ledger' : 'common'),
-      gasLimit: GAS_LIMIT,
-    })) as SdkTransactionLike
-  } catch (error: unknown) {
-    return { ok: false, errorKey: 'common.networkErr', error }
-  }
-
-  return submitWithAdapter({ tx, adapter, password })
+  return buildAndSubmit({
+    adapter,
+    password,
+    build: async () =>
+      (await buildClaimOng(
+        address,
+        claimableOng,
+        String(resolveDefaultGasPrice(adapter.identity.type === 'ledger' ? 'ledger' : 'common')),
+        String(GAS_LIMIT)
+      )) as SdkTransactionLike,
+  })
 }

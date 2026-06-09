@@ -3,9 +3,6 @@
     <section class="shared-transfer-review__section">
       <div class="shared-transfer-review__section-copy">
         <span class="shared-transfer-review__section-title">{{ $t(titleKey) }}</span>
-        <span class="shared-transfer-review__section-caption">{{
-          $t('sharedWalletHome.reviewTransaction')
-        }}</span>
       </div>
 
       <div class="shared-transfer-review__summary-card">
@@ -16,7 +13,7 @@
     <section class="shared-transfer-review__section">
       <div class="shared-transfer-review__section-header">
         <span class="shared-transfer-review__section-title">{{
-          $t('sharedWalletHome.sponsor')
+          $t('sharedWalletHome.signer')
         }}</span>
         <span class="shared-transfer-review__threshold">
           {{ requiredNumber }} - OF - {{ totalNumber }}
@@ -29,7 +26,7 @@
           <a-select
             class="shared-transfer-review__sponsor-select"
             :options="sponsorOptions"
-            :placeholder="$t('sharedWalletHome.sponsor')"
+            :placeholder="$t('sharedWalletHome.signer')"
             :value="sponsorAddress || undefined"
             @change="$emit('sponsor-change', String($event))"
           ></a-select>
@@ -176,12 +173,6 @@ function signedStateClass(payer: SharedCopayer): string {
   font-size: var(--ow-font-size-body);
   line-height: var(--ow-line-height-body);
   color: var(--ow-color-text-primary);
-}
-
-.shared-transfer-review__section-caption {
-  font-size: var(--ow-font-size-caption);
-  line-height: var(--ow-line-height-caption);
-  color: var(--ow-color-text-secondary);
 }
 
 .shared-transfer-review__threshold {

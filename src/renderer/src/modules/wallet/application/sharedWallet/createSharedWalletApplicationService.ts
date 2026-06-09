@@ -1,8 +1,8 @@
 import {
   createMultiSigWalletAddress,
   deriveAddressFromPublicKey,
-} from '../../../../domains/wallet/accountService'
-import { createSharedWallet } from '../../../../domains/sharedWallet/sharedWalletDomainService'
+} from '../../../../shared/chain/walletSdk'
+import { createSharedWallet } from '../../../../domains/wallet/shared'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
 import { persistWallet } from '../persistence/walletPersistenceService'

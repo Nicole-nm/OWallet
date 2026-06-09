@@ -1,4 +1,4 @@
-import { deriveAddressFromPublicKey } from '../../../../domains/wallet/accountService'
+import { deriveAddressFromPublicKey } from '../../../../shared/chain/walletSdk'
 import { findByPublicKeys } from '../../../../domains/wallet/walletDomainService'
 import { persistWallet, refreshWalletCollections } from '../persistence/walletPersistenceService'
 

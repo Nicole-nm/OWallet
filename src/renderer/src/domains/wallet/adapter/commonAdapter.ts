@@ -1,6 +1,9 @@
 import type { CommonWallet } from '../../../shared/lib/types'
-import { signWithWallet, signMessageWithWallet } from '../../transaction/signingService'
-import { addWalletSignature } from '../../transaction/walletSigningOrchestrator'
+import {
+  addWalletSignature,
+  signMessageWithWallet,
+  signWithWallet,
+} from '../../transaction/signing/walletSigning'
 import type { SigningContext, WalletAdapter, WalletIdentity } from './WalletAdapter'
 import type { WalletCapabilities } from './WalletCapabilities'
 

@@ -1,6 +1,6 @@
 import { buildIdentityRegistration } from '../../../domains/identity/identityDomainService'
 import { submitWithAdapter } from '../../../domains/transaction/submitWithAdapter'
-import { createChainAddress, generateWalletKeyPair } from '../../../domains/wallet/accountService'
+import { createSdkAddress, generateWalletKeyPair } from '../../../shared/chain/walletSdk'
 import { fetchCommonWalletDocs, insertIdentity } from '../../../domains/wallet/walletDomainService'
 import { createLogger } from '../../../shared/lib/logger'
 import { tryCatch } from '../../../shared/lib/result'
@@ -96,7 +96,7 @@ export async function createIdentityRegistrationDraft({
 
   return tryCatch(
     async () => {
-      const payer = await createChainAddress(signerWallet.address)
+      const payer = await createSdkAddress(signerWallet.address)
       const { privateKey } = await generateWalletKeyPair()
       const draft = await buildIdentityRegistration({
         label,

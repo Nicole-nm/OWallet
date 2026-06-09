@@ -1,8 +1,9 @@
 import type { VoteRecord } from './types'
 import { deriveVoteStatusText } from './voteStatusCalculator'
+import { ADDRESS_BYTES, HASH_BYTES } from './constants'
 
-export const VOTE_ADDRESS_BYTES = 20
-export const VOTE_HASH_BYTES = 32
+export const VOTE_ADDRESS_BYTES = ADDRESS_BYTES
+export const VOTE_HASH_BYTES = HASH_BYTES
 
 export function formatNumber(
   val: string,

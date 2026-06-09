@@ -19,7 +19,7 @@ vi.mock('../../../../lang', () => ({
   },
 }))
 
-vi.mock('../../../../domains/nodeStake/nodeStakeDomainService', () => ({
+vi.mock('../../../../domains/governance/nodeStakeDomainService', () => ({
   createStakeInfo: mocks.nodeStakeService.createStakeInfo,
   fetchNodeInfo: mocks.nodeStakeService.fetchNodeInfo,
   fetchStakeDetail: mocks.nodeStakeService.fetchStakeDetail,

@@ -1,6 +1,9 @@
 import type { HardwareWalletSigner } from '../../../shared/lib/types'
-import { signWithLedger } from '../../transaction/signingService'
-import { addLedgerSignature, signLedgerPayload } from '../../transaction/walletSigningOrchestrator'
+import {
+  addLedgerSignature,
+  signLedgerPayload,
+  signWithLedger,
+} from '../../transaction/signing/ledgerSigning'
 import type { WalletAdapter, WalletIdentity } from './WalletAdapter'
 import type { WalletCapabilities } from './WalletCapabilities'
 

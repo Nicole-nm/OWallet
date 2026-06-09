@@ -2,11 +2,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const sendRawTransaction = vi.fn(async () => ({ Error: 0 }))
 
+const fakeUnsignedTx = {
+  serialize: () => 'ser',
+  getHash: () => 'hash',
+  serializeUnsignedData: () => 'unsigned',
+}
+
 const vote = vi.hoisted(() => ({
   buildCancelTopicTx: vi.fn(async () => 'cancelTx'),
   buildCreateTopicTx: vi.fn(async () => 'createTx'),
   buildVoteTx: vi.fn(async () => 'voteTx'),
-  handleSignTx: vi.fn(async (): Promise<string | undefined> => 'signedTx'),
   loadVoteSdk: vi.fn(),
 }))
 const serialization = vi.hoisted(() => ({ serializeTx: vi.fn(() => 'serialized') }))
@@ -39,10 +44,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   shared.getRequiredVoteContractHash.mockResolvedValue({ contractHash: 'resolved' })
   shared.resolveVoteAddress.mockImplementation((_w: unknown, address: string) => address || 'addr')
-  vote.handleSignTx.mockResolvedValue('signedTx')
   restClient.getRestClient.mockReturnValue({ sendRawTransaction })
   vote.loadVoteSdk.mockResolvedValue({
-    TransactionBuilder: { makeWasmVmInvokeTransaction: vi.fn(() => 'wasmTx') },
+    TransactionBuilder: { makeWasmVmInvokeTransaction: vi.fn(() => fakeUnsignedTx) },
     Crypto: { Address: FakeAddress },
     utils: { reverseHex: (h: string) => h },
     Parameter: class {
@@ -94,28 +98,39 @@ it('createVoteTopicTransaction builds a create-topic transaction', async () => {
 })
 
 describe('setVoteTopicVoters', () => {
-  it('signs and sends the set-voters transaction', async () => {
+  const makeAdapter = (overrides: Record<string, unknown> = {}) =>
+    ({
+      identity: { type: 'common', address: 'addr', publicKey: 'pk', label: 'w' },
+      capabilities: { requiresPassword: true, requiresHardwareDevice: false },
+      signTransaction: vi.fn(async (tx: unknown) => tx),
+      addSignature: vi.fn(),
+      signMessage: vi.fn(),
+      ...overrides,
+    }) as never
+
+  it('signs and sends the set-voters transaction through the adapter', async () => {
     const result = await setVoteTopicVoters({
       network: 'MAIN_NET' as never,
       hash: 'h1',
       voters: ['v1'],
-      wallet: { address: 'addr' } as never,
-      walletType: 'Common',
+      adapter: makeAdapter(),
+      password: 'pw',
     })
     expect(sendRawTransaction).toHaveBeenCalledWith('serialized', false)
-    expect(result).toMatchObject({ ok: true, response: { Error: 0 } })
+    expect(result).toMatchObject({ ok: true, result: { Error: 0 } })
   })
 
-  it('returns an undefined response when signing is cancelled', async () => {
-    vote.handleSignTx.mockResolvedValue(undefined)
+  it('returns a failure without sending when the adapter cancels signing', async () => {
     const result = await setVoteTopicVoters({
       network: 'MAIN_NET' as never,
       hash: 'h1',
       voters: ['v1'],
-      wallet: { address: 'addr' } as never,
-      walletType: 'Common',
+      adapter: makeAdapter({
+        capabilities: { requiresPassword: false, requiresHardwareDevice: false },
+        signTransaction: vi.fn(async () => null),
+      }),
     })
     expect(sendRawTransaction).not.toHaveBeenCalled()
-    expect(result).toMatchObject({ ok: true, response: undefined })
+    expect(result).toMatchObject({ ok: true, result: { ok: false, cancelled: true } })
   })
 })

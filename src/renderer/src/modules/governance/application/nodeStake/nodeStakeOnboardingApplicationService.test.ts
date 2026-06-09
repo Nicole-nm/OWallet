@@ -8,9 +8,9 @@ const mocks = vi.hoisted(() => ({
     saveStakeInfo: vi.fn(),
     submitDelegatedStakeTransaction: vi.fn(),
   },
-  transactionService: {
-    applyPrivateKeyTransactionSignature: vi.fn(),
-    decryptWalletPrivateKey: vi.fn(),
+  transactionSdk: {
+    signTransactionWithPrivateKey: vi.fn(),
+    tryDecryptWallet: vi.fn(),
   },
   walletDomainService: {
     fetchNativeBalance: vi.fn(),
@@ -20,7 +20,7 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../../../domains/nodeStake/nodeStakeDomainService', () => ({
+vi.mock('../../../../domains/governance/nodeStakeDomainService', () => ({
   createDelegatedStakeTransactionBody: (...args: any[]) =>
     mocks.nodeStakeService.createDelegatedStakeTransactionBody(...args),
   createNodeStakeRegistrationTransaction: (...args: any[]) =>
@@ -31,11 +31,10 @@ vi.mock('../../../../domains/nodeStake/nodeStakeDomainService', () => ({
     mocks.nodeStakeService.submitDelegatedStakeTransaction(...args),
 }))
 
-vi.mock('../../../../domains/transaction/transactionDomainService', () => ({
-  applyPrivateKeyTransactionSignature: (...args: any[]) =>
-    mocks.transactionService.applyPrivateKeyTransactionSignature(...args),
-  decryptWalletPrivateKey: (...args: any[]) =>
-    mocks.transactionService.decryptWalletPrivateKey(...args),
+vi.mock('../../../../shared/chain/transactionSdk', () => ({
+  signTransactionWithPrivateKey: (...args: any[]) =>
+    mocks.transactionSdk.signTransactionWithPrivateKey(...args),
+  tryDecryptWallet: (...args: any[]) => mocks.transactionSdk.tryDecryptWallet(...args),
 }))
 
 vi.mock('../../../../domains/wallet/walletDomainService', () => ({
@@ -204,7 +203,7 @@ describe('nodeStakeOnboardingApplicationService', () => {
       })
     ).resolves.toEqual({ ok: false, errorKey: 'nodeStake.passwordEmpty' })
 
-    mocks.transactionService.decryptWalletPrivateKey.mockResolvedValueOnce(null)
+    mocks.transactionSdk.tryDecryptWallet.mockResolvedValueOnce(null)
 
     await expect(
       signNodeStakeRegistrationOntid({
@@ -214,8 +213,8 @@ describe('nodeStakeOnboardingApplicationService', () => {
       })
     ).resolves.toEqual({ ok: false, errorKey: 'common.pwdErr' })
 
-    mocks.transactionService.decryptWalletPrivateKey.mockResolvedValueOnce('private-key')
-    mocks.transactionService.applyPrivateKeyTransactionSignature.mockResolvedValue(undefined)
+    mocks.transactionSdk.tryDecryptWallet.mockResolvedValueOnce('private-key')
+    mocks.transactionSdk.signTransactionWithPrivateKey.mockResolvedValue(undefined)
 
     await expect(
       signNodeStakeRegistrationOntid({

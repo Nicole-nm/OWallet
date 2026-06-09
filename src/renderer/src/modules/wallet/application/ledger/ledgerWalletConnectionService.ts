@@ -1,9 +1,9 @@
-import { deriveAddressFromPublicKey } from '../../../../domains/wallet/accountService'
+import { deriveAddressFromPublicKey } from '../../../../shared/chain/walletSdk'
 import {
-  fetchLedgerConnectionSnapshot,
-  fetchLedgerDeviceInfo,
-  fetchLedgerPublicKey,
-} from '../../../../domains/wallet/ledgerService'
+  getConnectionSnapshot,
+  getDeviceInfo,
+  getPublicKey,
+} from '../../../../shared/chain/ledgerSigner'
 import type { LedgerWalletSelection } from '../../../../shared/types'
 
 interface LedgerAccountPageResult {
@@ -27,7 +27,7 @@ interface LedgerConnectionSelectionResult {
 
 export async function readLedgerDeviceInfo() {
   try {
-    return { ok: true, deviceInfo: await fetchLedgerDeviceInfo() }
+    return { ok: true, deviceInfo: await getDeviceInfo() }
   } catch (error: unknown) {
     return { ok: false, error }
   }
@@ -38,7 +38,7 @@ export async function readLedgerPublicKey({
   neo = false,
 }: { acct?: number; neo?: boolean } = {}) {
   try {
-    return { ok: true, publicKey: await fetchLedgerPublicKey({ acct, neo }) }
+    return { ok: true, publicKey: await getPublicKey(acct, neo) }
   } catch (error: unknown) {
     return { ok: false, error }
   }
@@ -79,7 +79,7 @@ export async function readLedgerConnectionSelection({
   neo?: boolean
 } = {}): Promise<LedgerConnectionSelectionResult> {
   try {
-    const snapshot = await fetchLedgerConnectionSnapshot({ acct, neo })
+    const snapshot = await getConnectionSnapshot(acct, neo)
     return {
       ok: true,
       deviceInfo: snapshot.deviceInfo,

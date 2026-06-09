@@ -12,7 +12,7 @@ import {
   getSplitFeeAddress,
   getGlobalParam,
   getPeerUnboundOng,
-} from './transactionBuilder'
+} from './governanceStorageReader'
 import type { StakeHistoryEntry } from './types'
 
 export function formatAuthorizationInfo(info: AuthorizationInfo) {

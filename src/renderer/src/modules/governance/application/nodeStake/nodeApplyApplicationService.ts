@@ -1,9 +1,9 @@
 import { createRegisterCandidateTransaction } from '../../../../domains/governance/governanceDomainService'
 import { getPeerPoolMap } from '../../../../domains/governance/governanceStorageReader'
-import { deriveAddressFromPublicKey } from '../../../../domains/wallet/accountService'
+import { deriveAddressFromPublicKey } from '../../../../shared/chain/walletSdk'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
-import { varifyPositiveInt } from '../../../../shared/lib/validators'
+import { verifyPositiveInt } from '../../../../shared/lib/validators'
 import { createPendingNodeStakeInfo } from './nodeStakeApplicationService'
 import { NetworkId } from '../../../../shared/lib/types'
 
@@ -14,7 +14,7 @@ function normalizePublicKeyForCompare(publicKey: string) {
 }
 
 export function isNodeApplyAmountValid(amount: string | number) {
-  return !(amount && !varifyPositiveInt(amount))
+  return !(amount && !verifyPositiveInt(amount))
 }
 
 export function validateNodeApplyForm({

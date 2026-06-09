@@ -20,7 +20,7 @@ vi.mock('../../../../domains/governance/governanceDomainService', () => ({
     mocks.governanceService.createRegisterCandidateTransaction(...args),
 }))
 
-vi.mock('../../../../domains/wallet/accountService', () => ({
+vi.mock('../../../../shared/chain/walletSdk', () => ({
   deriveAddressFromPublicKey: (...args: unknown[]) =>
     mocks.accountService.deriveAddressFromPublicKey(...args),
 }))

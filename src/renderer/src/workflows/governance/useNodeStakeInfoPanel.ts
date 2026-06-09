@@ -13,6 +13,7 @@ import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import { refreshNodeStakeManagementDetails } from '../../modules/governance/application/nodeStake/nodeStakeManagementApplicationService'
 import { useNodeStakeDialogs } from './useNodeStakeDialogs'
 import { useNodeStakeTransactions } from './useNodeStakeTransactions'
+import { withLoading } from './governanceTxHelpers'
 
 interface NodeStakeStatusRefs {
   statusStep1: { value: string }
@@ -277,12 +278,10 @@ export function useNodeStakeInfoPanel() {
 
   async function initializeStakeInfo() {
     resetStakeInfoView()
-    loadingStore.showLoadingModals()
 
     try {
-      await refreshStakeInfo()
+      await withLoading(loadingStore, refreshStakeInfo)
     } finally {
-      loadingStore.hideLoadingModals()
       startPolling({ immediate: false })
     }
   }

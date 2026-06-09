@@ -19,12 +19,7 @@ import type {
   GlobalParam,
 } from './types'
 import { loadGovernanceSdk } from './governanceSdkLoader'
-
-/** Byte length of an Ontology address in binary form (matches voteParser.ADDR_BYTES). */
-const ADDR_BYTES = 20
-
-const GOVERNANCE_CONTRACT = '0700000000000000000000000000000000000000'
-const GENESIS_BLOCK_TIMESTAMP = 1530316800
+import { ADDRESS_BYTES, GOVERNANCE_CONTRACT, GENESIS_BLOCK_TIMESTAMP } from './constants'
 
 function hexEncodeStr(str: string) {
   return Buffer.from(str, 'utf8').toString('hex')
@@ -71,7 +66,7 @@ export async function getPeerPoolMap(): Promise<Record<string, PeerPoolEntry>> {
     const peer = deserialize<PeerPoolEntry>(sr, {
       index: (r) => r.readInt(),
       peerPubkey: (r) => utils.hexstr2str(r.readNextBytes()),
-      address: (r) => new Crypto.Address(r.read(ADDR_BYTES)).toBase58(),
+      address: (r) => new Crypto.Address(r.read(ADDRESS_BYTES)).toBase58(),
       status: (r) => r.readUint8(),
       initPos: (r) => r.readLong(),
       totalPos: (r) => r.readLong(),
@@ -141,7 +136,7 @@ export async function getAuthorizeInfo(
   }
   return deserialize<AuthorizationInfo & { peerPubkey: string; address: unknown }>(sr, {
     peerPubkey: (r) => utils.hexstr2str(r.readNextBytes()),
-    address: (r) => new Crypto.Address(r.read(ADDR_BYTES)),
+    address: (r) => new Crypto.Address(r.read(ADDRESS_BYTES)),
     consensusPos: (r) => r.readLong(),
     freezePos: (r) => r.readLong(),
     newPos: (r) => r.readLong(),
@@ -162,7 +157,7 @@ export async function getSplitFeeAddress(
   const sr = await readStorage(client, key)
   if (!sr) return { address: null as unknown, amount: 0 as number | string }
   return deserialize<SplitFeeAddress>(sr, {
-    address: (r) => new Crypto.Address(r.read(ADDR_BYTES)),
+    address: (r) => new Crypto.Address(r.read(ADDRESS_BYTES)),
     amount: (r) => r.readLong(),
   })
 }
@@ -205,7 +200,7 @@ export async function getPeerUnboundOng(userAddr: string | { serialize: () => st
   const sr = await readStorage(client, key)
   if (!sr) return 0
 
-  const address = new Crypto.Address(sr.read(ADDR_BYTES))
+  const address = new Crypto.Address(sr.read(ADDRESS_BYTES))
   if (!address) return 0
   const stake = sr.readLong()
   const timeOffset = sr.readUint32()

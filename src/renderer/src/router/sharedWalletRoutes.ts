@@ -24,11 +24,6 @@ export const sharedWalletRoutes: RouteRecordRaw[] = [
         component: () => import('@/pages/wallet/PendingTxHomePage.vue'),
       },
       {
-        path: SHARED_WALLET_CHILD_PATHS.copayers,
-        name: ROUTE_NAMES.SHARED_WALLET_COPAYER,
-        component: () => import('@/pages/wallet/SharedWalletCopayerPage.vue'),
-      },
-      {
         path: SHARED_WALLET_CHILD_PATHS.txMgmt,
         name: ROUTE_NAMES.SHARED_TX_MGMT,
         component: () => import('@/pages/wallet/SharedTxManagementPage.vue'),

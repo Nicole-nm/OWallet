@@ -181,6 +181,20 @@ vi.mock('./useNodeStakeTransactions', () => ({
   useNodeStakeTransactions: () => mocks.transactions,
 }))
 
+vi.mock('./governanceTxHelpers', () => ({
+  withLoading: async (
+    store: { showLoadingModals: () => void; hideLoadingModals: () => void },
+    fn: () => Promise<unknown>
+  ) => {
+    store.showLoadingModals()
+    try {
+      return await fn()
+    } finally {
+      store.hideLoadingModals()
+    }
+  },
+}))
+
 import { useNodeStakeInfoPanel } from './useNodeStakeInfoPanel'
 
 describe('useNodeStakeInfoPanel', () => {

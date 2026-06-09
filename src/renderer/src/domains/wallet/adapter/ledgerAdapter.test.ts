@@ -6,13 +6,8 @@ const mocks = vi.hoisted(() => ({
   signLedgerPayload: vi.fn(),
 }))
 
-vi.mock('../../transaction/signingService', () => ({
+vi.mock('../../transaction/signing/ledgerSigning', () => ({
   signWithLedger: (...args: unknown[]) => mocks.signWithLedger(...args),
-  signWithWallet: vi.fn(),
-  signMessageWithWallet: vi.fn(),
-}))
-
-vi.mock('../../transaction/walletSigningOrchestrator', () => ({
   addLedgerSignature: (...args: unknown[]) => mocks.addLedgerSignature(...args),
   signLedgerPayload: (...args: unknown[]) => mocks.signLedgerPayload(...args),
 }))

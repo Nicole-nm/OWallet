@@ -16,20 +16,18 @@
         <span class="wallet-dashboard__tx-hash">
           {{ tx.transactionIdHash.substring(0, 40) + '...' }}
         </span>
-        <span class="wallet-dashboard__tx-amount">
-          {{ tx.receiveaddress === sharedWalletAddress ? '+' : '-' }}
-          {{ tx.amount }} {{ tx.assetName }}
-        </span>
+        <span class="wallet-dashboard__tx-amount">{{ signedAmount(tx) }} {{ tx.assetName }}</span>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { BigNumber } from 'bignumber.js'
 import type { PendingSharedTransfer } from '../../../shared/types'
 import WalletTransactionEmptyState from './WalletTransactionEmptyState.vue'
 
-defineProps<{
+const props = defineProps<{
   pendingTx: PendingSharedTransfer[]
   sharedWalletAddress: string
 }>()
@@ -37,6 +35,11 @@ defineProps<{
 defineEmits<{
   'show-detail': [tx: PendingSharedTransfer]
 }>()
+
+function signedAmount(tx: PendingSharedTransfer): string {
+  const sign = tx.receiveaddress === props.sharedWalletAddress ? '+' : '-'
+  return `${sign}${new BigNumber(tx.amount).toString()}`
+}
 </script>
 
 <style scoped>

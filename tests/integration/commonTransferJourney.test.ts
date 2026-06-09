@@ -2,17 +2,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WalletAdapter } from '../../src/renderer/src/modules/wallet/application/adapter/WalletAdapterFactory'
 
 const mocks = vi.hoisted(() => ({
-  buildNativeTransfer: vi.fn(),
+  buildTransfer: vi.fn(),
   sendTx: vi.fn(),
 }))
 
 vi.mock('../../src/renderer/src/domains/transaction/assetBuilder', () => ({
   buildClaimOng: vi.fn(),
-  buildNativeTransfer: (...args: unknown[]) => mocks.buildNativeTransfer(...args),
+  buildNativeTransfer: vi.fn(),
   buildOep4Transfer: vi.fn(),
+  buildTransfer: (...args: unknown[]) => mocks.buildTransfer(...args),
 }))
 
-vi.mock('../../src/renderer/src/domains/transaction/signingService', () => ({
+vi.mock('../../src/renderer/src/domains/transaction/broadcast', () => ({
   sendTx: (...args: unknown[]) => mocks.sendTx(...args),
 }))
 
@@ -31,14 +32,14 @@ describe('common transfer journey', () => {
       capabilities: { requiresPassword: true },
       signTransaction: vi.fn(async () => signed),
     } as unknown as WalletAdapter
-    mocks.buildNativeTransfer.mockResolvedValue(unsigned)
+    mocks.buildTransfer.mockResolvedValue(unsigned)
     mocks.sendTx.mockResolvedValue({ Error: 0, Result: 'ok' })
 
     await expect(
       submitCommonTransfer({
         address: 'AQ123',
         adapter,
-        transfer: { asset: 'ONT', to: 'AQ999', amount: '7', gas: '0.01' },
+        transfer: { asset: 'ONT', to: 'AQ999', amount: 7, gas: '0.01' },
         password: 'secret',
       })
     ).resolves.toEqual({
@@ -47,14 +48,9 @@ describe('common transfer journey', () => {
       txHash: 'bbaa',
     })
 
-    expect(mocks.buildNativeTransfer).toHaveBeenCalledWith(
-      'ONT',
-      'AQ123',
-      'AQ999',
-      '7',
-      'AQ123',
-      '500',
-      '20000'
+    expect(mocks.buildTransfer).toHaveBeenCalledWith(
+      expect.objectContaining({ asset: 'ONT', to: 'AQ999', amount: 7 }),
+      'AQ123'
     )
     expect(adapter.signTransaction).toHaveBeenCalledWith(unsigned, { password: 'secret' })
     expect(mocks.sendTx).toHaveBeenCalledWith(signed)
@@ -66,14 +62,14 @@ describe('common transfer journey', () => {
       capabilities: { requiresPassword: true },
       signTransaction: vi.fn(async () => tx),
     } as unknown as WalletAdapter
-    mocks.buildNativeTransfer.mockResolvedValue(tx)
+    mocks.buildTransfer.mockResolvedValue(tx)
     mocks.sendTx.mockResolvedValue({ Error: -1, Result: 'cannot cover gas cost' })
 
     await expect(
       submitCommonTransfer({
         address: 'AQ123',
         adapter,
-        transfer: { asset: 'ONT', to: 'AQ999', amount: '7', gas: '0.01' },
+        transfer: { asset: 'ONT', to: 'AQ999', amount: 7, gas: '0.01' },
         password: 'secret',
       })
     ).resolves.toEqual({

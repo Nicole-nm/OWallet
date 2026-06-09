@@ -6,7 +6,7 @@ const mocks = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('../../../../domains/wallet/accountService', () => ({
+vi.mock('../../../../shared/chain/walletSdk', () => ({
   deriveAddressFromPublicKey: (...args: unknown[]) =>
     mocks.accountService.deriveAddressFromPublicKey(...args),
 }))
