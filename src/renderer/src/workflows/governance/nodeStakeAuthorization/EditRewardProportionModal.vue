@@ -72,7 +72,7 @@ const stakeCostModel = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .reward-input {
   width: 60px;
 }

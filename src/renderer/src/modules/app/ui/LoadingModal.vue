@@ -31,7 +31,7 @@ defineProps({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.5s;
@@ -50,7 +50,7 @@ defineProps({
   right: 0;
   bottom: 0;
   left: 0;
-  z-index: 1040;
+  z-index: var(--ow-z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -59,6 +59,6 @@ defineProps({
 }
 
 .loading-overlay .loading-spinner {
-  z-index: 1050;
+  z-index: var(--ow-z-modal-content);
 }
 </style>

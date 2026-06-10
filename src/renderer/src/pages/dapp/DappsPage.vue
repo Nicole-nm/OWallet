@@ -73,7 +73,7 @@ const {
 } = useDappsPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 /* Dapp tile: header (icon + name) divided from body (description).
    Overrides .ow-action-card padding so the divider spans edge-to-edge. */
 .dapp-redirect-copy {

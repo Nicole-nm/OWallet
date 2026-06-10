@@ -55,7 +55,7 @@ const emit = defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .authorization-panel__body {
   display: grid;
   gap: var(--ow-space-2);

@@ -98,7 +98,7 @@ const {
 } = useNodeStakeRegisterPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .nodeStake-container :deep(.ow-form-item .ant-form-item-row) {
   flex-wrap: nowrap;
   align-items: flex-start;

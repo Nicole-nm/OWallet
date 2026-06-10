@@ -38,7 +38,7 @@ defineProps({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .ow-ledger-status__title {
   margin-bottom: 15px;
   font-family: var(--ow-font-bold);

@@ -56,7 +56,7 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .wallet-dashboard__toolbar {
   display: flex;
   align-items: flex-end;
@@ -163,9 +163,9 @@ defineEmits<{
   color: var(--wallet-dashboard-icon-button-color, var(--ow-color-brand));
   cursor: pointer;
   transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease;
+    border-color var(--ow-duration) var(--ow-ease),
+    background-color var(--ow-duration) var(--ow-ease),
+    color var(--ow-duration) var(--ow-ease);
 }
 
 .wallet-dashboard__address-bar :global(.wallet-dashboard__icon-button:hover),

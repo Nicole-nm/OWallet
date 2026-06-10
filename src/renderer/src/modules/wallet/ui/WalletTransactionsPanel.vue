@@ -52,7 +52,7 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .wallet-dashboard__panel {
   min-width: 0;
   padding: var(--ow-space-3);
@@ -82,12 +82,10 @@ defineEmits<{
 }
 
 .wallet-dashboard__tx-hash {
+  @include truncate;
   font-family: var(--ow-font-regular);
   font-size: var(--ow-font-size-caption);
-  overflow: hidden;
   color: var(--ow-color-text-secondary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .wallet-dashboard__tx-amount {

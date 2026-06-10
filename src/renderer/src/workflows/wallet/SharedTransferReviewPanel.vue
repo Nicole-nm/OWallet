@@ -135,7 +135,7 @@ function signedStateClass(payer: SharedCopayer): string {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-transfer-review {
   display: grid;
   gap: var(--ow-space-3);

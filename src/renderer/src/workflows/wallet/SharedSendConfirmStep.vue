@@ -135,7 +135,7 @@ function next() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-send-confirm {
   width: min(100%, 880px);
   margin: 0 auto;

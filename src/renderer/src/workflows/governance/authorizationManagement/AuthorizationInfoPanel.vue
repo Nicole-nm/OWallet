@@ -113,7 +113,7 @@ const emit = defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .panel-header {
   align-items: flex-start;
 }

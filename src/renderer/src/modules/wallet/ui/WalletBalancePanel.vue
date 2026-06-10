@@ -55,7 +55,7 @@ defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .wallet-dashboard__panel {
   min-width: 0;
   padding: var(--ow-space-3);

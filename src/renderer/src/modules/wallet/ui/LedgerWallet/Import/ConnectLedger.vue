@@ -63,7 +63,7 @@ function support() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .ledger-connect {
   width: min(100%, 760px);
   margin: 0 auto;

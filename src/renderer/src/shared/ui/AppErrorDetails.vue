@@ -106,7 +106,7 @@ async function copyDiagnostics(): Promise<void> {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .ow-error-details {
   display: flex;
   flex-direction: column;
@@ -120,38 +120,38 @@ async function copyDiagnostics(): Promise<void> {
   gap: 6px 16px;
   margin: 0;
   padding: 12px;
-  background: var(--ow-color-bg-surface-subtle, #f7f8fa);
-  border-radius: 6px;
+  background: var(--ow-color-surface-muted);
+  border-radius: var(--ow-radius-card);
   font-family: var(--ow-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
 }
 
 .ow-error-details__list dt {
-  color: var(--ow-color-text-secondary, #6b7280);
+  color: var(--ow-color-text-secondary);
   font-weight: 500;
 }
 
 .ow-error-details__list dd {
   margin: 0;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .ow-error-details__list code {
   background: none;
   padding: 0;
-  color: var(--ow-color-text-primary, #111827);
+  color: var(--ow-color-text-primary);
 }
 
 .ow-error-details__copy {
   align-self: flex-end;
   background: transparent;
-  border: 1px solid var(--ow-color-border, #d1d5db);
-  border-radius: 6px;
+  border: 1px solid var(--ow-color-border-default);
+  border-radius: var(--ow-radius-control);
   padding: 4px 12px;
   font-size: 12px;
   cursor: pointer;
 }
 
 .ow-error-details__copy:hover {
-  background: var(--ow-color-bg-surface-subtle, #f3f4f6);
+  background: var(--ow-color-surface-muted);
 }
 </style>

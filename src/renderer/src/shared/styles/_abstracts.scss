@@ -1,0 +1,5 @@
+// Aggregated SCSS toolkit (mixins + breakpoint helpers) so SFC
+// `<style lang="scss">` blocks get them via a single `@use`. Auto-injected by
+// Vite's `css.preprocessorOptions.scss.additionalData`. Emits no CSS.
+@forward 'mixins';
+@forward 'breakpoints';

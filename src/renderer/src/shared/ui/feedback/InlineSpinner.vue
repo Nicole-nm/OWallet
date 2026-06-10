@@ -25,7 +25,7 @@ defineProps({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .ow-inline-spinner {
   display: inline-flex;
   align-items: center;

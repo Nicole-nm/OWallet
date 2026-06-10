@@ -212,7 +212,7 @@ const {
 } = useNodeStakeInfoPanel()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .nodeStake-container {
   width: min(100%, 820px);
   margin: 0 auto;

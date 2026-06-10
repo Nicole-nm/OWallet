@@ -120,7 +120,7 @@ const label = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-create {
   width: min(100%, 880px);
   margin: 0 auto;

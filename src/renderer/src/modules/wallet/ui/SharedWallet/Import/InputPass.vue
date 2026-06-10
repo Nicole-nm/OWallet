@@ -93,7 +93,7 @@ defineProps({
 const emit = defineEmits(['back', 'next'])
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-join-result {
   width: min(100%, 860px);
   margin: 0 auto;

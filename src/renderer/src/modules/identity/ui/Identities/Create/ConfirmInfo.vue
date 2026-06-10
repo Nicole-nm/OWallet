@@ -52,7 +52,7 @@ defineProps({
 const emit = defineEmits(['back', 'next'])
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .identity-confirm {
   width: min(100%, 860px);
   margin: 0 auto;

@@ -46,9 +46,7 @@ const workflow = useHomePage()
 const { handleUpdate, hasUpdate, latestVersion, primeWallets, version } = workflow
 </script>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro');
-
+<style scoped lang="scss">
 .row-home {
   margin-left: -5.13rem;
   display: flex;

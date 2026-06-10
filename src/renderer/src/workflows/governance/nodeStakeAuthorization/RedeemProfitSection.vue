@@ -29,7 +29,7 @@ const emit = defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .redeem-profit {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -57,7 +57,6 @@ const emit = defineEmits<{
   min-width: 0;
   text-align: right;
   overflow-wrap: anywhere;
-  word-break: break-word;
   font-variant-numeric: tabular-nums;
   font-size: var(--ow-font-size-body);
   line-height: var(--ow-line-height-body);

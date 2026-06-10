@@ -46,7 +46,7 @@ const searchText = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-join-search {
   width: min(100%, 760px);
   margin: 0 auto;

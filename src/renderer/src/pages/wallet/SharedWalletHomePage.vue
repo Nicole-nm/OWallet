@@ -146,7 +146,7 @@ const {
 } = useSharedWalletHomePage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .wallet-dashboard,
 .wallet-dashboard__column {
   display: grid;
@@ -177,16 +177,16 @@ const {
 }
 
 .registration-button--registered {
-  --wallet-dashboard-icon-button-color: var(--ow-color-success, #52c41a);
-  --wallet-dashboard-icon-button-hover-border-color: var(--ow-color-success, #52c41a);
-  --wallet-dashboard-icon-button-hover-color: var(--ow-color-success, #52c41a);
+  --wallet-dashboard-icon-button-color: var(--ow-color-success);
+  --wallet-dashboard-icon-button-hover-border-color: var(--ow-color-success);
+  --wallet-dashboard-icon-button-hover-color: var(--ow-color-success);
   cursor: default;
 }
 
 .registration-button--unregistered {
-  --wallet-dashboard-icon-button-color: var(--ow-color-warning, #faad14);
-  --wallet-dashboard-icon-button-hover-border-color: var(--ow-color-warning, #faad14);
-  --wallet-dashboard-icon-button-hover-color: var(--ow-color-warning, #faad14);
+  --wallet-dashboard-icon-button-color: var(--ow-color-warning);
+  --wallet-dashboard-icon-button-hover-border-color: var(--ow-color-warning);
+  --wallet-dashboard-icon-button-hover-color: var(--ow-color-warning);
 }
 
 .registration-button--loading {

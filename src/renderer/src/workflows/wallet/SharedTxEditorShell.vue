@@ -113,7 +113,7 @@ const normalizedSignerWallet = computed(() => (props.signerWallet ?? undefined) 
 const emit = defineEmits(['signerChange', 'txSigned', 'confirm', 'copy', 'send'])
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-tx-editor {
   display: grid;
   gap: var(--ow-space-3);

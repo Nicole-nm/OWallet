@@ -78,7 +78,7 @@ const {
 } = useNodeStakeAuthorizationPanel()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .node-authorization-panel {
   width: min(100%, 820px);
   margin: 0 auto;

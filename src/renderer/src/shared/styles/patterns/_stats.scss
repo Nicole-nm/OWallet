@@ -19,9 +19,9 @@
 .ow-stat-card--interactive {
   cursor: pointer;
   transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    box-shadow 0.18s ease;
+    border-color var(--ow-duration) var(--ow-ease),
+    background-color var(--ow-duration) var(--ow-ease),
+    box-shadow var(--ow-duration) var(--ow-ease);
 }
 
 .ow-stat-card--interactive:hover,
@@ -42,11 +42,8 @@
 }
 
 .ow-stat-value {
+  @include text-subtitle;
   margin: 0;
-  font-family: var(--ow-font-bold);
-  font-size: var(--ow-font-size-subtitle);
-  line-height: var(--ow-line-height-title);
-  color: var(--ow-color-text-primary);
 }
 
 .ow-stat-label {

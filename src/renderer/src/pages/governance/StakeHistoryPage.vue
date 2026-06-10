@@ -2,11 +2,7 @@
   <div class="stake-history-page ow-page ow-page--flush-top">
     <breadcrumb :current="$t('nodeMgmt.stakeHistory')" @backEvent="handleRouteBack"></breadcrumb>
     <div class="ow-form-panel stake-history-form">
-      <form-field
-        :label="$t('nodeStake.selectStakeWallet')"
-        label-tag="p"
-        class="stake-wallet-field"
-      >
+      <form-field :label="$t('nodeStake.selectStakeWallet')" label-tag="p" class="ow-stacked-field">
         <wallet-select-field
           :options="normalWalletAndLedgerWallet"
           v-model:value="selectedWalletValue"
@@ -93,29 +89,9 @@ const columns = [
 const normalWalletAndLedgerWallet = walletOptions
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .stake-history-form {
   width: min(560px, calc(100% - var(--ow-layout-gutter)));
-}
-
-.stake-wallet-field :deep(.ant-form-item-row) {
-  flex-wrap: wrap;
-}
-
-.stake-wallet-field :deep(.ant-form-item-label) {
-  flex: 0 0 100%;
-  max-width: 100%;
-  padding-bottom: var(--ow-space-2);
-  text-align: left;
-}
-
-.stake-wallet-field :deep(.ant-form-item-label > label) {
-  justify-content: flex-start;
-  text-align: left;
-}
-
-.stake-wallet-field :deep(.ant-form-item-control) {
-  width: 100%;
 }
 
 .stake-wallet-select {

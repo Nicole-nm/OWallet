@@ -87,7 +87,7 @@ const {
 } = useWalletDashboardPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .wallet-dashboard,
 .wallet-dashboard__column {
   display: grid;

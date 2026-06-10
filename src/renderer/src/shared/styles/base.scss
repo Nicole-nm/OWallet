@@ -9,8 +9,8 @@ body {
   color: var(--ow-color-text-primary);
   background: var(--ow-color-surface);
   transition:
-    color 0.2s ease,
-    background 0.2s ease;
+    color var(--ow-duration) var(--ow-ease),
+    background var(--ow-duration) var(--ow-ease);
 
   p {
     margin: 0;
@@ -38,7 +38,7 @@ body {
   border-radius: var(--ow-radius-pill);
   background-color: transparent;
   background-clip: content-box;
-  transition: background-color 0.18s ease;
+  transition: background-color var(--ow-duration) var(--ow-ease);
 }
 
 *::-webkit-scrollbar-corner {

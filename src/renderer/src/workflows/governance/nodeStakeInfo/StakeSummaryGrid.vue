@@ -23,7 +23,7 @@ defineProps<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .stake-summary-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-bottom: var(--ow-space-2);

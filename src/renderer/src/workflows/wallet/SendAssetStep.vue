@@ -127,7 +127,7 @@ const {
 } = useSendAsset(emit)
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .send-step {
   display: grid;
   gap: var(--ow-space-3);

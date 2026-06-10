@@ -202,7 +202,7 @@ function getInitialPageStatusKey() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .ledger-import {
   width: min(100%, 840px);
   margin: 0 auto;

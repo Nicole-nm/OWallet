@@ -23,7 +23,7 @@ defineOptions({
 const { ledgerStatus } = useLoginLedgerPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 #wrapper {
   height: 100vh;
   padding: var(--ow-space-16) 80px;
@@ -63,7 +63,7 @@ main {
   display: inline-block;
   color: var(--ow-color-text-inverse);
   background-color: var(--ow-color-brand);
-  transition: all 0.15s ease;
+  transition: all var(--ow-duration-fast) var(--ow-ease);
   box-sizing: border-box;
   border: 1px solid var(--ow-color-brand);
 }

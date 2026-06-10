@@ -211,7 +211,7 @@ function handleDatBeforeUpload(file: File) {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .json-import {
   width: min(100%, 860px);
   margin: 0 auto;

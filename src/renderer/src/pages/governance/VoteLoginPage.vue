@@ -6,7 +6,7 @@
       @backEvent="page.back"
     ></breadcrumb>
     <div class="ow-form-panel">
-      <form-field :label="$t('vote.selectWallet')" label-tag="p" class="vote-wallet-field">
+      <form-field :label="$t('vote.selectWallet')" label-tag="p" class="ow-stacked-field">
         <div class="ow-choice-stack">
           <a-radio-group
             @change="page.changeVoteWallet"
@@ -71,26 +71,6 @@ const page = proxyRefs(useVoteLoginPage())
 </script>
 
 <style lang="scss" scoped>
-.vote-wallet-field :deep(.ant-form-item-row) {
-  flex-wrap: wrap;
-}
-
-.vote-wallet-field :deep(.ant-form-item-label) {
-  flex: 0 0 100%;
-  max-width: 100%;
-  padding-bottom: var(--ow-space-2);
-  text-align: left;
-}
-
-.vote-wallet-field :deep(.ant-form-item-label > label) {
-  justify-content: flex-start;
-  text-align: left;
-}
-
-.vote-wallet-field :deep(.ant-form-item-control) {
-  width: 100%;
-}
-
 .vote-wallet-options :deep(.ant-radio-wrapper) {
   margin-inline-end: 0;
 }

@@ -186,7 +186,7 @@ const payerPassword = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .identity-create {
   width: min(100%, 860px);
   margin: 0 auto;

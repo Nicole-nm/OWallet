@@ -140,13 +140,13 @@
   margin: 0;
   font-family: var(--ow-font-regular);
   font-size: var(--ow-font-size-body);
-  line-height: 1.6;
+  line-height: var(--ow-leading-relaxed);
   color: var(--ow-color-text-secondary);
 }
 
 .ow-settings-section-body--preferences .ow-settings-copy-text {
   font-size: var(--ow-font-size-small);
-  line-height: 1.4;
+  line-height: var(--ow-leading-snug);
   white-space: nowrap;
 }
 
@@ -160,7 +160,7 @@
   gap: var(--ow-space-4);
   color: var(--ow-color-text-primary);
   font-size: var(--ow-font-size-body);
-  line-height: 1.6;
+  line-height: var(--ow-leading-relaxed);
 }
 
 .ow-settings-summary-row--inline {
@@ -185,13 +185,13 @@
   margin: 0;
   color: var(--ow-color-text-primary);
   font-size: var(--ow-font-size-body-lg);
-  line-height: 1.7;
-  word-break: break-word;
+  line-height: var(--ow-leading-loose);
+  overflow-wrap: break-word;
 }
 
 .ow-settings-summary-value--inline {
   font-size: var(--ow-font-size-body);
-  line-height: 1.6;
+  line-height: var(--ow-leading-relaxed);
 }
 
 .ow-settings-summary-value--storage {
@@ -203,7 +203,7 @@
   text-overflow: clip;
   font-family: var(--ow-font-medium);
   font-size: var(--ow-font-size-body);
-  line-height: 1.4;
+  line-height: var(--ow-leading-snug);
 }
 
 .ow-settings-actions {
@@ -223,7 +223,7 @@
   margin: 0 0 0 auto;
   color: var(--ow-color-danger);
   font-size: var(--ow-font-size-small);
-  line-height: 1.6;
+  line-height: var(--ow-leading-relaxed);
   text-align: right;
   white-space: nowrap;
 }

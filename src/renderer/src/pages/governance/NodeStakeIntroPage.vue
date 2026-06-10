@@ -72,7 +72,7 @@ const {
 } = useNodeStakeIntroPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .intro-content {
   margin-top: 0;
 }

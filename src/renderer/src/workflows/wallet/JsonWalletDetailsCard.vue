@@ -223,7 +223,7 @@ const { deleteWallet, handleDelete } = useWalletDeletion(
 )
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .wallet-details__modal-copy {
   font-family: var(--ow-font-medium);
   color: var(--ow-color-text-primary);

@@ -99,7 +99,7 @@ const requiredSigNum = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-confirm {
   width: min(100%, 880px);
   margin: 0 auto;

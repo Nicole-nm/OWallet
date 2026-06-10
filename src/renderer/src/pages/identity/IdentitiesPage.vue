@@ -76,7 +76,7 @@ const {
 } = useIdentitiesPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .identity-home__grid {
   align-items: stretch;
 }

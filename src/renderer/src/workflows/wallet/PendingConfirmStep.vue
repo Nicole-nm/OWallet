@@ -74,7 +74,7 @@ function cancel() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .pending-confirm {
   width: min(100%, 880px);
   margin: 0 auto;

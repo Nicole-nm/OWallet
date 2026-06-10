@@ -59,7 +59,7 @@ const LIGHT_THEME_PALETTE = Object.freeze({
   colorBorderSecondary: '#f4f4f6',
   colorFillSecondary: '#f5f7fb',
   colorFillTertiary: '#e4e6ea',
-  boxShadow: '0 -1px 6px 0 rgba(242, 242, 242, 1)',
+  boxShadow: '0 6px 16px rgba(16, 24, 40, 0.12)',
 })
 
 const DARK_THEME_PALETTE = Object.freeze({
@@ -82,7 +82,7 @@ const DARK_THEME_PALETTE = Object.freeze({
   colorBorderSecondary: '#242c36',
   colorFillSecondary: '#202833',
   colorFillTertiary: '#293240',
-  boxShadow: '0 -1px 6px 0 rgba(0, 0, 0, 0.45)',
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
 })
 
 function getMatchMedia(matchMediaImpl?: MatchMediaFn | null): MatchMediaFn | null {
@@ -188,7 +188,7 @@ export function createAntdThemeConfig(theme: unknown) {
     algorithm:
       resolvedTheme === RESOLVED_THEMES.DARK ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
     token: {
-      borderRadius: 0,
+      borderRadius: 8,
       colorPrimary: palette.colorPrimary,
       colorInfo: palette.colorInfo,
       colorLink: palette.colorPrimary,
@@ -209,28 +209,39 @@ export function createAntdThemeConfig(theme: unknown) {
       colorFillSecondary: palette.colorFillSecondary,
       colorFillTertiary: palette.colorFillTertiary,
       boxShadow: palette.boxShadow,
-      fontFamily: 'AvenirNext-Regular, sans-serif',
+      fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
       controlHeight: 34,
     },
     components: {
       Button: {
-        borderRadius: 0,
+        borderRadius: 8,
         controlHeight: 34,
         fontWeight: 500,
       },
       Input: {
+        borderRadius: 8,
         activeBorderColor: palette.colorPrimary,
         hoverBorderColor: palette.colorPrimary,
         activeShadow: 'none',
       },
       Select: {
-        borderRadius: 0,
+        borderRadius: 8,
         controlHeight: 34,
         optionSelectedBg: resolvedTheme === RESOLVED_THEMES.DARK ? '#17335f' : '#eaf2ff',
       },
       Table: {
         headerBg: resolvedTheme === RESOLVED_THEMES.DARK ? '#161d26' : '#f5f7fb',
         rowHoverBg: resolvedTheme === RESOLVED_THEMES.DARK ? '#202833' : '#f5f7fb',
+        borderRadiusLG: 12,
+      },
+      Modal: {
+        borderRadiusLG: 16,
+      },
+      Card: {
+        borderRadiusLG: 12,
+      },
+      Tooltip: {
+        borderRadius: 8,
       },
     },
   }

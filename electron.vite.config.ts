@@ -198,7 +198,18 @@ export default defineConfig({
     ],
     css: {
       preprocessorOptions: {
-        scss: {},
+        scss: {
+          loadPaths: [resolve('src/renderer/src/shared/styles')],
+          additionalData: (source: string, filename: string) => {
+            // Auto-inject the shared SCSS toolkit (mixins + respond-to) into
+            // component <style lang="scss"> blocks. Never inject into the style
+            // layer itself — that would create an import cycle.
+            if (filename.replace(/\\/g, '/').includes('/shared/styles/')) {
+              return source
+            }
+            return `@use 'abstracts' as *;\n${source}`
+          },
+        },
       },
     },
     build: {

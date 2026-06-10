@@ -234,7 +234,7 @@ const {
 } = useWalletsPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .wallets-page :deep(.ow-app-state__actions) {
   display: flex;
   flex-wrap: wrap;

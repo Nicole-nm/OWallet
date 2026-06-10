@@ -35,7 +35,7 @@ defineOptions({
 const { activeTab, handleRouteBack } = useNodeStakeManagementPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .node-stake-management-page {
   box-sizing: border-box;
   padding-bottom: 0;

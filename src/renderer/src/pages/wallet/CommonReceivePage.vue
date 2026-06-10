@@ -131,7 +131,7 @@ async function copy(value: string) {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .receive-page {
   display: grid;
   gap: var(--ow-space-4);

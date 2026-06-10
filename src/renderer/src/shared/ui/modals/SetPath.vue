@@ -44,7 +44,7 @@ async function setSavePath() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .set-path-footer {
   text-align: center;
   margin-top: 20px;

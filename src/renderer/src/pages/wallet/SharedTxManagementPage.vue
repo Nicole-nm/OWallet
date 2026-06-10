@@ -49,7 +49,7 @@ const { routes, handleBack, status, handleStatusChange, localCopayers, sharedWal
   useSharedTxManagementPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-tx-management {
   display: grid;
   gap: var(--ow-space-3);

@@ -1,6 +1,17 @@
 // Reusable SCSS mixins composed by the pattern/utility layers. These emit no
 // CSS on their own — they only expand where `@include`d.
 
+@use 'sass:list';
+
+// Standard transition over one or more properties using the motion tokens.
+@mixin transition($properties...) {
+  $list: ();
+  @each $prop in $properties {
+    $list: list.append($list, #{$prop} var(--ow-duration) var(--ow-ease), $separator: comma);
+  }
+  transition: $list;
+}
+
 // Center a fixed-width panel within the available row, capped by
 // `100% - gutter` so it never collides with the page edge.
 @mixin centered-panel($width: var(--ow-layout-form-width), $margin: 0 auto) {
@@ -73,4 +84,11 @@
   font-size: var(--ow-font-size-caption);
   line-height: var(--ow-line-height-caption);
   color: var(--ow-color-text-secondary);
+}
+
+@mixin text-subtitle {
+  font-family: var(--ow-font-bold);
+  font-size: var(--ow-font-size-subtitle);
+  line-height: var(--ow-line-height-title);
+  color: var(--ow-color-text-primary);
 }

@@ -60,3 +60,24 @@
 .ow-field-control {
   width: 100%;
 }
+
+// Opt-in: stack a form field's label full-width above its control.
+.ow-stacked-field .ant-form-item-row {
+  flex-wrap: wrap;
+}
+
+.ow-stacked-field .ant-form-item-label {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding-bottom: var(--ow-space-2);
+  text-align: left;
+}
+
+.ow-stacked-field .ant-form-item-label > label {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.ow-stacked-field .ant-form-item-control {
+  width: 100%;
+}

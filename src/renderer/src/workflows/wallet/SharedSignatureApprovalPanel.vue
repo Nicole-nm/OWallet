@@ -124,7 +124,7 @@ const submitDisabled = computed(
 )
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-signature-approval {
   display: grid;
   gap: var(--ow-space-3);

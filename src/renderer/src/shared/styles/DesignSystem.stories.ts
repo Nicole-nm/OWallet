@@ -29,6 +29,25 @@ export const Tokens: Story = {
         ['12', 'var(--ow-space-12)'],
         ['16', 'var(--ow-space-16)'],
       ],
+      radii: [
+        ['control', 'var(--ow-radius-control)'],
+        ['card', 'var(--ow-radius-card)'],
+        ['panel', 'var(--ow-radius-panel)'],
+        ['elevated', 'var(--ow-radius-elevated)'],
+        ['modal', 'var(--ow-radius-modal)'],
+      ],
+      shadows: [
+        ['card', 'var(--ow-shadow-card)'],
+        ['elevated', 'var(--ow-shadow-elevated)'],
+        ['modal', 'var(--ow-shadow-modal)'],
+      ],
+      typography: [
+        ['Display', 'ow-text-display'],
+        ['Title', 'ow-text-title'],
+        ['Section', 'ow-text-section'],
+        ['Body', 'ow-text-body'],
+        ['Caption', 'ow-text-caption'],
+      ],
     }),
     template: `
       <div style="display:grid;gap:24px;max-width:760px">
@@ -48,6 +67,32 @@ export const Tokens: Story = {
               <span class="ow-summary-label" style="width:40px">space {{ name }}</span>
               <span :style="{ width: size, height: '12px', background: 'var(--ow-color-brand)' }"></span>
             </div>
+          </div>
+        </section>
+        <section>
+          <h3 class="ow-text-title">Radii</h3>
+          <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div v-for="[name, r] in radii" :key="name" style="display:grid;gap:6px;justify-items:center">
+              <span :style="{ width: '56px', height: '56px', background: 'var(--ow-color-surface-muted)', border: '1px solid var(--ow-color-border-default)', borderRadius: r }"></span>
+              <span class="ow-summary-label">{{ name }}</span>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h3 class="ow-text-title">Shadows</h3>
+          <div style="display:flex;gap:24px;flex-wrap:wrap;padding:8px">
+            <div v-for="[name, s] in shadows" :key="name" style="display:grid;gap:8px;justify-items:center">
+              <span :style="{ width: '88px', height: '56px', background: 'var(--ow-color-surface-card)', borderRadius: 'var(--ow-radius-panel)', boxShadow: s }"></span>
+              <span class="ow-summary-label">{{ name }}</span>
+            </div>
+          </div>
+        </section>
+        <section>
+          <h3 class="ow-text-title">Typography (Inter)</h3>
+          <div style="display:grid;gap:8px">
+            <p v-for="[name, cls] in typography" :key="name" :class="cls" style="margin:0">
+              {{ name }} — The quick brown fox jumps
+            </p>
           </div>
         </section>
       </div>

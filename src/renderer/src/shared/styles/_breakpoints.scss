@@ -13,7 +13,7 @@ $ow-breakpoints: (
 @mixin respond-to($name) {
   $value: map.get($ow-breakpoints, $name);
 
-  @if $value == null {
+  @if not $value {
     @error "Unknown breakpoint `#{$name}`. Available: #{map.keys($ow-breakpoints)}.";
   }
 

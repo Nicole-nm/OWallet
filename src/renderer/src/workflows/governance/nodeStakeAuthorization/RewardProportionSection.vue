@@ -55,7 +55,7 @@ const emit = defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .reward-proportion-section {
   overflow: hidden;
 }

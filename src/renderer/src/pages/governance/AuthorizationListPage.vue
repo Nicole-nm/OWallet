@@ -118,7 +118,7 @@ const {
 } = useNodeAuthorizationListPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .authorization-list-page {
   max-width: 900px;
   margin: 0 auto;

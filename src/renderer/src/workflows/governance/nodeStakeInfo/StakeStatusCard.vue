@@ -35,7 +35,7 @@ defineProps<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .stake-progress-card {
   margin-bottom: var(--ow-space-2);
 }

@@ -287,8 +287,8 @@ function handleThemeModeChange(value: string) {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--ow-color-danger, #ff4d4f);
-  box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.12);
+  background: var(--ow-color-danger);
+  box-shadow: 0 0 0 4px var(--ow-color-danger-soft);
   flex: 0 0 auto;
 }
 

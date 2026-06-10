@@ -67,9 +67,9 @@
 .ant-picker-dropdown,
 .ant-tooltip-inner {
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
+    background-color var(--ow-duration) var(--ow-ease),
+    color var(--ow-duration) var(--ow-ease),
+    border-color var(--ow-duration) var(--ow-ease);
 }
 
 .ant-modal-root .ant-modal-mask {
@@ -138,8 +138,8 @@
   background: transparent;
   color: var(--ow-color-text-secondary);
   transition:
-    background-color 0.18s ease,
-    color 0.18s ease;
+    background-color var(--ow-duration) var(--ow-ease),
+    color var(--ow-duration) var(--ow-ease);
 }
 
 .ant-modal .ant-modal-close:hover,

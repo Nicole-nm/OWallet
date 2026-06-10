@@ -50,7 +50,7 @@ const { password, sending, type, routes, ledgerStatus, goBackToWallets, cancelRe
   useCommonRedeemPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .redeem-panel {
   margin-top: var(--ow-layout-form-indent);
   margin-bottom: var(--ow-layout-form-indent);

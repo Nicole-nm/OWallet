@@ -70,7 +70,7 @@ const emit = defineEmits<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .json-import__tab-panel {
   display: grid;
   gap: var(--ow-space-1);

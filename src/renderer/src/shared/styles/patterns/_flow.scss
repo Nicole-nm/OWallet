@@ -104,7 +104,7 @@
 .ow-flow-shell__step--active {
   border-color: var(--ow-color-brand);
   background: var(--ow-color-surface-card);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--ow-shadow-card);
 }
 
 .ow-flow-shell__step--complete {
@@ -141,7 +141,7 @@
 .ow-flow-shell__step-label {
   font-family: var(--ow-font-medium);
   font-size: var(--ow-font-size-body);
-  line-height: 1.2;
+  line-height: var(--ow-leading-tight);
   color: var(--ow-color-text-primary);
 }
 

@@ -58,7 +58,7 @@ const {
 } = useSharedWalletDetailsCard()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-wallet-details__modal-copy {
   font-family: var(--ow-font-medium);
   color: var(--ow-color-text-primary);

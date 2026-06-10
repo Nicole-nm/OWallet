@@ -74,15 +74,15 @@ defineProps({
 const emit = defineEmits(['help'])
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .left-nav {
   width: 4rem;
   height: 100%;
   position: fixed;
   left: 0;
   background-color: var(--ow-color-sidebar-bg);
-  z-index: 1001;
-  transition: background-color 0.2s ease;
+  z-index: var(--ow-z-nav);
+  transition: background-color var(--ow-duration) var(--ow-ease);
 }
 
 .logo-img {
@@ -139,8 +139,8 @@ const emit = defineEmits(['help'])
   right: -4px;
   width: 0.6rem;
   height: 0.6rem;
-  border-radius: 999px;
-  background: #ff4d4f;
+  border-radius: var(--ow-radius-pill);
+  background: var(--ow-color-danger);
   border: 1px solid var(--ow-color-sidebar-bg);
 }
 
@@ -183,7 +183,7 @@ const emit = defineEmits(['help'])
   bottom: 10px;
   left: 0;
   text-align: center;
-  font-family: PingFangSC-Regular;
+  font-family: var(--ow-font-regular);
   font-size: 12px;
   color: var(--ow-color-sidebar-text);
   width: 100%;

@@ -1,4 +1,4 @@
-<style scoped>
+<style scoped lang="scss">
 .breadcrumb-container {
   height: 4rem;
   padding: 1.1rem 0 1.1rem var(--ow-space-4);
@@ -8,10 +8,10 @@
   top: 0;
   left: 0;
   background: var(--ow-color-surface);
-  z-index: 100;
+  z-index: var(--ow-z-sticky);
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
+    background-color var(--ow-duration) var(--ow-ease),
+    border-color var(--ow-duration) var(--ow-ease);
 }
 .back-icon-container {
   height: 1.7rem;

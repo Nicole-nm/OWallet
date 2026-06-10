@@ -70,7 +70,7 @@ defineProps({
 const emit = defineEmits(['updateField', 'cancel', 'next'])
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .identity-import {
   width: min(100%, 860px);
   margin: 0 auto;

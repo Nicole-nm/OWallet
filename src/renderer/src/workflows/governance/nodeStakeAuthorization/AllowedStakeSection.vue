@@ -73,7 +73,7 @@ const unitModel = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .stake-content {
   overflow: hidden;
 }

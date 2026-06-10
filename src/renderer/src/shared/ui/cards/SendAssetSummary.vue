@@ -26,7 +26,7 @@ defineProps<{
 }>()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .ow-summary-row:last-child {
   padding-bottom: 0;
   border-bottom: 0;

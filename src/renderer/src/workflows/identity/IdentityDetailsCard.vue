@@ -198,7 +198,7 @@ function handleShowKeystoreOk() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .identity-card {
   min-height: 100%;
   padding: 14px;

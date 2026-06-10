@@ -91,7 +91,7 @@ const rePassword = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .json-create {
   width: min(100%, 860px);
   margin: 0 auto;

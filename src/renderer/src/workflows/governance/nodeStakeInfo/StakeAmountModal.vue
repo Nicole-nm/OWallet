@@ -43,7 +43,7 @@ const valueModel = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .add-pos-input {
   width: 200px;
 }

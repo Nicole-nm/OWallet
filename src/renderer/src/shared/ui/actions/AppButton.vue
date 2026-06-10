@@ -170,7 +170,7 @@ function handleClick(event: MouseEvent) {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .ow-button {
   min-width: var(--ow-button-min-width);
   height: var(--ow-button-height);
@@ -188,10 +188,15 @@ function handleClick(event: MouseEvent) {
   text-decoration: none;
   box-shadow: none !important;
   transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease,
-    opacity 0.18s ease;
+    background-color var(--ow-duration) var(--ow-ease),
+    border-color var(--ow-duration) var(--ow-ease),
+    color var(--ow-duration) var(--ow-ease),
+    opacity var(--ow-duration) var(--ow-ease),
+    transform var(--ow-duration-fast) var(--ow-ease);
+}
+
+.ow-button:not(.ow-button--disabled):active {
+  transform: translateY(1px);
 }
 
 .ow-button :deep(span) {

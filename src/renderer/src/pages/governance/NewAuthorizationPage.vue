@@ -102,7 +102,7 @@ const {
 } = useNewAuthorizationPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .new-authorization-input {
   width: 160px;
 }

@@ -1,4 +1,4 @@
-<style scoped>
+<style scoped lang="scss">
 .redeem-info-icon {
   margin-left: var(--ow-space-3);
   font-size: var(--ow-font-size-section);

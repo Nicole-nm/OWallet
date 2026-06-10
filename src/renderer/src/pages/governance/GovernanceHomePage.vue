@@ -52,7 +52,7 @@ const { handleNodeStake, handleAuthorization, openPolicyPage, handleVote, handle
   useGovernanceHomePage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .governance-policy {
   position: absolute;
   top: var(--ow-space-4);

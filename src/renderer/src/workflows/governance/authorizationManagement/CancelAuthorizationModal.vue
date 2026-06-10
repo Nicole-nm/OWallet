@@ -64,7 +64,7 @@ const cancelAmountModel = computed({
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .cancel-stake-input {
   width: 200px;
 }

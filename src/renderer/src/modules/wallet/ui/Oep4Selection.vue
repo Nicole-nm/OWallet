@@ -73,7 +73,7 @@ function handlePageChange(page: number) {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .selection-container {
   height: 370px;
   margin-top: -15px;

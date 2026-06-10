@@ -109,7 +109,7 @@ const {
 } = useOep4HomePage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .oep4-container {
   max-height: 360px;
   overflow-y: auto;

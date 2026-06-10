@@ -81,7 +81,7 @@ defineProps({
 const emit = defineEmits(['back', 'downloadWallet', 'next'])
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .json-confirm {
   width: min(100%, 860px);
   margin: 0 auto;

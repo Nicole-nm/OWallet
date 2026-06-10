@@ -78,7 +78,7 @@ const {
 } = useSharedWalletSendPage()
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .shared-wallet-send-shell__progress--triple {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
