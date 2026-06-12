@@ -11,9 +11,6 @@
       <form-field :label="$t('nodeStake.nodePk')" label-tag="p">
         <p>{{ stakeDetail.publicKey }}</p>
       </form-field>
-      <form-field :label="$t('nodeStake.contract')" label-tag="p">
-        <p>{{ stakeDetail.contract }}</p>
-      </form-field>
       <form-field :label="$t('nodeStake.commitmentQuantity')" label-tag="p">
         <p>{{ stakeDetail.commitmentQuantityDisplay }}</p>
       </form-field>

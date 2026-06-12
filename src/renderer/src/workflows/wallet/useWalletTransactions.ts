@@ -14,6 +14,23 @@ interface DashboardTransaction {
   amount: string | number
 }
 
+interface WalletTransactionLoadOptions {
+  notifyOnError?: boolean
+  throwOnError?: boolean
+}
+
+function createRefreshFailure(errorKey: string, result: Record<string, unknown>) {
+  return {
+    category: result.category ?? 'network',
+    code: result.code ?? 'network.request_failed',
+    detail: typeof result.detail === 'string' ? result.detail : undefined,
+    cause: result.error ?? result.cause,
+    retryable: result.retryable,
+    level: result.level,
+    errorKey,
+  }
+}
+
 export function useWalletTransactions({
   address,
   settingStore,
@@ -39,7 +56,7 @@ export function useWalletTransactions({
     )
   }
 
-  async function getTransactions() {
+  async function getTransactions(options: WalletTransactionLoadOptions = {}) {
     if (!address.value) return false
     const result = await loadWalletTransactions({
       address: address.value,
@@ -48,7 +65,12 @@ export function useWalletTransactions({
       txSliceCount,
     })
     if (!result.ok) {
-      notifyError(t('dashboard.getTransErr'), { literal: true })
+      if (options.throwOnError) {
+        throw createRefreshFailure('dashboard.getTransErr', result)
+      }
+      if (options.notifyOnError !== false) {
+        notifyError(t('dashboard.getTransErr'), { literal: true })
+      }
       return false
     }
 

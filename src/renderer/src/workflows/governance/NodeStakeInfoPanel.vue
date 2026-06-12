@@ -24,7 +24,6 @@
       <stake-detail-panel
         :stake-wallet-address="detail.stakeWalletAddress"
         :node-public-key="nodePublicKey"
-        :contract="detail.contract"
       />
 
       <!-- 只有成为节点后可以操作初始质押部分 -->

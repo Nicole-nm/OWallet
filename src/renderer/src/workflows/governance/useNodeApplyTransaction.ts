@@ -13,7 +13,7 @@ import { ROUTE_NAMES } from '../../router/routes'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useSettingStore } from '../../stores/modules/Setting'
 import { applyManagementContext } from '../support/governanceContextStoreSync'
-import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
+import { useGovernanceSignAndSend } from './useGovernanceSignAndSend'
 import type { NodeApplyWallet } from './useNodeApplyWalletSelection'
 
 interface UseNodeApplyTransactionOptions {
@@ -35,13 +35,17 @@ export function useNodeApplyTransaction({
   stakeAmount,
   getNodePublicKey,
 }: UseNodeApplyTransactionOptions) {
-  const signVisible = ref(false)
-  const tx = ref<GovernanceSignablePayload>(null)
   const registerSucceed = ref(false)
   const pendingNodePublicKey = ref('')
   const pendingNodeInfoPersisted = ref(false)
+  const { walletPassword, usesCommonWallet, ledgerStatus, ensureSignerReady, signAndSend } =
+    useGovernanceSignAndSend({ wallet: () => stakeWallet.value })
 
   async function confirm() {
+    if (!ensureSignerReady()) {
+      return { ok: false as const }
+    }
+
     const stakeWalletAddress = stakeWallet.value?.address || ''
     const operationWalletPublicKey = getNodePublicKey() || ''
     const validationResult = await validateNodeApplyRegistrationInput({
@@ -63,14 +67,14 @@ export function useNodeApplyTransaction({
 
     if (notifyFailure(result, 'common.networkErr')) return result
 
-    tx.value = result.tx
-    signVisible.value = true
-    return result
-  }
+    const signResult = await signAndSend(result.tx)
 
-  function handleTxCancel() {
-    signVisible.value = false
-    tx.value = null
+    if (!signResult.ok) {
+      return signResult
+    }
+
+    await handleTxSent()
+    return { ok: true as const }
   }
 
   async function persistPendingNodeInfo() {
@@ -122,13 +126,13 @@ export function useNodeApplyTransaction({
   }
 
   return {
-    signVisible,
-    tx,
+    walletPassword,
+    usesCommonWallet,
+    ledgerStatus,
     registerSucceed,
     pendingNodePublicKey,
     pendingNodeInfoPersisted,
     confirm,
-    handleTxCancel,
     handleTxSent,
     onComplete,
     onLater,

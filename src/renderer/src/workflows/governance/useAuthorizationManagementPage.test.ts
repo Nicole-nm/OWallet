@@ -37,8 +37,6 @@ const mocks = vi.hoisted(() => ({
     createAuthorizationClaimableOntRedeemTransaction: vi.fn(),
     createAuthorizationRewardsRedeemTransaction: vi.fn(),
     createAuthorizationUnboundOngRedeemTransaction: vi.fn(),
-    createCancelAuthorizationTransaction: vi.fn(),
-    validateCancelAuthorizationAmount: vi.fn(),
   },
 }))
 
@@ -96,10 +94,6 @@ vi.mock(
       mocks.managementService.createAuthorizationRewardsRedeemTransaction(...args),
     createAuthorizationUnboundOngRedeemTransaction: (...args: unknown[]) =>
       mocks.managementService.createAuthorizationUnboundOngRedeemTransaction(...args),
-    createCancelAuthorizationTransaction: (...args: unknown[]) =>
-      mocks.managementService.createCancelAuthorizationTransaction(...args),
-    validateCancelAuthorizationAmount: (...args: unknown[]) =>
-      mocks.managementService.validateCancelAuthorizationAmount(...args),
   })
 )
 
@@ -218,12 +212,14 @@ describe('useAuthorizationManagementPage', () => {
     })
   })
 
-  it('formats the displayed cancellation amount with thin-space grouping', () => {
+  it('routes to the cancel stake authorization page instead of opening a modal', () => {
     const page = useAuthorizationManagementPage()
 
-    page.cancelAmount.value = 1000
+    page.cancelAuthorization()
 
-    expect(page.cancelAmountDisplay.value).toBe('1\u2009000')
+    expect(mocks.router.push).toHaveBeenCalledWith({
+      name: 'CancelAuthorization',
+    })
   })
 
   it('formats rewards and unbound ONG display values with thin-space grouping', () => {

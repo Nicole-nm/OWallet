@@ -1,5 +1,4 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { canOpenNewAuthorization } from '../../modules/governance/application/authorization/authorizationManagementApplicationService'
 import { refreshAuthorizationOverview } from '../../modules/governance/application/authorization/authorizationQueryApplicationService'
@@ -12,7 +11,6 @@ import { useNodeAuthorizationStore } from '../../stores/modules/NodeAuthorizatio
 import { useLoadingModalStore } from '../../shared/composables/useGlobalLoading'
 import { useNodeStakeStore } from '../../stores/modules/NodeStake'
 import { useAuthorizationTransactions } from './useAuthorizationTransactions'
-import { getCancelAuthorizationUnitLabel } from './countLabels'
 import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
 
 function applyAuthorizationOverview(nodeAuthStore: unknown, result: Record<string, unknown>) {
@@ -45,7 +43,6 @@ function applyAuthorizationOverview(nodeAuthStore: unknown, result: Record<strin
 }
 
 export function useAuthorizationManagementPage() {
-  const { t } = useI18n()
   const router = useRouter()
   const nodeAuthStore = useNodeAuthorizationStore()
   const loadingStore = useLoadingModalStore()
@@ -53,9 +50,6 @@ export function useAuthorizationManagementPage() {
 
   const signVisible = ref(false)
   const tx = ref<GovernanceSignablePayload>('')
-  const cancelVisible = ref(false)
-  const cancelAmount = ref(0)
-  const validCancelAmount = ref(true)
 
   const currentNode = computed(() => nodeAuthStore.currentNode)
   const stakeWallet = computed(() => nodeStakeStore.stakeWallet)
@@ -63,12 +57,8 @@ export function useAuthorizationManagementPage() {
   const authorizationInfo = computed(() => nodeAuthStore.authorizationInfo)
   const peerAttrs = computed(() => nodeAuthStore.peerAttributes)
   const unboundOng = computed(() => nodeAuthStore.peerUnboundOng)
-  const cancelAmountDisplay = computed(() => formatNumberForDisplay(cancelAmount.value))
   const splitFeeAmountDisplay = computed(() => formatNumberForDisplay(splitFee.value.amount))
   const unboundOngDisplay = computed(() => formatNumberForDisplay(unboundOng.value))
-  const cancelUnitLabel = computed(() =>
-    getCancelAuthorizationUnitLabel(t, Number(cancelAmount.value) || 0)
-  )
 
   function resolveContext() {
     const address = stakeWallet.value?.address || ''
@@ -85,26 +75,16 @@ export function useAuthorizationManagementPage() {
     return wallet?.address ? wallet : null
   }
 
-  const {
-    validateCancelUnits,
-    submitCancelAuthorization,
-    closeCancelAuthorizationDialog,
-    openCancelAuthorizationDialog,
-    redeemSplitFeeRewards,
-    redeemClaimableOnt,
-    redeemPeerUnboundOng,
-  } = useAuthorizationTransactions({
-    signVisible,
-    tx,
-    cancelVisible,
-    cancelAmount,
-    validCancelAmount,
-    currentNode,
-    authorizationInfo,
-    splitFee,
-    unboundOng,
-    resolveStakeWallet,
-  })
+  const { redeemSplitFeeRewards, redeemClaimableOnt, redeemPeerUnboundOng } =
+    useAuthorizationTransactions({
+      signVisible,
+      tx,
+      currentNode,
+      authorizationInfo,
+      splitFee,
+      unboundOng,
+      resolveStakeWallet,
+    })
 
   const { startPolling, stopPolling } = usePollingTask(refreshAuthorizationDetails, {
     autoStart: false,
@@ -174,12 +154,10 @@ export function useAuthorizationManagementPage() {
   function closeSignDialog() {
     signVisible.value = false
     tx.value = ''
-    cancelAmount.value = 0
   }
 
   function handleTransactionSent() {
     signVisible.value = false
-    cancelAmount.value = 0
     void refreshAuthorizationDetails()
     tx.value = ''
   }
@@ -214,20 +192,6 @@ export function useAuthorizationManagementPage() {
     handleTransactionSent()
   }
 
-  function validateCancelAmount() {
-    validateCancelUnits()
-  }
-
-  async function handleCancelAuthorizationOk() {
-    const result = await submitCancelAuthorization()
-    notifyFailure(result)
-    return result
-  }
-
-  function handleCancelAuthorizationCancel() {
-    closeCancelAuthorizationDialog()
-  }
-
   async function redeemRewards() {
     const result = await redeemSplitFeeRewards()
     if (!result.ok) {
@@ -237,7 +201,7 @@ export function useAuthorizationManagementPage() {
   }
 
   function cancelAuthorization() {
-    openCancelAuthorizationDialog()
+    router.push({ name: ROUTE_NAMES.CANCEL_AUTHORIZATION })
   }
 
   async function redeemOnt() {
@@ -265,20 +229,12 @@ export function useAuthorizationManagementPage() {
     unboundOngDisplay,
     signVisible,
     tx,
-    cancelVisible,
-    cancelAmount,
-    cancelAmountDisplay,
-    cancelUnitLabel,
-    validCancelAmount,
     handleRouteBack,
     newStakeAuthorization,
     switchWallet,
     handleRefresh,
     handleCancel,
     handleTxSent,
-    validateCancelAmount,
-    handleCancelAuthorizationOk,
-    handleCancelAuthorizationCancel,
     redeemRewards,
     cancelAuthorization,
     redeemOnt,
@@ -289,11 +245,7 @@ export function useAuthorizationManagementPage() {
     triggerRefresh,
     closeSignDialog,
     handleTransactionSent,
-    validateCancelUnits,
-    submitCancelAuthorization,
-    closeCancelAuthorizationDialog,
     redeemSplitFeeRewards,
-    openCancelAuthorizationDialog,
     redeemClaimableOnt,
     redeemPeerUnboundOng,
   }

@@ -102,7 +102,6 @@ describe('createChangeStakeAuthorizationTransaction', () => {
     const result = await createChangeStakeAuthorizationTransaction({
       stakeWalletAddress: 'addr',
       unit: '1',
-      unitVal: 1,
       currentMaxAuthorize: 0,
     })
     expect(result).toMatchObject({ ok: false, errorKey: 'createSharedWallet.invalidPk' })
@@ -110,8 +109,7 @@ describe('createChangeStakeAuthorizationTransaction', () => {
   it('warns when the authorization is unchanged', async () => {
     const result = await createChangeStakeAuthorizationTransaction({
       stakeWalletAddress: 'addr',
-      unit: '5',
-      unitVal: 2,
+      unit: '10',
       currentMaxAuthorize: 10,
     })
     expect(result).toMatchObject({ ok: false, errorKey: 'nodeMgmt.noChange' })
@@ -119,8 +117,7 @@ describe('createChangeStakeAuthorizationTransaction', () => {
   it('changes the authorization', async () => {
     const result = await createChangeStakeAuthorizationTransaction({
       stakeWalletAddress: 'addr',
-      unit: '5',
-      unitVal: 2,
+      unit: '10',
       currentMaxAuthorize: 4,
     })
     expect(domain.createChangeAuthorizationTransaction).toHaveBeenCalledWith({

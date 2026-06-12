@@ -48,7 +48,7 @@ describe('validateReduceInitPosAmount', () => {
 describe('validateStakeAuthorizationUnit', () => {
   it('rejects invalid units that are neither 0 nor a positive int', () => {
     expect(
-      validateStakeAuthorizationUnit({ unit: 'x', unitVal: 1, currentPeer: { initPos: 10 } })
+      validateStakeAuthorizationUnit({ unit: 'x', currentPeer: { initPos: 10 } })
     ).toMatchObject({ ok: false, errorKey: 'nodeMgmt.invalidInput' })
   })
 
@@ -56,7 +56,6 @@ describe('validateStakeAuthorizationUnit', () => {
     expect(
       validateStakeAuthorizationUnit({
         unit: '0',
-        unitVal: 1,
         currentPeer: { initPos: 10 },
         posLimit: 1,
       })
@@ -66,7 +65,6 @@ describe('validateStakeAuthorizationUnit', () => {
   it('rejects units exceeding the maximum stake capacity', () => {
     const result = validateStakeAuthorizationUnit({
       unit: '100',
-      unitVal: 1,
       currentPeer: { initPos: 10 },
       posLimit: 1,
     })
@@ -76,9 +74,35 @@ describe('validateStakeAuthorizationUnit', () => {
   it('accepts a unit within capacity', () => {
     const result = validateStakeAuthorizationUnit({
       unit: '5',
-      unitVal: 1,
       currentPeer: { initPos: 10 },
       posLimit: 1,
+    })
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('rejects a unit below 1/10 of current total user stake', () => {
+    const result = validateStakeAuthorizationUnit({
+      unit: '4',
+      currentPeer: { initPos: 1000, totalPos: 50 },
+      posLimit: 10,
+    })
+    expect(result).toMatchObject({ ok: false, errorKey: 'nodeMgmt.notLessTotalPosTenth' })
+  })
+
+  it('accepts a unit equal to 1/10 of current total user stake', () => {
+    const result = validateStakeAuthorizationUnit({
+      unit: '5',
+      currentPeer: { initPos: 1000, totalPos: 50 },
+      posLimit: 10,
+    })
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('skips lower-bound check when totalPos is 0', () => {
+    const result = validateStakeAuthorizationUnit({
+      unit: '1',
+      currentPeer: { initPos: 1000, totalPos: 0 },
+      posLimit: 10,
     })
     expect(result).toEqual({ ok: true })
   })

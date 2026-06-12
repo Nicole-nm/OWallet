@@ -47,6 +47,33 @@
                     @walletSelected="onWalletSelected"
                   >
                   </wallet-select-field>
+
+                  <div v-if="stakeWallet" class="node-apply-balance-row">
+                    <span class="node-apply-balance-item">
+                      ONT: <strong>{{ formatNumberForDisplay(ontBalance) }}</strong>
+                      <CheckCircleFilled
+                        v-if="isOntSufficient"
+                        class="node-apply-status-icon node-apply-status-icon--success"
+                      />
+                      <CloseCircleFilled
+                        v-else
+                        class="node-apply-status-icon node-apply-status-icon--error"
+                      />
+                      <span class="node-apply-balance-requirement">{{ '(Min 10\u2009000)' }}</span>
+                    </span>
+                    <span class="node-apply-balance-item">
+                      ONG: <strong>{{ formatNumberForDisplay(ongBalance) }}</strong>
+                      <CheckCircleFilled
+                        v-if="isOngSufficient"
+                        class="node-apply-status-icon node-apply-status-icon--success"
+                      />
+                      <CloseCircleFilled
+                        v-else
+                        class="node-apply-status-icon node-apply-status-icon--error"
+                      />
+                      <span class="node-apply-balance-requirement">(Min 500 + gas)</span>
+                    </span>
+                  </div>
                 </section>
 
                 <section class="node-apply-form-section">
@@ -96,14 +123,10 @@
                       type="number"
                       :class="validAmount ? '' : 'ow-error-input'"
                       @change="validateAmount"
-                      :placeholder="$t('nodeApply.inputStakeAmount')"
+                      :placeholder="$t('nodeApply.minStateAmount')"
                     ></a-input>
                     <span class="node-apply-amount-suffix">ONT</span>
                   </div>
-
-                  <p class="node-apply-helper">
-                    {{ $t('nodeApply.minStateAmount') }}
-                  </p>
                 </section>
               </div>
             </section>
@@ -124,7 +147,6 @@
                 <span class="node-apply-card__title">{{
                   $t('sharedWalletHome.confirmation')
                 }}</span>
-                <span class="node-apply-card__caption">{{ $t('common.readyToSubmit') }}</span>
               </div>
 
               <div class="ow-kv-panel">
@@ -144,6 +166,19 @@
                   <span class="ow-kv-value">{{ stakeAmount }} ONT</span>
                 </div>
               </div>
+
+              <div class="node-apply-signing">
+                <span class="node-apply-signing__title">{{ $t('nodeStake.signWithWallet') }}</span>
+                <a-input
+                  v-if="usesCommonWallet"
+                  v-model:value="walletPassword"
+                  type="password"
+                  class="ow-input node-apply-signing__password"
+                  :placeholder="$t('nodeStake.password')"
+                  @keyup.enter="confirm"
+                ></a-input>
+                <ledger-status-notice v-else :status="ledgerStatus" :show-title="false" />
+              </div>
             </section>
 
             <page-footer-actions align="between" class="node-apply-actions">
@@ -151,21 +186,12 @@
                 $t('nodeApply.back')
               }}</a-button>
               <a-button type="primary" variant="primary" @click="confirm">{{
-                $t('nodeApply.ok')
+                $t('sharedWalletHome.submit')
               }}</a-button>
             </page-footer-actions>
           </div>
         </div>
       </section>
-
-      <sign-send-tx
-        v-if="tx !== null && stakeWallet"
-        v-model:open="signVisible"
-        :tx="tx"
-        :wallet="stakeWallet"
-        @signClose="handleTxCancel"
-        @txSent="handleTxSent"
-      ></sign-send-tx>
     </div>
     <div class="ow-success-state" v-if="registerSucceed">
       <img class="ow-success-state__icon" src="../../assets/success.svg" alt="" />
@@ -184,11 +210,12 @@
 
 <script setup lang="ts">
 import Breadcrumb from '../../shared/ui/navigation/Breadcrumb.vue'
-import SignSendTx from '../../workflows/governance/SignSendTxModal.vue'
 import WalletSelectField from '../../shared/ui/forms/WalletSelectField.vue'
 import PageFooterActions from '../../shared/ui/actions/PageFooterActions.vue'
+import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
 import { useNodeApplyPage } from '../../workflows/governance/useNodeApplyPage'
-import { CloseCircleFilled } from '@ant-design/icons-vue'
+import { CloseCircleFilled, CheckCircleFilled } from '@ant-design/icons-vue'
+import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 
 defineOptions({
   name: 'NodeApplyPage',
@@ -213,13 +240,16 @@ const {
   walletType,
   cancel,
   confirm,
-  signVisible,
-  tx,
-  handleTxCancel,
-  handleTxSent,
+  walletPassword,
+  usesCommonWallet,
+  ledgerStatus,
   onComplete,
   onLater,
   validAmount,
+  ontBalance,
+  ongBalance,
+  isOntSufficient,
+  isOngSufficient,
 } = useNodeApplyPage()
 </script>
 
@@ -260,7 +290,6 @@ const {
   color: var(--ow-color-text-primary);
 }
 
-.node-apply-card__caption,
 .node-apply-helper {
   margin: 0;
   font-size: var(--ow-font-size-caption);
@@ -332,6 +361,24 @@ const {
   margin-top: var(--ow-space-1);
 }
 
+.node-apply-signing {
+  display: grid;
+  gap: var(--ow-space-2);
+  padding-top: var(--ow-space-3);
+  border-top: 1px solid var(--ow-color-border-subtle);
+}
+
+.node-apply-signing__title {
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-body);
+  line-height: var(--ow-line-height-body);
+  color: var(--ow-color-text-primary);
+}
+
+.node-apply-signing__password {
+  width: 100%;
+}
+
 .ledger-warning {
   margin: 0;
   display: flex;
@@ -349,5 +396,44 @@ const {
   .node-apply-amount-row {
     grid-template-columns: 1fr;
   }
+}
+
+.node-apply-balance-row {
+  display: flex;
+  gap: var(--ow-space-4);
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  color: var(--ow-color-text-secondary);
+  margin-top: 4px;
+  align-items: center;
+}
+
+.node-apply-balance-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.node-apply-balance-item strong {
+  color: var(--ow-color-text-primary);
+  font-family: var(--ow-font-medium);
+}
+
+.node-apply-status-icon {
+  font-size: 14px;
+  margin-left: 2px;
+}
+
+.node-apply-status-icon--success {
+  color: var(--ow-color-success);
+}
+
+.node-apply-status-icon--error {
+  color: var(--ow-color-danger);
+}
+
+.node-apply-balance-requirement {
+  font-size: 11px;
+  color: var(--ow-color-text-subtle);
 }
 </style>

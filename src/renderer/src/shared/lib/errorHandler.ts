@@ -1,8 +1,7 @@
-import i18n from '../../lang'
-import { message } from 'ant-design-vue'
 import { logger } from './logger'
 import { hideRuntimeLoading } from './runtimeFeedback'
 import { mapUnknownError } from './errors'
+import { notifyError } from '../ui/feedback'
 
 interface ErrorHandlerOptions {
   i18nKey?: string
@@ -39,11 +38,11 @@ export function handleError(err: unknown, options: ErrorHandlerOptions = {}) {
 
   if (showMessage) {
     if (i18nKey) {
-      message.error(i18n.global.t(i18nKey))
+      notifyError(i18nKey)
     } else if (useRawMessage) {
-      message.error(extractSafeMessage(err))
+      notifyError(extractSafeMessage(err), { literal: true })
     } else {
-      message.error(i18n.global.t('common.networkErr'))
+      notifyError('common.networkErr')
     }
   }
 }

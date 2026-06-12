@@ -161,13 +161,11 @@ export async function createChangeStakeAuthorizationTransaction({
   stakeDetail,
   stakeWalletAddress,
   unit,
-  unitVal,
   currentMaxAuthorize,
 }: {
   stakeDetail?: unknown
   stakeWalletAddress: string
   unit: string | number
-  unitVal: number
   currentMaxAuthorize: number
 }): Promise<TransactionDraftResult<SdkTransactionLike, { level?: 'warning'; error?: unknown }>> {
   const nodePublicKey = normalizeNodePublicKey(stakeDetail)
@@ -176,7 +174,7 @@ export async function createChangeStakeAuthorizationTransaction({
     return { ok: false, errorKey: 'createSharedWallet.invalidPk' }
   }
 
-  const maxAuthorize = parseInt(String(unit), 10) * unitVal
+  const maxAuthorize = parseInt(String(unit), 10)
 
   if (maxAuthorize === currentMaxAuthorize) {
     return { ok: false, level: 'warning', errorKey: 'nodeMgmt.noChange' }

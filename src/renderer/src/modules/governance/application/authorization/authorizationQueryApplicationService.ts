@@ -24,6 +24,7 @@ import {
   mapAuthorizationPeer,
   mapAuthorizationPeerAttributes,
   type GovernanceRecord,
+  type AuthorizationNodeListSort,
 } from './authorizationQueryMappers'
 import type { GovernanceNode } from '../../../../shared/types'
 import type { NodeInfo } from '../../../../shared/lib/types'
@@ -44,6 +45,11 @@ export {
   mapAuthorizationPeer,
   mapAuthorizationPeerAttributes,
 } from './authorizationQueryMappers'
+export type {
+  AuthorizationNodeListSort,
+  AuthorizationNodeListSortField,
+  AuthorizationNodeListSortOrder,
+} from './authorizationQueryMappers'
 
 function createEmptySplitFee() {
   return { address: '', amount: 0 }
@@ -58,6 +64,7 @@ interface AuthorizationNodeListParams {
   network: string
   pageSize?: number
   pageNum?: number
+  sort?: AuthorizationNodeListSort | null
 }
 
 interface AuthorizationNetworkParams {
@@ -177,11 +184,12 @@ export async function loadAuthorizationNodeListPage({
   network,
   pageSize,
   pageNum,
+  sort,
 }: AuthorizationNodeListParams) {
   return tryNetworkQuery(
     async () => {
       const records = normalizeRecordList(await fetchNodeStakeList(network))
-      const page = mapAuthorizationNodeListPage(records, pageSize, pageNum)
+      const page = mapAuthorizationNodeListPage(records, pageSize, pageNum, sort)
       return { total: page.total, nodes: page.list }
     },
     {

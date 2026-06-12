@@ -9,7 +9,6 @@ const EMPTY_STAKE_DETAIL = {
   name: '',
   nodeAddress: '',
   ontid: '',
-  contract: '',
   stakeWalletAddress: '',
   commitmentQuantity: 0,
   transactionHash: '',
@@ -42,7 +41,6 @@ export function mapStakeDetail(detail: Record<string, unknown> = {}) {
   return {
     ...mappedNode,
     ontid: detail.ontid || '',
-    contract: detail.contract || '',
     stakeWalletAddress: detail.stakeWalletAddress || detail.stakewalletaddress || '',
     commitmentQuantity: Number.isNaN(normalizedCommitmentQuantity)
       ? detail.commitmentQuantity

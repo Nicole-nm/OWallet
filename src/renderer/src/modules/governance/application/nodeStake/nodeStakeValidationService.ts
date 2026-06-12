@@ -44,12 +44,10 @@ export function validateReduceInitPosAmount({
 
 export function validateStakeAuthorizationUnit({
   unit,
-  unitVal,
   currentPeer,
   posLimit,
 }: {
   unit: string | number
-  unitVal: number
   currentPeer?: ReduceValidationPeer
   posLimit?: string | number
 }) {
@@ -59,11 +57,15 @@ export function validateStakeAuthorizationUnit({
     return { ok: false, errorKey: 'nodeMgmt.invalidInput' }
   }
 
-  if (
-    parseInt(normalizedUnit, 10) * unitVal >
-    Number(currentPeer?.initPos || 0) * Number(posLimit || 0)
-  ) {
+  const unitNum = parseInt(normalizedUnit, 10)
+  const currentTotalPos = Number(currentPeer?.totalPos || 0)
+
+  if (unitNum > Number(currentPeer?.initPos || 0) * Number(posLimit || 0)) {
     return { ok: false, errorKey: 'nodeMgmt.notThanMax' }
+  }
+
+  if (currentTotalPos > 0 && unitNum < currentTotalPos / 10) {
+    return { ok: false, errorKey: 'nodeMgmt.notLessTotalPosTenth' }
   }
 
   return { ok: true }

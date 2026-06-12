@@ -8,7 +8,7 @@ export interface GovernanceSigningFailureFeedback extends FailureMetadata {
 }
 
 /**
- * Surface a governance signing failure via the rich toast pipeline. Preserves
+ * Surface a governance signing failure via the standard toast pipeline. Preserves
  * the classifier's category/code/cause so the user sees the precise message
  * (e.g. "Signature rejected on Ledger device" rather than a generic network
  * error). Falls back to the category default or `common.unexpectedError` when

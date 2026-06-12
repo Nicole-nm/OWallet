@@ -71,6 +71,6 @@ describe('theme', () => {
 
     expect(config.token.colorBgBase).toBe('#0f141a')
     expect(config.token.colorPrimary).toBe('#4f95ff')
-    expect(config.token.borderRadius).toBe(0)
+    expect(config.token.borderRadius).toBe(8)
   })
 })

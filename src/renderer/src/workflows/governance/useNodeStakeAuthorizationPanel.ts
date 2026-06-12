@@ -37,14 +37,14 @@ export function useNodeStakeAuthorizationPanel() {
   const nodeAuthStore = useNodeAuthorizationStore()
   const nodeStakeStore = useNodeStakeStore()
 
-  const peerCost = ref(0)
-  const stakeCost = ref(0)
+  const peerCost = ref(Number(nodeAuthStore.peerAttributes.tPeerCost || 0))
+  const stakeCost = ref(Number(nodeAuthStore.peerAttributes.tStakeCost || 0))
   const validUnit = ref(true)
-  const unit = ref(0)
+  const unit = ref(Number(nodeAuthStore.peerAttributes.maxAuthorize || 0))
   const signVisible = ref(false)
   const tx = ref<GovernanceSignablePayload>('')
   const showEditProportion = ref(false)
-  const unitVal = ref(1)
+  const allowedStakeInitialized = ref(false)
 
   const currentPeer = computed(() => nodeAuthStore.currentPeer)
   const peerAttributes = computed(() => nodeAuthStore.peerAttributes)
@@ -72,7 +72,17 @@ export function useNodeStakeAuthorizationPanel() {
     return wallet?.address ? wallet : null
   }
 
-  async function refresh() {
+  function syncAllowedStakeInput() {
+    unit.value = Number(peerAttributes.value?.maxAuthorize || 0)
+    validUnit.value = true
+  }
+
+  function syncRewardProportionInputs() {
+    peerCost.value = Number(peerAttributes.value?.tPeerCost || 0)
+    stakeCost.value = Number(peerAttributes.value?.tStakeCost || 0)
+  }
+
+  async function refresh({ syncInputs = false }: { syncInputs?: boolean } = {}) {
     const wallet = resolveStakeWallet()
     if (!wallet) {
       return { ok: false, errorKey: 'nodeStake.selectIndividualWallet' }
@@ -85,12 +95,17 @@ export function useNodeStakeAuthorizationPanel() {
 
     if (result.ok) {
       applyNodeStakeAuthorizationDetails(nodeAuthStore, result)
+      if (!allowedStakeInitialized.value || syncInputs) {
+        syncAllowedStakeInput()
+        allowedStakeInitialized.value = true
+      }
     }
 
     return result
   }
 
   function editProportion() {
+    syncRewardProportionInputs()
     showEditProportion.value = true
   }
 
@@ -107,7 +122,6 @@ export function useNodeStakeAuthorizationPanel() {
 
     const validation = validateStakeAuthorizationUnit({
       unit: unit.value,
-      unitVal: unitVal.value,
       currentPeer: currentPeer.value,
       posLimit: posLimit.value,
     })
@@ -124,7 +138,6 @@ export function useNodeStakeAuthorizationPanel() {
       stakeDetail: stakeDetail.value,
       stakeWalletAddress: wallet.address,
       unit: unit.value,
-      unitVal: unitVal.value,
       currentMaxAuthorize: peerAttributes.value.maxAuthorize,
     })
     if (notifyFailure(result)) return
@@ -158,7 +171,6 @@ export function useNodeStakeAuthorizationPanel() {
   function validateUnit() {
     const result = validateStakeAuthorizationUnit({
       unit: unit.value,
-      unitVal: unitVal.value,
       currentPeer: currentPeer.value,
       posLimit: posLimit.value,
     })
@@ -177,8 +189,7 @@ export function useNodeStakeAuthorizationPanel() {
   function handleTxSent() {
     signVisible.value = false
     tx.value = ''
-    unit.value = 0
-    refresh()
+    void refresh({ syncInputs: true })
   }
 
   async function redeemRewards() {
@@ -243,7 +254,6 @@ export function useNodeStakeAuthorizationPanel() {
     signVisible,
     tx,
     showEditProportion,
-    unitVal,
     editProportion,
     handleCancelChangeCost,
     confirmChangeAuthorization,

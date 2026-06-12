@@ -65,7 +65,6 @@ export interface StakeDetail {
   name: string
   nodeAddress: string
   ontid: string
-  contract: string
   stakeWalletAddress: string
   commitmentQuantity: number
   transactionHash: string

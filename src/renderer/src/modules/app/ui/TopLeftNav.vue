@@ -2,50 +2,54 @@
   <div>
     <div class="left-nav ow-text-center">
       <router-link class="logo-div" :to="{ name: ROUTE_NAMES.HOME }">
-        <img class="logo-img" src="../../../assets/logo.png" alt="" />
+        <img class="logo-img" src="../../../assets/logo.svg" alt="" />
       </router-link>
 
-      <router-link :to="{ name: ROUTE_NAMES.WALLETS }" active-class="nav-wallets-active">
+      <router-link
+        :to="{ name: ROUTE_NAMES.WALLETS }"
+        class="nav-item"
+        :class="{ 'nav-item--active': isWalletSectionActive }"
+      >
         <a-tooltip placement="right" :title="$t('setting.wallets')">
-          <div class="nav-wallets"></div>
+          <WalletOutlined class="nav-icon" />
         </a-tooltip>
       </router-link>
 
-      <!-- <router-link :to="{name:'Identities'}" active-class="nav-accounts-active">
-        <a-tooltip placement="right" :title="$t('setting.ontid')">
-              <div class="nav-accounts"></div>
-          </a-tooltip>
-      </router-link> -->
+      <router-link
+        :to="{ name: ROUTE_NAMES.NODE_MANAGEMENT }"
+        class="nav-item"
+        :class="{ 'nav-item--active': isNodeSectionActive }"
+      >
+        <a-tooltip placement="right" :title="$t('vote.node')">
+          <ShareAltOutlined class="nav-icon" />
+        </a-tooltip>
+      </router-link>
+
+      <router-link
+        :to="{ name: ROUTE_NAMES.DAPPS }"
+        class="nav-item"
+        :class="{ 'nav-item--active': isDappsActive }"
+      >
+        <a-tooltip placement="right" :title="$t('dapps.dapps')">
+          <AppstoreOutlined class="nav-icon" />
+        </a-tooltip>
+      </router-link>
 
       <router-link
         :to="{ name: ROUTE_NAMES.SETTING }"
-        active-class="nav-setting-active"
         class="setting-link"
+        :class="{ 'nav-item--active': isSettingActive }"
       >
         <a-tooltip placement="right" :title="$t('setting.settings')">
-          <div class="setting-entry">
-            <div class="setting-img"></div>
+          <span class="setting-entry">
+            <SettingOutlined class="nav-icon" />
             <span v-if="hasUpdate" class="setting-update-dot"></span>
-          </div>
+          </span>
         </a-tooltip>
       </router-link>
-
-      <router-link :to="{ name: ROUTE_NAMES.NODE_MANAGEMENT }" active-class="node-stake-active">
-        <a-tooltip placement="right" :title="$t('vote.node')">
-          <div class="node-stake-icon"></div>
-        </a-tooltip>
-      </router-link>
-
-      <router-link :to="{ name: ROUTE_NAMES.DAPPS }" active-class="nav-dapps-active">
-        <a-tooltip placement="right" :title="$t('dapps.dapps')">
-          <div class="nav-dapps"></div>
-        </a-tooltip>
-      </router-link>
-
-      <!-- <div class="setting-img" alt="" @click="toSetting"></div> -->
 
       <a-tooltip placement="right" :title="$t('setting.help')">
-        <div class="nav-help" @click="emit('help')"></div>
+        <QuestionCircleOutlined class="nav-icon nav-help" @click="emit('help')" />
       </a-tooltip>
 
       <div class="nav-network">{{ network }}</div>
@@ -54,7 +58,33 @@
 </template>
 
 <script setup lang="ts">
+import {
+  WalletOutlined,
+  ShareAltOutlined,
+  AppstoreOutlined,
+  SettingOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons-vue'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { ROUTE_NAMES } from '../../../shared/navigation/routeNames'
+
+const route = useRoute()
+
+const isWalletSectionActive = computed(() => {
+  const path = route.path
+  return (
+    path.startsWith('/Wallets') ||
+    path.startsWith('/sharedWallet') ||
+    path.startsWith('/commonWallet') ||
+    path === '/oep4Home' ||
+    path === '/loginLedger'
+  )
+})
+
+const isNodeSectionActive = computed(() => route.path.startsWith('/node'))
+const isDappsActive = computed(() => route.path === '/dapps')
+const isSettingActive = computed(() => route.path === '/setting')
 
 defineOptions({
   name: 'TopLeftNav',
@@ -91,46 +121,54 @@ const emit = defineEmits(['help'])
 }
 
 .logo-div {
+  display: block;
   height: 4rem;
   width: 4rem;
   background-color: var(--ow-color-sidebar-bg);
 }
 
-.setting-img,
-.setting-btn {
-  height: 1.5rem;
-  width: 1.5rem;
+/* Shared nav glyph: crisp vector icon, muted by default, brand on hover/active. */
+.nav-icon {
+  font-size: 1.625rem;
+  color: var(--ow-color-sidebar-text);
+  opacity: 0.55;
+  cursor: pointer;
+  transition:
+    color var(--ow-duration) var(--ow-ease),
+    opacity var(--ow-duration) var(--ow-ease);
 }
 
-.nav-setting-active .setting-img {
-  background: url('../../../assets/selectsetting.png') center center;
+.nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 67px auto;
+}
+
+.nav-item:hover .nav-icon,
+.nav-item--active .nav-icon {
+  color: var(--ow-color-brand);
+  opacity: 1;
 }
 
 .setting-link {
   position: fixed;
   bottom: 4rem;
-  left: 1.25rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  width: 4rem;
+}
+
+.setting-link:hover .nav-icon,
+.setting-link.nav-item--active .nav-icon {
+  color: var(--ow-color-brand);
+  opacity: 1;
 }
 
 .setting-entry {
   position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.setting-img {
-  background: url('../../../assets/settingunselect.png') center center;
-  background-size: contain;
-}
-
-.setting-link:hover .setting-img {
-  background: url('../../../assets/selectsetting.png') center center;
-}
-
-.setting-img {
-  cursor: pointer;
+  display: inline-flex;
 }
 
 .setting-update-dot {
@@ -144,38 +182,18 @@ const emit = defineEmits(['help'])
   border: 1px solid var(--ow-color-sidebar-bg);
 }
 
-.temp-top {
-  margin-top: 30px;
-}
-
 .nav-help {
-  width: 1.5rem;
-  height: 1.5rem;
   position: absolute;
   bottom: 8rem;
-  left: 1.25rem;
-  background: url('../../../assets/helpunselected.png') center center;
-  cursor: pointer;
-}
-
-.node-stake-icon {
-  width: 24px;
-  height: 24px;
-  margin: 67px auto;
-  background: url('../../../assets/node.png');
-  background-size: cover;
-  cursor: pointer;
-}
-
-.node-stake-active div {
-  background: url('../../../assets/nodeSelect.png') center center;
-}
-.node-stake-icon:hover {
-  background: url('../../../assets/nodeSelect.png') center center;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  width: 4rem;
 }
 
 .nav-help:hover {
-  background: url('../../../assets/helpselect.png');
+  color: var(--ow-color-brand);
+  opacity: 1;
 }
 
 .nav-network {
@@ -187,60 +205,5 @@ const emit = defineEmits(['help'])
   font-size: 12px;
   color: var(--ow-color-sidebar-text);
   width: 100%;
-}
-
-.nav-accounts {
-  width: 24px;
-  height: 24px;
-  margin: 67px auto;
-  background: url('../../../assets/accounts.png');
-  background-size: cover;
-  cursor: pointer;
-}
-
-.nav-accounts-active div {
-  background: url('../../../assets/account-hover.png');
-  background-size: cover;
-}
-
-.nav-accounts:hover {
-  background: url('../../../assets/account-hover.png');
-  background-size: cover;
-}
-
-.nav-wallets {
-  width: 24px;
-  height: 24px;
-  margin: 67px auto;
-  background: url('../../../assets/unselectwallet.png') center center;
-  background-size: cover;
-  cursor: pointer;
-}
-
-.nav-wallets-active div {
-  background: url('../../../assets/selectwallet.png') center center;
-}
-
-.nav-wallets:hover {
-  background: url('../../../assets/selectwallet.png') center center;
-}
-
-.nav-dapps {
-  width: 24px;
-  height: 24px;
-  margin: 67px auto;
-  background: url('../../../assets/dapps.png') center center;
-  background-size: contain;
-  cursor: pointer;
-}
-
-.nav-dapps-active div {
-  background: url('../../../assets/dapps-hover.png') center center;
-  background-size: contain;
-}
-
-.nav-dapps:hover {
-  background: url('../../../assets/dapps-hover.png') center center;
-  background-size: contain;
 }
 </style>

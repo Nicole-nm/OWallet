@@ -8,8 +8,16 @@
           :placeholder="$t('wallets.filterPlaceholder')"
           :aria-label="$t('wallets.filterAriaLabel')"
           class="wallets-page__filter"
+          autocomplete="off"
           allow-clear
-        />
+        >
+          <template #prefix>
+            <SearchOutlined class="wallets-page__filter-icon" aria-hidden="true" />
+          </template>
+          <template #suffix>
+            <kbd v-if="!filterQuery" class="wallets-page__filter-shortcut">/</kbd>
+          </template>
+        </a-input>
       </template>
       <a-tab-pane key="1" :tab="$t('wallets.common')">
         <app-state
@@ -198,6 +206,7 @@ import AppButton from '../../shared/ui/actions/AppButton.vue'
 import { ROUTE_NAMES } from '../../shared/navigation/routeNames'
 import { isTextEntryTarget, isUnmodifiedKey } from '../../shared/lib/keyboardShortcuts'
 import { useWalletsPage } from '../../workflows/wallet/useWalletsPage'
+import { SearchOutlined } from '@ant-design/icons-vue'
 
 defineOptions({
   name: 'WalletsPage',
@@ -243,9 +252,60 @@ const {
 }
 
 .wallets-page__filter {
-  width: 20rem;
-  margin-left: var(--ow-space-3);
-  margin-right: var(--ow-space-10);
+  width: clamp(24rem, 32vw, 34rem);
+  height: 3rem;
+  margin-left: var(--ow-space-4);
+  margin-right: var(--ow-space-8);
+  border-color: var(--ow-color-border-default) !important;
+  background: var(--ow-color-surface-elevated) !important;
+  transition:
+    border-color var(--ow-duration) var(--ow-ease),
+    background-color var(--ow-duration) var(--ow-ease),
+    box-shadow var(--ow-duration) var(--ow-ease);
+}
+
+.wallets-page__filter.ant-input-affix-wrapper-focused,
+.wallets-page__filter:focus-within {
+  border-color: var(--ow-color-brand) !important;
+  background: var(--ow-color-surface) !important;
+  box-shadow: var(--ow-shadow-focus) !important;
+}
+
+.wallets-page__filter-icon {
+  color: var(--ow-color-text-muted);
+  font-size: var(--ow-font-size-body);
+  transition: color var(--ow-duration) var(--ow-ease);
+}
+
+.wallets-page__filter:focus-within .wallets-page__filter-icon {
+  color: var(--ow-color-brand);
+}
+
+.wallets-page__filter :deep(.ant-input) {
+  min-width: 0;
+}
+
+.wallets-page__filter :deep(.ant-input::placeholder) {
+  color: var(--ow-color-text-subtle);
+}
+
+.wallets-page__filter-shortcut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border: 1px solid var(--ow-color-border-default);
+  border-radius: var(--ow-radius-control);
+  background: var(--ow-color-surface-muted);
+  color: var(--ow-color-text-muted);
+  font-family: var(--ow-font-medium);
+  font-size: var(--ow-font-size-caption);
+  line-height: 1;
+}
+
+.wallets-page :deep(.ant-tabs-extra-content) {
+  min-width: 0;
 }
 
 .wallets-page__no-matches {
@@ -274,5 +334,33 @@ const {
   outline: none;
   box-shadow: var(--ow-shadow-focus);
   border-radius: var(--ow-radius-card);
+}
+
+@media (max-width: 900px) {
+  .wallets-page :deep(.ant-tabs-nav-wrap) {
+    flex: 1 1 auto;
+  }
+
+  .wallets-page__filter {
+    width: min(100%, 26rem);
+    min-width: 14rem;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .wallets-page :deep(.ant-tabs-nav) {
+    flex-wrap: wrap;
+  }
+
+  .wallets-page :deep(.ant-tabs-extra-content) {
+    flex: 1 0 100%;
+    order: 2;
+  }
+
+  .wallets-page__filter {
+    width: 100%;
+    margin: var(--ow-space-2) 0 0;
+  }
 }
 </style>

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite'
+import { DeleteOutlined } from '@ant-design/icons-vue'
 
 const meta = {
   title: 'Design System/Renderer Styles',
@@ -188,6 +189,7 @@ export const PagePatterns: Story = {
 
 export const WalletPatterns: Story = {
   render: () => ({
+    components: { DeleteOutlined },
     template: `
       <div style="display:grid;gap:28px">
         <div class="ow-card-grid" style="max-width:760px">
@@ -199,7 +201,7 @@ export const WalletPatterns: Story = {
               <div>Wallet Address:</div>
               <span class="ow-detail-address-text">AXvY1xz2zX6nQ2H7bP1Q</span>
             </div>
-            <span class="ow-icon-delete ow-detail-actions"></span>
+            <DeleteOutlined class="ow-icon-delete ow-detail-actions" />
           </div>
         </div>
           <div class="ow-create-card ow-create-card--wallet ow-create-card--bordered">

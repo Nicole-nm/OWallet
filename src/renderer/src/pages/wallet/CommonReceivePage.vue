@@ -16,7 +16,7 @@
 
           <div class="receive-shell__content">
             <div class="receive-shell__title-row">
-              <h1 class="receive-shell__title">{{ walletName }}</h1>
+              <h1 class="receive-shell__title">{{ $t('commonWalletHome.walletAddress') }}</h1>
               <span
                 v-if="isSharedWallet"
                 class="receive-shell__threshold"
@@ -28,7 +28,6 @@
 
             <div class="receive-shell__details">
               <div class="receive-shell__detail">
-                <span class="receive-shell__label">{{ $t('commonWalletHome.walletAddress') }}</span>
                 <div class="receive-shell__value-bar receive-shell__value-bar--address">
                   <span class="receive-shell__value receive-shell__value--address">{{
                     walletAddress
@@ -122,7 +121,6 @@ const {
 } = useCommonReceivePage()
 const { copyText } = useClipboardNotice()
 
-const walletName = computed(() => String(walletContext.value.walletName || ''))
 const walletAddress = computed(() => String(walletContext.value.address || ''))
 const walletPublicKey = computed(() => String(walletContext.value.pk || ''))
 

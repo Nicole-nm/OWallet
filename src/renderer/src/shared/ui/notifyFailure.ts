@@ -35,11 +35,9 @@ function toAppErrorPayload(result: FailureLike, key: string): AppErrorPayload {
  * Picks notifyWarning when `result.level === 'warning'`, else notifyError.
  *
  * When the failure carries classification metadata (category, code, cause from
- * the classifier), routes through the rich `showAppError`/`showAppWarning`
- * pipeline so the user gets the precise message plus an expandable "Details"
- * affordance. Otherwise falls back to the simple `notifyError`/`notifyWarning`
- * shim — keeps backward compatibility with call sites that emit plain
- * `{ ok: false, errorKey }` results.
+ * the classifier), routes through the app-error pipeline so the classifier can
+ * still pick the precise user-facing message. The final surface is always the
+ * standard message toast.
  *
  * Acts as a type predicate so the success branch stays narrowed after the
  * early return.

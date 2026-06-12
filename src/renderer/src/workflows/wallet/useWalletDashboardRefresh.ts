@@ -40,8 +40,7 @@ function toRefreshTask(task: WalletDashboardRefreshTask, index: number): Refresh
  * priority order favours user-actionable categories (cancelled, signing,
  * permission, timeout) over generic network/unknown so a single mid-refresh
  * Ledger rejection or timeout isn't drowned out by a string of network errors.
- * Also injects the failing task names into `detail` so the Details modal shows
- * which fetches went wrong.
+ * Also injects the failing task names into `detail` for logs and diagnostics.
  */
 const CATEGORY_PRIORITY: Record<string, number> = {
   cancelled: 0,
@@ -54,10 +53,38 @@ const CATEGORY_PRIORITY: Record<string, number> = {
   unknown: 7,
 }
 
+function isStructuredFailurePayload(reason: unknown): reason is Partial<AppErrorPayload> & {
+  errorKey: string
+} {
+  return Boolean(
+    reason &&
+    typeof reason === 'object' &&
+    'errorKey' in reason &&
+    typeof reason.errorKey === 'string'
+  )
+}
+
+function payloadForFailure(failure: RefreshTaskFailure): AppErrorPayload {
+  if (isStructuredFailurePayload(failure.reason)) {
+    const fallback = classifyError(failure.reason.cause ?? failure.reason)
+    return {
+      category: failure.reason.category ?? fallback.category,
+      code: failure.reason.code ?? fallback.code,
+      errorKey: failure.reason.errorKey,
+      detail: failure.reason.detail ?? fallback.detail,
+      cause: failure.reason.cause ?? fallback.cause,
+      retryable: failure.reason.retryable ?? fallback.retryable,
+      level: failure.reason.level ?? fallback.level,
+    }
+  }
+
+  return classifyError(failure.reason)
+}
+
 function summariseDashboardFailures(failures: RefreshTaskFailure[]): AppErrorPayload {
   const classified = failures.map((failure) => ({
     name: failure.name,
-    payload: classifyError(failure.reason),
+    payload: payloadForFailure(failure),
   }))
 
   const dominant = classified.reduce((acc, current) => {

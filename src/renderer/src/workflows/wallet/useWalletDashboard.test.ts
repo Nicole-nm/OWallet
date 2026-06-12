@@ -216,6 +216,51 @@ describe('useWalletDashboard', () => {
     )
   })
 
+  it('coalesces refresh balance failures into one dashboard toast', async () => {
+    mocks.walletDashboardService.loadWalletNativeBalance.mockResolvedValueOnce({
+      ok: false,
+      errorKey: 'common.networkErr',
+      category: 'network',
+    })
+    mocks.tokenSelectionService.loadSelectedOep4TokenBalances.mockResolvedValueOnce({
+      ok: false,
+      errorKey: 'common.networkErr',
+      category: 'network',
+    })
+    const dashboard = useWalletDashboard(ref('AQ123'))
+
+    await expect(dashboard.refresh(true)).resolves.toMatchObject({
+      ok: false,
+      skipped: false,
+      successCount: 1,
+      failureCount: 2,
+    })
+
+    expect(mocks.notifyError).not.toHaveBeenCalled()
+    expect(mocks.showAppError).toHaveBeenCalledTimes(1)
+    expect(mocks.showAppError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: 'network',
+        errorKey: 'dashboard.getBalanceErr',
+        detail: expect.stringContaining('dashboard:'),
+      })
+    )
+  })
+
+  it('still shows the balance toast when getBalance is called directly', async () => {
+    mocks.walletDashboardService.loadWalletNativeBalance.mockResolvedValueOnce({
+      ok: false,
+      errorKey: 'common.networkErr',
+      category: 'network',
+    })
+    const dashboard = useWalletDashboard(ref('AQ123'))
+
+    await expect(dashboard.getBalance()).resolves.toBeNull()
+
+    expect(mocks.notifyError).toHaveBeenCalledWith('dashboard.getBalanceErr', { literal: true })
+    expect(mocks.showAppError).not.toHaveBeenCalled()
+  })
+
   it('resolves a rapid second refresh as skipped while the first remains in flight', async () => {
     let resolveBalance!: (value: unknown) => void
     mocks.walletDashboardService.loadWalletNativeBalance.mockReturnValueOnce(

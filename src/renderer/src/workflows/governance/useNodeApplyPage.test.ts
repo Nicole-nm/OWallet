@@ -67,6 +67,16 @@ vi.mock('../../shared/ui/feedback', () => ({
   notifyWarning: vi.fn(),
 }))
 
+vi.mock('./useGovernanceSignAndSend', () => ({
+  useGovernanceSignAndSend: () => ({
+    walletPassword: { value: '' },
+    usesCommonWallet: { value: true },
+    ledgerStatus: { value: '' },
+    ensureSignerReady: vi.fn(() => true),
+    signAndSend: vi.fn(async () => ({ ok: true })),
+  }),
+}))
+
 import { useNodeApplyPage } from './useNodeApplyPage'
 
 describe('useNodeApplyPage facade', () => {
@@ -86,8 +96,9 @@ describe('useNodeApplyPage facade', () => {
       'operationPk',
       'stakeAmount',
       'minStakeAmount',
-      'signVisible',
-      'tx',
+      'walletPassword',
+      'usesCommonWallet',
+      'ledgerStatus',
       'registerSucceed',
       'validAmount',
       'ledgerList',
@@ -99,11 +110,14 @@ describe('useNodeApplyPage facade', () => {
       'cancel',
       'onSelectOperationWallet',
       'confirm',
-      'handleTxCancel',
       'handleTxSent',
       'onComplete',
       'onLater',
       'validateAmount',
+      'ontBalance',
+      'ongBalance',
+      'isOntSufficient',
+      'isOngSufficient',
     ]
 
     for (const key of expectedKeys) {

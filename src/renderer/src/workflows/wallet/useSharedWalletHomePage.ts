@@ -134,7 +134,7 @@ export function useSharedWalletHomePage() {
   }
 
   function showReceive() {
-    router.push({ path: ROUTE_PATHS.commonReceive('sharedWallet') })
+    router.push({ path: ROUTE_PATHS.receive('sharedWallet') })
   }
 
   function pendingTxDetail(tx: PendingSharedTransfer) {

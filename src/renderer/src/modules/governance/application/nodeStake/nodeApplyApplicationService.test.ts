@@ -13,6 +13,9 @@ const mocks = vi.hoisted(() => ({
   governanceStorageReader: {
     getPeerPoolMap: vi.fn(),
   },
+  walletDomainService: {
+    fetchNativeBalance: vi.fn(),
+  },
 }))
 
 vi.mock('../../../../domains/governance/governanceDomainService', () => ({
@@ -34,10 +37,15 @@ vi.mock('../../../../domains/governance/governanceStorageReader', () => ({
   getPeerPoolMap: (...args: unknown[]) => mocks.governanceStorageReader.getPeerPoolMap(...args),
 }))
 
+vi.mock('../../../../domains/wallet/walletDomainService', () => ({
+  fetchNativeBalance: (...args: unknown[]) => mocks.walletDomainService.fetchNativeBalance(...args),
+}))
+
 import {
   createNodeApplyTransactionDraft,
   createPendingNodeApplyInfo,
   isNodeApplyAmountValid,
+  loadNodeApplyStakeWalletBalance,
   validateNodeApplyForm,
   validateNodeApplyOperationWallet,
   validateNodeApplyRegistrationInput,
@@ -77,6 +85,42 @@ describe('nodeApplyApplicationService', () => {
         amountIsValid: false,
       })
     ).toEqual({ ok: false, silent: true })
+
+    // ONT balance too low
+    expect(
+      validateNodeApplyForm({
+        stakeWalletAddress: 'AQ123',
+        operationWalletPublicKey: 'pk-1',
+        stakeAmount: '10000',
+        ontBalance: '9999',
+      })
+    ).toEqual({ ok: false, errorKey: 'nodeApply.ontBalanceInsufficient' })
+
+    // ONG balance too low
+    expect(
+      validateNodeApplyForm({
+        stakeWalletAddress: 'AQ123',
+        operationWalletPublicKey: 'pk-1',
+        stakeAmount: '10000',
+        ontBalance: '10000',
+        ongBalance: '500.09',
+        gasPrice: 500,
+        gasLimit: 200000,
+      })
+    ).toEqual({ ok: false, errorKey: 'nodeApply.ongBalanceInsufficient' })
+
+    // Valid balance
+    expect(
+      validateNodeApplyForm({
+        stakeWalletAddress: 'AQ123',
+        operationWalletPublicKey: 'pk-1',
+        stakeAmount: '10000',
+        ontBalance: '10000',
+        ongBalance: '500.1',
+        gasPrice: 500,
+        gasLimit: 200000,
+      })
+    ).toEqual({ ok: true })
   })
 
   it('validates the operation wallet against invalid and duplicate addresses', async () => {
@@ -142,6 +186,14 @@ describe('nodeApplyApplicationService', () => {
         operationWalletPublicKey: 'node-pk',
       })
     ).resolves.toEqual({ ok: true, address: 'AQ-operation' })
+  })
+
+  it('loads the stake wallet native balance through the wallet domain', async () => {
+    const balanceResult = { ok: true, data: { ont: '10000', ong: '501' } }
+    mocks.walletDomainService.fetchNativeBalance.mockResolvedValue(balanceResult)
+
+    await expect(loadNodeApplyStakeWalletBalance('AQ123')).resolves.toBe(balanceResult)
+    expect(mocks.walletDomainService.fetchNativeBalance).toHaveBeenCalledWith('AQ123')
   })
 
   it('stops registration when the chain peer pool cannot be queried', async () => {

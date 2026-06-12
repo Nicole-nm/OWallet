@@ -1,7 +1,7 @@
 <template>
   <div>
     <breadcrumb
-      :current="$t('nodeMgmt.newStakeAuthorization')"
+      :current="$t('nodeMgmt.cancelAuthorization')"
       @backEvent="handleRouteBack"
     ></breadcrumb>
     <div class="ow-governance-page">
@@ -14,22 +14,14 @@
             <h1 class="ow-governance-title">{{ currentNode.name }}</h1>
           </div>
           <div class="ow-governance-highlight">
-            <span class="ow-governance-highlight__label">{{
-              $t('nodeMgmt.allowedStakeAmount')
-            }}</span>
+            <span class="ow-governance-highlight__label">{{ $t('nodeMgmt.inAuthorization') }}</span>
             <span class="ow-governance-highlight__value"
-              >{{ currentNodeDisplay.maxAuthorizeDisplay }} ONT</span
+              >{{ authorizationInfo.inAuthorization }} ONT</span
             >
           </div>
         </div>
 
         <div class="ow-governance-card-grid">
-          <div class="ow-governance-card">
-            <span class="ow-governance-card__label">{{ $t('nodeMgmt.totalStakeAmount') }}</span>
-            <span class="ow-governance-card__value"
-              >{{ currentNodeDisplay.totalPosDisplay }} ONT</span
-            >
-          </div>
           <div class="ow-governance-card ow-governance-card--wide">
             <span class="ow-governance-card__label">{{ $t('nodeMgmt.walletAddress') }}</span>
             <span class="ow-governance-card__value">{{ stakeWallet?.address }}</span>
@@ -37,46 +29,45 @@
         </div>
 
         <div class="ow-governance-input-panel">
-          <label class="ow-governance-field-label" for="new-authorization-input">{{
-            $t('nodeMgmt.stakeAuthorization')
+          <label class="ow-governance-field-label" for="cancel-authorization-input">{{
+            $t('nodeMgmt.amountToCancel')
           }}</label>
           <div class="ow-governance-input-control">
             <a-input
-              id="new-authorization-input"
+              id="cancel-authorization-input"
               type="text"
               inputmode="numeric"
               autocomplete="off"
-              class="ow-input new-authorization-input"
-              v-model:value="units"
+              class="ow-input cancel-authorization-input"
+              v-model:value="cancelAmount"
               @change="handleChange"
-              :class="validInput ? '' : 'ow-error-input'"
+              :class="validCancelAmount ? '' : 'ow-error-input'"
             ></a-input>
             <span class="ow-governance-input-suffix">ONT</span>
           </div>
         </div>
 
-        <div class="ow-governance-input-panel new-authorization-signing">
-          <label class="ow-governance-field-label" for="new-authorization-password">{{
+        <div class="ow-governance-input-panel">
+          <label class="ow-governance-field-label" for="cancel-authorization-password">{{
             $t('nodeStake.signWithWallet')
           }}</label>
           <div v-if="usesCommonWallet" class="ow-governance-input-control">
             <a-input
-              id="new-authorization-password"
+              id="cancel-authorization-password"
               type="password"
-              class="ow-input new-authorization-password"
+              class="ow-input cancel-authorization-input"
               :placeholder="$t('nodeStake.password')"
               v-model:value="walletPassword"
-              @keyup.enter="submit"
             ></a-input>
           </div>
-          <ledger-status-notice v-else :status="ledgerStatus" :show-title="false" />
+          <ledger-status-notice v-else :status="ledgerStatus" />
         </div>
 
         <div class="ow-governance-actions">
           <a-button
             type="primary"
             variant="primary"
-            class="new-authorization-submit"
+            class="cancel-authorization-submit"
             @click="submit"
             >{{ $t('nodeMgmt.submit') }}</a-button
           >
@@ -89,48 +80,46 @@
 <script setup lang="ts">
 import Breadcrumb from '../../shared/ui/navigation/Breadcrumb.vue'
 import LedgerStatusNotice from '../../shared/ui/ledger/LedgerStatusNotice.vue'
-import { useNewAuthorizationPage } from '../../workflows/governance/useNewAuthorizationPage'
+import { useCancelAuthorizationPage } from '../../workflows/governance/useCancelAuthorizationPage'
 
 defineOptions({
-  name: 'NewAuthorizationPage',
+  name: 'CancelAuthorizationPage',
 })
 
 const {
   currentNode,
-  currentNodeDisplay,
+  authorizationInfo,
   stakeWallet,
-  units,
-  validInput,
+  cancelAmount,
+  validCancelAmount,
   walletPassword,
   usesCommonWallet,
   ledgerStatus,
   handleRouteBack,
   handleChange,
   submit,
-} = useNewAuthorizationPage()
+} = useCancelAuthorizationPage()
 </script>
 
 <style scoped lang="scss">
-.new-authorization-input {
-  width: 160px;
+.cancel-authorization-input {
+  width: 200px;
 }
 
-.new-authorization-password {
-  width: 240px;
+.cancel-authorization-amount {
+  margin: var(--ow-space-2) 0 0;
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  color: var(--ow-color-text-secondary);
 }
 
-.new-authorization-signing {
-  border-top: 1px solid var(--ow-color-border-subtle);
-}
-
-.new-authorization-submit {
+.cancel-authorization-submit {
   min-width: 180px;
 }
 
 @media (max-width: 560px) {
-  .new-authorization-input,
-  .new-authorization-password,
-  .new-authorization-submit {
+  .cancel-authorization-input,
+  .cancel-authorization-submit {
     width: 100%;
   }
 }

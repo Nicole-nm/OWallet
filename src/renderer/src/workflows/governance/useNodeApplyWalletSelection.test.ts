@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
+  loadNodeApplyStakeWalletBalance: vi.fn(),
   validateNodeApplyOperationWallet: vi.fn(),
   notifyWarning: vi.fn(),
 }))
 
 vi.mock('../../modules/governance/application/nodeStake/nodeApplyApplicationService', () => ({
+  loadNodeApplyStakeWalletBalance: (...args: unknown[]) =>
+    mocks.loadNodeApplyStakeWalletBalance(...args),
   validateNodeApplyOperationWallet: (...args: unknown[]) =>
     mocks.validateNodeApplyOperationWallet(...args),
 }))
@@ -19,6 +22,10 @@ import { toNodeApplyWallet, useNodeApplyWalletSelection } from './useNodeApplyWa
 describe('useNodeApplyWalletSelection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.loadNodeApplyStakeWalletBalance.mockResolvedValue({
+      ok: true,
+      data: { ont: '0', ong: '0' },
+    })
     mocks.validateNodeApplyOperationWallet.mockResolvedValue({ ok: true, address: 'AQ-operation' })
   })
 
@@ -38,7 +45,7 @@ describe('useNodeApplyWalletSelection', () => {
     ).toMatchObject({ address: 'AQ-ledger', label: 'Ledger', publicKey: 'ledger-pk', acct: 2 })
   })
 
-  it('builds stake and operation wallet options while excluding the selected stake wallet', () => {
+  it('builds stake and operation wallet options while excluding the selected stake wallet', async () => {
     const selection = useNodeApplyWalletSelection({
       normalWallets: [
         { address: 'AQ-stake', label: 'Stake', publicKey: 'stake-pk' },
@@ -49,7 +56,7 @@ describe('useNodeApplyWalletSelection', () => {
       ],
     })
 
-    selection.onWalletSelected({
+    await selection.onWalletSelected({
       walletType: 'commonWallet',
       wallet: { address: 'AQ-stake', label: 'Stake', publicKey: 'stake-pk' },
     })
@@ -120,6 +127,44 @@ describe('useNodeApplyWalletSelection', () => {
     expect(selection.stakeWalletValue.value).toBeUndefined()
   })
 
+  it('loads selected stake wallet balances', async () => {
+    mocks.loadNodeApplyStakeWalletBalance.mockResolvedValueOnce({
+      ok: true,
+      data: { ont: '10000', ong: '501' },
+    })
+    const selection = useNodeApplyWalletSelection({
+      normalWallets: [],
+      hardwareWallets: [],
+    })
+
+    await selection.onWalletSelected({
+      walletType: 'commonWallet',
+      wallet: { address: 'AQ-stake', publicKey: 'stake-pk' },
+    })
+
+    expect(mocks.loadNodeApplyStakeWalletBalance).toHaveBeenCalledWith('AQ-stake')
+    expect(selection.ontBalance.value).toBe('10000')
+    expect(selection.ongBalance.value).toBe('501')
+  })
+
+  it('resets balances when selected stake wallet balance loading fails', async () => {
+    mocks.loadNodeApplyStakeWalletBalance.mockResolvedValueOnce({ ok: false })
+    const selection = useNodeApplyWalletSelection({
+      normalWallets: [],
+      hardwareWallets: [],
+    })
+    selection.ontBalance.value = '1'
+    selection.ongBalance.value = '1'
+
+    await selection.onWalletSelected({
+      walletType: 'commonWallet',
+      wallet: { address: 'AQ-stake', publicKey: 'stake-pk' },
+    })
+
+    expect(selection.ontBalance.value).toBe('0')
+    expect(selection.ongBalance.value).toBe('0')
+  })
+
   it('orders ledger wallets in normalWalletAndLedgerWallet by timestamp then acct', () => {
     const selection = useNodeApplyWalletSelection({
       normalWallets: [],
@@ -143,7 +188,7 @@ describe('useNodeApplyWalletSelection', () => {
       normalWallets: [{ address: 'AQ-stake', publicKey: 'stake-pk' }],
       hardwareWallets: [],
     })
-    selection.onWalletSelected({
+    await selection.onWalletSelected({
       walletType: 'commonWallet',
       wallet: { address: 'AQ-stake', publicKey: 'stake-pk' },
     })
@@ -161,7 +206,7 @@ describe('useNodeApplyWalletSelection', () => {
       normalWallets: [{ address: 'AQ-stake', label: 'Stake', publicKey: 'stake-pk' }],
       hardwareWallets: [],
     })
-    selection.onWalletSelected({
+    await selection.onWalletSelected({
       walletType: 'commonWallet',
       wallet: { address: 'AQ-stake', label: 'Stake', publicKey: 'stake-pk' },
     })

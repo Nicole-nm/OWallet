@@ -68,6 +68,6 @@ describe('useCommonSendPage', () => {
 
   it('builds breadcrumb routes from wallet label', () => {
     const { routes } = useCommonSendPage()
-    expect(routes.value).toEqual([{ name: 'TestWallet', path: '/Wallets/dashboard' }])
+    expect(routes.value).toEqual([{ name: 'TestWallet', path: '/wallets/dashboard' }])
   })
 })

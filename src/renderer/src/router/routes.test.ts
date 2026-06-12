@@ -22,18 +22,18 @@ describe('router route definitions', () => {
     expect(routes.at(-1)?.path).toBe(ROUTE_PATHS.notFound)
   })
 
-  it('defines common wallet param route patterns through route path constants', () => {
-    const commonReceive = flattenRoutes(routes).find(
-      (routeRecord) => routeRecord.name === ROUTE_NAMES.COMMON_RECEIVE
+  it('defines wallet param route patterns through route path constants', () => {
+    const receive = flattenRoutes(routes).find(
+      (routeRecord) => routeRecord.name === ROUTE_NAMES.RECEIVE
     )
-    const commonRedeem = flattenRoutes(routes).find(
-      (routeRecord) => routeRecord.name === ROUTE_NAMES.COMMON_REDEEM
+    const redeem = flattenRoutes(routes).find(
+      (routeRecord) => routeRecord.name === ROUTE_NAMES.REDEEM
     )
 
-    expect(commonReceive?.path).toBe(ROUTE_PATHS.commonReceivePattern)
-    expect(commonRedeem?.path).toBe(ROUTE_PATHS.commonRedeemPattern)
-    expect(ROUTE_PATHS.commonReceive('sharedWallet')).toBe('/commonWalletReceive/sharedWallet')
-    expect(ROUTE_PATHS.commonRedeem('jsonWallet')).toBe('/commonWalletRedeem/jsonWallet')
+    expect(receive?.path).toBe(ROUTE_PATHS.receivePattern)
+    expect(redeem?.path).toBe(ROUTE_PATHS.redeemPattern)
+    expect(ROUTE_PATHS.receive('sharedWallet')).toBe('/wallet/receive/sharedWallet')
+    expect(ROUTE_PATHS.redeem('jsonWallet')).toBe('/wallet/redeem/jsonWallet')
   })
 
   it('uses relative child paths for nested route records', () => {
@@ -66,5 +66,13 @@ describe('router route definitions', () => {
     expect(routeMetas.some((meta) => meta.requiresWalletCollection === true)).toBe(true)
     expect(routeMetas.every((meta) => meta.requiresWallet === undefined)).toBe(true)
     expect(routeMetas.every((meta) => meta.requiresWallets === undefined)).toBe(true)
+  })
+
+  it('marks public routes with explicit meta.public flag', () => {
+    const publicRoutes = flattenRoutes(routes).filter((route) => route.meta?.public === true)
+    const publicRouteNames = publicRoutes.map((r) => r.name)
+
+    expect(publicRouteNames).toContain(ROUTE_NAMES.HOME)
+    expect(publicRouteNames).toContain(ROUTE_NAMES.SETTING)
   })
 })

@@ -9,10 +9,6 @@
         <span class="ow-kv-label">{{ $t('nodeStake.nodePk') }}</span>
         <span class="ow-kv-value">{{ nodePublicKey }}</span>
       </div>
-      <div class="ow-kv-row stake-detail-row">
-        <span class="ow-kv-label">{{ $t('nodeStake.contract') }}</span>
-        <span class="ow-kv-value">{{ contract }}</span>
-      </div>
     </div>
   </section>
 </template>
@@ -21,7 +17,6 @@
 defineProps<{
   stakeWalletAddress: unknown
   nodePublicKey: unknown
-  contract: unknown
 }>()
 </script>
 

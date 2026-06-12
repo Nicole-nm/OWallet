@@ -1,11 +1,13 @@
 import { createRegisterCandidateTransaction } from '../../../../domains/governance/governanceDomainService'
 import { getPeerPoolMap } from '../../../../domains/governance/governanceStorageReader'
+import { fetchNativeBalance } from '../../../../domains/wallet/walletDomainService'
 import { deriveAddressFromPublicKey } from '../../../../shared/chain/walletSdk'
 import { createLogger } from '../../../../shared/lib/logger'
 import { tryCatch } from '../../../../shared/lib/result'
 import { verifyPositiveInt } from '../../../../shared/lib/validators'
 import { createPendingNodeStakeInfo } from './nodeStakeApplicationService'
 import { NetworkId } from '../../../../shared/lib/types'
+import { BigNumber } from 'bignumber.js'
 
 const logger = createLogger('nodeApplyApplicationService')
 
@@ -23,12 +25,20 @@ export function validateNodeApplyForm({
   stakeAmount,
   minStakeAmount = 10000,
   amountIsValid = true,
+  ontBalance,
+  ongBalance,
+  gasPrice = 500,
+  gasLimit = 200000,
 }: {
   stakeWalletAddress: string
   operationWalletPublicKey: string
   stakeAmount: string | number
   minStakeAmount?: string | number
   amountIsValid?: boolean
+  ontBalance?: string | number
+  ongBalance?: string | number
+  gasPrice?: string | number
+  gasLimit?: string | number
 }) {
   if (!stakeWalletAddress) {
     return { ok: false, errorKey: 'nodeApply.stakeWalletRequired' }
@@ -48,6 +58,20 @@ export function validateNodeApplyForm({
 
   if (!amountIsValid) {
     return { ok: false, silent: true }
+  }
+
+  if (ontBalance !== undefined) {
+    if (new BigNumber(ontBalance).isLessThan(stakeAmount)) {
+      return { ok: false, errorKey: 'nodeApply.ontBalanceInsufficient' }
+    }
+  }
+
+  if (ongBalance !== undefined) {
+    const requiredGas = new BigNumber(gasPrice).multipliedBy(gasLimit).dividedBy(1e9)
+    const requiredOng = new BigNumber(500).plus(requiredGas)
+    if (new BigNumber(ongBalance).isLessThan(requiredOng)) {
+      return { ok: false, errorKey: 'nodeApply.ongBalanceInsufficient' }
+    }
   }
 
   return { ok: true }
@@ -83,6 +107,10 @@ export async function validateNodeApplyOperationWallet({
     }
   }
   return result
+}
+
+export async function loadNodeApplyStakeWalletBalance(address: string) {
+  return fetchNativeBalance(address)
 }
 
 export async function validateNodeApplyRegistrationInput({

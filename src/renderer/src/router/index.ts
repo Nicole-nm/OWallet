@@ -8,13 +8,9 @@ const router = createRouter({
   routes,
 })
 
-const PUBLIC_ROUTES = new Set<string | symbol | null | undefined>([
-  ROUTE_NAMES.HOME,
-  ROUTE_NAMES.SETTING,
-])
-
 router.beforeEach((to) => {
-  if (PUBLIC_ROUTES.has(to.name) || !to.name) {
+  // Routes that explicitly declare themselves as public skip all guards
+  if (to.meta.public || !to.name) {
     return true
   }
 

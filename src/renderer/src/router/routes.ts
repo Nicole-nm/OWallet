@@ -7,7 +7,6 @@ import { identityRoutes } from './identityRoutes'
 import { notFoundRoutes } from './notFoundRoutes'
 import { settingsRoutes } from './settingsRoutes'
 import { sharedWalletRoutes } from './sharedWalletRoutes'
-import { voteRoutes } from './voteRoutes'
 import { walletRoutes } from './walletRoutes'
 
 export { ROUTE_NAMES } from './routeNames'
@@ -20,7 +19,6 @@ export const routes: RouteRecordRaw[] = [
   ...settingsRoutes,
   ...dappRoutes,
   ...sharedWalletRoutes,
-  ...voteRoutes,
   ...commonWalletRoutes,
   ...governanceRoutes,
   ...notFoundRoutes,

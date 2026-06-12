@@ -4,10 +4,7 @@ const mocks = vi.hoisted(() => ({
   messageError: vi.fn(),
   messageWarning: vi.fn(),
   messageSuccess: vi.fn(),
-  notificationError: vi.fn(),
-  notificationWarning: vi.fn(),
-  notificationSuccess: vi.fn(),
-  notificationInfo: vi.fn(),
+  messageInfo: vi.fn(),
 }))
 
 vi.mock('ant-design-vue', () => ({
@@ -15,12 +12,7 @@ vi.mock('ant-design-vue', () => ({
     error: mocks.messageError,
     warning: mocks.messageWarning,
     success: mocks.messageSuccess,
-  },
-  notification: {
-    error: mocks.notificationError,
-    warning: mocks.notificationWarning,
-    success: mocks.notificationSuccess,
-    info: mocks.notificationInfo,
+    info: mocks.messageInfo,
   },
   Modal: { success: vi.fn(), info: vi.fn() },
 }))
@@ -58,14 +50,18 @@ describe('shared/ui/notifyFailure', () => {
     const result = notifyFailure({ ok: false, errorKey: 'common.networkErr' })
 
     expect(result).toBe(true)
-    expect(mocks.messageError).toHaveBeenCalledWith('T(common.networkErr)')
+    expect(mocks.messageError).toHaveBeenCalledWith(
+      expect.objectContaining({ content: 'T(common.networkErr)' })
+    )
   })
 
   it('uses notifyWarning when result.level is "warning"', () => {
     const result = notifyFailure({ ok: false, errorKey: 'common.ongNoEnough', level: 'warning' })
 
     expect(result).toBe(true)
-    expect(mocks.messageWarning).toHaveBeenCalledWith('T(common.ongNoEnough)')
+    expect(mocks.messageWarning).toHaveBeenCalledWith(
+      expect.objectContaining({ content: 'T(common.ongNoEnough)' })
+    )
     expect(mocks.messageError).not.toHaveBeenCalled()
   })
 
@@ -73,7 +69,9 @@ describe('shared/ui/notifyFailure', () => {
     const result = notifyFailure({ ok: false }, 'common.savedbFailed')
 
     expect(result).toBe(true)
-    expect(mocks.messageError).toHaveBeenCalledWith('T(common.savedbFailed)')
+    expect(mocks.messageError).toHaveBeenCalledWith(
+      expect.objectContaining({ content: 'T(common.savedbFailed)' })
+    )
   })
 
   it('still returns true (signals failure) when there is no key and no fallback, without showing a toast', () => {
@@ -87,20 +85,21 @@ describe('shared/ui/notifyFailure', () => {
   it('prefers errorKey over the fallback key when both are provided', () => {
     notifyFailure({ ok: false, errorKey: 'specific.error' }, 'common.networkErr')
 
-    expect(mocks.messageError).toHaveBeenCalledWith('T(specific.error)')
+    expect(mocks.messageError).toHaveBeenCalledWith(
+      expect.objectContaining({ content: 'T(specific.error)' })
+    )
   })
 
-  it('falls back to the category default when no errorKey is present and routes through the rich pipeline', () => {
+  it('falls back to the category default when no errorKey is present', () => {
     const result = notifyFailure({ ok: false, category: 'timeout', code: 'timeout.request' })
 
     expect(result).toBe(true)
-    expect(mocks.notificationError).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'T(common.requestTimeout)' })
+    expect(mocks.messageError).toHaveBeenCalledWith(
+      expect.objectContaining({ content: 'T(common.requestTimeout)' })
     )
-    expect(mocks.messageError).not.toHaveBeenCalled()
   })
 
-  it('routes a classified failure through showAppError (notification) with rich payload', () => {
+  it('routes a classified warning through message warning', () => {
     notifyFailure({
       ok: false,
       errorKey: 'common.rejectedByUser',
@@ -110,19 +109,19 @@ describe('shared/ui/notifyFailure', () => {
       cause: new Error('underlying'),
     })
 
-    expect(mocks.notificationWarning).toHaveBeenCalledWith(
+    expect(mocks.messageWarning).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'T(common.rejectedByUser)',
-        key: 'app-signing.user_rejected',
+        content: 'T(common.rejectedByUser)',
+        key: expect.stringMatching(/^owallet-message-warning-/),
       })
     )
-    expect(mocks.messageWarning).not.toHaveBeenCalled()
   })
 
   it('keeps using the simple `message` shim when the failure has no classification metadata', () => {
     notifyFailure({ ok: false, errorKey: 'common.networkErr' })
 
-    expect(mocks.messageError).toHaveBeenCalledWith('T(common.networkErr)')
-    expect(mocks.notificationError).not.toHaveBeenCalled()
+    expect(mocks.messageError).toHaveBeenCalledWith(
+      expect.objectContaining({ content: 'T(common.networkErr)' })
+    )
   })
 })

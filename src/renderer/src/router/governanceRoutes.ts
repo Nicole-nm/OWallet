@@ -1,8 +1,16 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { ROUTE_NAMES } from './routeNames'
-import { ROUTE_PATHS } from './routePaths'
+import { ROUTE_PATHS, VOTE_CHILD_PATHS } from './routePaths'
 
 export const governanceRoutes: RouteRecordRaw[] = [
+  // Governance home
+  {
+    path: ROUTE_PATHS.node,
+    name: ROUTE_NAMES.NODE_MANAGEMENT,
+    component: () => import('@/pages/governance/GovernanceHomePage.vue'),
+  },
+
+  // Node management
   {
     path: ROUTE_PATHS.nodeApply,
     name: ROUTE_NAMES.NODE_APPLY,
@@ -18,6 +26,8 @@ export const governanceRoutes: RouteRecordRaw[] = [
     name: ROUTE_NAMES.MY_NODE,
     component: () => import('@/pages/governance/MyNodesPage.vue'),
   },
+
+  // Node staking
   {
     path: ROUTE_PATHS.nodeStakeIntro,
     name: ROUTE_NAMES.NODE_STAKE_INTRO,
@@ -35,11 +45,6 @@ export const governanceRoutes: RouteRecordRaw[] = [
     component: () => import('@/pages/governance/NodeStakeInfoPage.vue'),
   },
   {
-    path: ROUTE_PATHS.node,
-    name: ROUTE_NAMES.NODE_MANAGEMENT,
-    component: () => import('@/pages/governance/GovernanceHomePage.vue'),
-  },
-  {
     path: ROUTE_PATHS.nodeStakeMgmt,
     name: ROUTE_NAMES.NODE_STAKE_MANAGEMENT,
     meta: { requiresWalletCollection: true },
@@ -55,6 +60,8 @@ export const governanceRoutes: RouteRecordRaw[] = [
     name: ROUTE_NAMES.STAKE_HISTORY,
     component: () => import('@/pages/governance/StakeHistoryPage.vue'),
   },
+
+  // Authorization
   {
     path: ROUTE_PATHS.authorizeLogin,
     name: ROUTE_NAMES.AUTHORIZE_LOGIN,
@@ -71,5 +78,40 @@ export const governanceRoutes: RouteRecordRaw[] = [
     name: ROUTE_NAMES.NEW_AUTHORIZATION,
     meta: { requiresWalletCollection: true },
     component: () => import('@/pages/governance/NewAuthorizationPage.vue'),
+  },
+  {
+    path: ROUTE_PATHS.cancelAuthorization,
+    name: ROUTE_NAMES.CANCEL_AUTHORIZATION,
+    meta: { requiresWalletCollection: true },
+    component: () => import('@/pages/governance/CancelAuthorizationPage.vue'),
+  },
+
+  // Vote (nested under /governance/vote)
+  {
+    path: ROUTE_PATHS.vote,
+    name: ROUTE_NAMES.NODE_VOTE,
+    component: () => import('@/pages/governance/VotePage.vue'),
+    children: [
+      {
+        path: VOTE_CHILD_PATHS.login,
+        name: ROUTE_NAMES.VOTE_LOGIN,
+        component: () => import('@/pages/governance/VoteLoginPage.vue'),
+      },
+      {
+        path: VOTE_CHILD_PATHS.list,
+        name: ROUTE_NAMES.VOTE_LIST,
+        component: () => import('@/pages/governance/VoteListPage.vue'),
+      },
+      {
+        path: VOTE_CHILD_PATHS.create,
+        name: ROUTE_NAMES.VOTE_CREATE,
+        component: () => import('@/pages/governance/VoteCreatePage.vue'),
+      },
+      {
+        path: VOTE_CHILD_PATHS.detail,
+        name: ROUTE_NAMES.VOTE_DETAIL,
+        component: () => import('@/pages/governance/VoteDetailPage.vue'),
+      },
+    ],
   },
 ]

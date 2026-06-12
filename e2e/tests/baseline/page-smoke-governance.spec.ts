@@ -42,6 +42,9 @@ test.describe('Baseline Page Smoke: governance routes', () => {
 
     await gotoHash(appPage, '#/node/newAuthorization')
     await expect(appPage.locator('#new-authorization-input')).toBeVisible()
+
+    await gotoHash(appPage, '#/node/cancelAuthorization')
+    await expect(appPage.locator('#cancel-authorization-input')).toBeVisible()
   })
 
   test('should render vote routes after selecting a voting wallet', async ({ appPage }) => {

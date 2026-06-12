@@ -102,7 +102,7 @@ describe('useWalletDashboardPage', () => {
     const page = useWalletDashboardPage()
     page.sendAsset()
     expect(mocks.currentWalletStore.resetCurrentTransfer).toHaveBeenCalledWith({ gas: 0.01 })
-    expect(mocks.router.push).toHaveBeenCalledWith({ name: ROUTE_NAMES.COMMON_SEND_HOME })
+    expect(mocks.router.push).toHaveBeenCalledWith({ name: ROUTE_NAMES.SEND })
 
     mocks.currentWalletStore.resetCurrentTransfer.mockClear()
     mocks.currentWalletStore.wallet = { address: 'ALedger', ong: 1 }
@@ -111,7 +111,7 @@ describe('useWalletDashboardPage', () => {
 
     page.commonReceive()
     expect(mocks.router.push).toHaveBeenCalledWith({
-      path: ROUTE_PATHS.commonReceive('commonWallet'),
+      path: ROUTE_PATHS.receive('commonWallet'),
     })
     page.handleBack()
     expect(mocks.router.push).toHaveBeenCalledWith({ name: ROUTE_NAMES.WALLETS })
@@ -126,7 +126,7 @@ describe('useWalletDashboardPage', () => {
     const commonPage = useWalletDashboardPage()
     commonPage.redeemOng()
     expect(mocks.router.push).toHaveBeenCalledWith({
-      path: ROUTE_PATHS.commonRedeem('commonWallet'),
+      path: ROUTE_PATHS.redeem('commonWallet'),
     })
 
     mocks.currentWalletStore.wallet = {
@@ -137,7 +137,7 @@ describe('useWalletDashboardPage', () => {
     const hardwarePage = useWalletDashboardPage()
     hardwarePage.redeemOng()
     expect(mocks.router.push).toHaveBeenCalledWith({
-      path: ROUTE_PATHS.commonRedeem('hardwareWallet'),
+      path: ROUTE_PATHS.redeem('hardwareWallet'),
     })
   })
 

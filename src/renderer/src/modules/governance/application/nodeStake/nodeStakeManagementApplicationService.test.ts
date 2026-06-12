@@ -193,7 +193,6 @@ describe('nodeStakeManagementApplicationService', () => {
     expect(
       validateStakeAuthorizationUnit({
         unit: '11',
-        unitVal: 1,
         currentPeer: { initPos: 10 },
         posLimit: 1,
       })
@@ -204,7 +203,6 @@ describe('nodeStakeManagementApplicationService', () => {
         stakeDetail: { publicKey: 'pk-1' },
         stakeWalletAddress: 'AQ123',
         unit: '10',
-        unitVal: 1,
         currentMaxAuthorize: 10,
       })
     ).resolves.toEqual({

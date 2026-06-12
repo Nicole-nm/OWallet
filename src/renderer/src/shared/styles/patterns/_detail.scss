@@ -69,7 +69,14 @@
   position: absolute;
   right: var(--ow-space-1);
   bottom: 25px;
+  font-size: 18px;
+  color: var(--ow-color-text-muted);
   cursor: pointer;
+  transition: color var(--ow-duration) var(--ow-ease);
+}
+
+.ow-detail-copy:hover {
+  color: var(--ow-color-brand);
 }
 
 .ow-copied-label {
@@ -95,18 +102,19 @@
 
 .ow-icon-delete,
 .ow-icon-download {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--ow-color-text-muted);
   cursor: pointer;
-  background-position: center center;
-  background-repeat: no-repeat;
+  transition: color var(--ow-duration) var(--ow-ease);
 }
 
-.ow-icon-delete {
-  background-image: url('../../assets/delete.png');
+.ow-icon-delete:hover {
+  color: var(--ow-color-danger);
 }
 
-.ow-icon-download {
-  background-image: url('../../assets/download.png');
+.ow-icon-download:hover {
+  color: var(--ow-color-brand);
 }

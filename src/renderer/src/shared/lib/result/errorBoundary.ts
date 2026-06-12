@@ -1,5 +1,4 @@
-import i18n from '../../../lang'
-import { message } from 'ant-design-vue'
+import { notifyError } from '../../ui/feedback'
 import { logger } from '../logger'
 import { hideRuntimeLoading } from '../runtimeFeedback'
 import type { BoundaryResult, Ok } from './types'
@@ -40,7 +39,7 @@ export async function withErrorBoundary<T, K extends string = string>(
     if (context) logger.error(context, err)
     else logger.error(err)
     if (hideLoading) hideRuntimeLoading()
-    if (toast) message.error(i18n.global.t(errorKey))
+    if (toast) notifyError(errorKey)
     return { ok: false, errorKey, error: err }
   }
 }

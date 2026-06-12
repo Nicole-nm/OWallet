@@ -4,20 +4,20 @@ import { ROUTE_PATHS } from './routePaths'
 
 export const commonWalletRoutes: RouteRecordRaw[] = [
   {
-    path: ROUTE_PATHS.commonSend,
-    name: ROUTE_NAMES.COMMON_SEND_HOME,
+    path: ROUTE_PATHS.send,
+    name: ROUTE_NAMES.SEND,
     meta: { requiresCurrentWallet: true },
     component: () => import('@/pages/wallet/CommonSendPage.vue'),
   },
   {
-    path: ROUTE_PATHS.commonReceivePattern,
-    name: ROUTE_NAMES.COMMON_RECEIVE,
+    path: ROUTE_PATHS.receivePattern,
+    name: ROUTE_NAMES.RECEIVE,
     meta: { requiresCurrentWallet: true },
     component: () => import('@/pages/wallet/CommonReceivePage.vue'),
   },
   {
-    path: ROUTE_PATHS.commonRedeemPattern,
-    name: ROUTE_NAMES.COMMON_REDEEM,
+    path: ROUTE_PATHS.redeemPattern,
+    name: ROUTE_NAMES.REDEEM,
     meta: { requiresCurrentWallet: true },
     component: () => import('@/pages/wallet/CommonRedeemPage.vue'),
   },

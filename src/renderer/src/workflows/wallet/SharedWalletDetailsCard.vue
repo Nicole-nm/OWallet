@@ -10,9 +10,13 @@
       </div>
     </div>
     <div v-show="addressCopied" class="ow-copied-label">Copied</div>
-    <img class="ow-detail-copy" src="../../assets/copy.png" @click="copyAddress(wallet)" alt="" />
+    <CopyOutlined class="ow-detail-copy" :title="$t('common.copy')" @click="copyAddress(wallet)" />
     <div class="ow-detail-actions">
-      <span class="ow-icon-delete" @click="openDeleteModal()"></span>
+      <DeleteOutlined
+        class="ow-icon-delete"
+        :title="$t('common.deleteWallet')"
+        @click="openDeleteModal()"
+      />
     </div>
 
     <a-modal
@@ -33,6 +37,7 @@
 
 <script setup lang="ts">
 import { PropType } from 'vue'
+import { CopyOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { useSharedWalletDetailsCard } from './useSharedWalletDetailsCard'
 import type { SharedWalletSession } from '../../shared/types'
 

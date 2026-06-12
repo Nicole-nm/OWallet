@@ -85,7 +85,12 @@ export function useWalletDashboard(
       requestStart,
       showLoading,
       loadingStore,
-      tasks: [getBalance, getTransactions, getOep4Balances, ...extraTasks],
+      tasks: [
+        () => getBalance({ notifyOnError: false, throwOnError: true }),
+        () => getTransactions({ notifyOnError: false, throwOnError: true }),
+        () => getOep4Balances({ notifyOnError: false, throwOnError: true }),
+        ...extraTasks,
+      ],
     })
   }
 

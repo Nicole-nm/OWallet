@@ -8,7 +8,7 @@ import {
   createNewAuthorizationTransaction,
   resolveNewAuthorizationInput,
 } from '../../modules/governance/application/authorization/authorizationManagementApplicationService'
-import type { GovernanceSignablePayload } from '../../modules/governance/application/common/governanceSignablePayload'
+import { useGovernanceSignAndSend } from './useGovernanceSignAndSend'
 
 export function useNewAuthorizationPage() {
   const router = useRouter()
@@ -18,8 +18,6 @@ export function useNewAuthorizationPage() {
   const units = ref(1)
   const amount = ref(1)
   const validInput = ref(true)
-  const signVisible = ref(false)
-  const tx = ref<GovernanceSignablePayload>('')
 
   const currentNode = computed(() => nodeAuthStore.currentNode)
   const currentNodeDisplay = computed(() => ({
@@ -28,6 +26,8 @@ export function useNewAuthorizationPage() {
     totalPosDisplay: formatNumberForDisplay(currentNode.value.totalPosStr),
   }))
   const stakeWallet = computed(() => nodeStakeStore.stakeWallet)
+  const { walletPassword, usesCommonWallet, ledgerStatus, ensureSignerReady, signAndSend } =
+    useGovernanceSignAndSend({ wallet: () => stakeWallet.value })
 
   function setUnits(nextUnits: unknown) {
     units.value = Number(nextUnits || 0)
@@ -41,31 +41,12 @@ export function useNewAuthorizationPage() {
     return validInput.value
   }
 
-  function closeSignDialog() {
-    signVisible.value = false
-    tx.value = ''
-  }
-
   function handleRouteBack() {
     router.go(-1)
   }
 
   function handleChange() {
     return setUnits(units.value)
-  }
-
-  function handleCancel() {
-    closeSignDialog()
-  }
-
-  function handleTransactionSent() {
-    signVisible.value = false
-    tx.value = ''
-    router.go(-1)
-  }
-
-  function handleTxSent() {
-    handleTransactionSent()
   }
 
   async function submitNewAuthorization() {
@@ -94,15 +75,25 @@ export function useNewAuthorizationPage() {
       return result
     }
 
-    tx.value = result.tx
-    signVisible.value = true
-    return { ok: true }
+    return { ok: true as const, tx: result.tx }
   }
 
   async function submit() {
+    if (!ensureSignerReady()) {
+      return { ok: false as const }
+    }
+
     const result = await submitNewAuthorization()
-    notifyFailure(result, 'common.networkErr')
-    return result
+    if (!result.ok) {
+      notifyFailure(result, 'common.networkErr')
+      return result
+    }
+
+    const signResult = await signAndSend(result.tx)
+    if (signResult.ok) {
+      router.go(-1)
+    }
+    return signResult
   }
 
   return {
@@ -112,15 +103,12 @@ export function useNewAuthorizationPage() {
     units,
     amount,
     validInput,
-    signVisible,
-    tx,
+    walletPassword,
+    usesCommonWallet,
+    ledgerStatus,
     handleRouteBack,
     handleChange,
-    handleCancel,
-    handleTxSent,
     setUnits,
-    closeSignDialog,
-    handleTransactionSent,
     submitNewAuthorization,
     submit,
   }

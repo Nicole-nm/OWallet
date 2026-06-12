@@ -153,12 +153,12 @@ export function useOep4HomePage() {
       return
     }
 
-    router.push({ name: ROUTE_NAMES.COMMON_SEND_HOME })
+    router.push({ name: ROUTE_NAMES.SEND })
   }
 
   function commnReceive() {
     router.push({
-      path: ROUTE_PATHS.commonReceive(isSharedWallet.value ? 'sharedWallet' : 'commonWallet'),
+      path: ROUTE_PATHS.receive(isSharedWallet.value ? 'sharedWallet' : 'commonWallet'),
     })
   }
 

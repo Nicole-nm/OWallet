@@ -1,4 +1,4 @@
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { notifyFailure } from '../../shared/ui/notifyFailure'
@@ -13,11 +13,14 @@ import { formatNumberForDisplay } from '../../shared/lib/numberFormat'
 import {
   loadAuthorizationBlockCountdown,
   loadAuthorizationNodeListPage,
+  type AuthorizationNodeListSort,
+  type AuthorizationNodeListSortField,
 } from '../../modules/governance/application/authorization/authorizationQueryApplicationService'
 import type { GovernanceNode } from '../../shared/types'
 import { getAuthorizationBlockUnitLabel } from './countLabels'
 
 let countdownIntervalId: ReturnType<typeof setInterval> | null = null
+const NODE_CHECKMARK_DETAILS_URL = 'https://node-docs.ont.io/node-checkmark'
 
 interface AuthorizationPagination {
   current: number
@@ -32,6 +35,7 @@ export function useNodeAuthorizationListPage() {
   const nodeAuthStore = useNodeAuthorizationStore()
 
   const requesting = ref(false)
+  const sortState = ref<AuthorizationNodeListSort | null>(null)
   const countdown = ref(0)
   const countdownDisplay = computed(() => formatNumberForDisplay(countdown.value))
   const countdownUnitLabel = computed(() => getAuthorizationBlockUnitLabel(t, countdown.value))
@@ -45,42 +49,54 @@ export function useNodeAuthorizationListPage() {
       title: t('nodeMgmt.rank'),
       dataIndex: 'rank',
       key: 'rank',
-      width: 64,
+      width: 48,
       className: 'authorization-col-rank',
     },
     {
       title: t('nodeMgmt.name'),
       dataIndex: 'name',
       key: 'name',
-      width: 190,
+      width: 136,
       className: 'authorization-col-name',
+    },
+    {
+      dataIndex: 'checkmark',
+      key: 'checkmark',
+      width: 112,
+      className: 'authorization-col-checkmark',
     },
     {
       dataIndex: 'nodeProportion',
       key: 'nodeProportion',
-      width: 220,
+      width: 144,
       className: 'authorization-col-proportion',
     },
     {
       title: t('nodeMgmt.currentStake'),
       dataIndex: 'currentStake',
       key: 'currentStake',
-      width: 150,
-      align: 'right' as const,
+      width: 116,
       className: 'authorization-col-current-stake',
+    },
+    {
+      dataIndex: 'annualizedYield',
+      key: 'annualizedYield',
+      width: 154,
+      align: 'right' as const,
+      className: 'authorization-col-annualized-yield',
     },
     {
       title: t('nodeMgmt.process'),
       dataIndex: 'process',
       key: 'process',
-      width: 96,
+      width: 122,
       align: 'right' as const,
       className: 'authorization-col-process',
     },
     {
       title: '',
       key: 'action',
-      width: 56,
+      width: 48,
       align: 'center' as const,
       className: 'authorization-col-action',
     },
@@ -93,6 +109,7 @@ export function useNodeAuthorizationListPage() {
         network: settingStore.network,
         pageSize: pagination.value.pageSize,
         pageNum: pagination.value.current - 1,
+        sort: sortState.value,
       })
 
       if (!result.ok) {
@@ -150,6 +167,24 @@ export function useNodeAuthorizationListPage() {
     await fetchList({ showError: true })
   }
 
+  function getNextSortState(field: AuthorizationNodeListSortField) {
+    if (sortState.value?.field !== field) {
+      return { field, order: 'ascend' as const }
+    }
+
+    if (sortState.value.order === 'ascend') {
+      return { field, order: 'descend' as const }
+    }
+
+    return null
+  }
+
+  async function toggleAuthorizationSort(field: AuthorizationNodeListSortField) {
+    sortState.value = getNextSortState(field)
+    pagination.value = { ...pagination.value, current: 1 }
+    await fetchList({ showError: true })
+  }
+
   function beginAuthorization(record: GovernanceNode) {
     const result = openAuthorizationLogin({
       currentNode: record,
@@ -191,6 +226,41 @@ export function useNodeAuthorizationListPage() {
     })
   }
 
+  function showCheckmarkTip() {
+    Modal.info({
+      title: t('nodeMgmt.checkmark'),
+      content: () =>
+        h('div', [
+          h('p', t('nodeMgmt.checkmarkTip')),
+          h('p', [
+            `${t('nodeMgmt.checkmarkDetails')}: `,
+            h(
+              'a',
+              {
+                href: NODE_CHECKMARK_DETAILS_URL,
+                target: '_blank',
+                rel: 'noopener noreferrer',
+                onClick: (event: MouseEvent) => {
+                  event.preventDefault()
+                  openExternalUrl(NODE_CHECKMARK_DETAILS_URL)
+                },
+              },
+              NODE_CHECKMARK_DETAILS_URL
+            ),
+          ]),
+        ]),
+      okText: 'OK',
+    })
+  }
+
+  function showAnnualizedYieldTip() {
+    Modal.info({
+      title: t('nodeMgmt.annualizedYield'),
+      content: t('nodeMgmt.annualizedYieldTip'),
+      okText: 'OK',
+    })
+  }
+
   function toStakeHistory() {
     return goToStakeHistory()
   }
@@ -214,6 +284,8 @@ export function useNodeAuthorizationListPage() {
     authorizationListRequesting: requesting,
     authorizationListPagination: pagination,
     authorizationListNodes: computed(() => nodeAuthStore.nodeList),
+    authorizationListSortField: computed(() => sortState.value?.field ?? ''),
+    authorizationListSortOrder: computed(() => sortState.value?.order ?? ''),
     authorizationListCountdown: computed(() => countdown.value),
     authorizationListCountdownDisplay: countdownDisplay,
     authorizationListCountdownUnit: countdownUnitLabel,
@@ -221,7 +293,10 @@ export function useNodeAuthorizationListPage() {
     handleAuthorizeLogin,
     handleNodeDetail,
     handleTableChange,
+    toggleAuthorizationSort,
     showProportionTip,
+    showCheckmarkTip,
+    showAnnualizedYieldTip,
     toStakeHistory,
     toQuestion,
     initializeAuthorizationListPage: initializePage,

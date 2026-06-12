@@ -1,9 +1,6 @@
-import { defineAsyncComponent, h, type VNode } from 'vue'
-import { message, Modal, notification } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 import i18n from '../../lang'
-import type { AppErrorPayload, FailureMetadata } from '../lib/result/types'
-
-const AppErrorDetails = defineAsyncComponent(() => import('./AppErrorDetails.vue'))
+import type { AppErrorPayload } from '../lib/result/types'
 
 type FeedbackContent = string | number
 type FeedbackOptions = { literal?: boolean }
@@ -14,10 +11,7 @@ type SuccessModalOptions = {
   literalContent?: boolean
 }
 
-const DEFAULT_DURATION_ERROR = 8
-const DEFAULT_DURATION_WARNING = 6
-const DEFAULT_DURATION_SUCCESS = 3
-const DEFAULT_DURATION_INFO = 4
+type MessageLevel = 'error' | 'warning' | 'success' | 'info'
 
 export function translateFeedback(key: FeedbackContent, fallback: FeedbackContent = key): string {
   const keyString = String(key)
@@ -30,21 +24,63 @@ function resolveContent(content: FeedbackContent, literal = false): string {
   return literal ? String(content) : translateFeedback(content)
 }
 
+function normalizeToastKeyPart(value: string | undefined): string {
+  return (value ?? '').replace(/\s+/g, ' ').trim()
+}
+
+function hashToastKey(parts: Array<string | undefined>): string {
+  const input = parts.map(normalizeToastKeyPart).join('\x1f')
+  let hash = 0x811c9dc5
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return (hash >>> 0).toString(36)
+}
+
+function dedupeKeyFor(level: MessageLevel, parts: Array<string | undefined>): string {
+  return `owallet-message-${level}-${hashToastKey(parts)}`
+}
+
+function messageKeyFor(level: MessageLevel, content: string): string {
+  return dedupeKeyFor(level, [content])
+}
+
 // ---------------------------------------------------------------------------
 // Backward-compat shims — single-line toasts. Used by older call sites and by
 // the tests that mock `ant-design-vue`'s `message` API.
 // ---------------------------------------------------------------------------
 
 export function notifySuccess(content: FeedbackContent, options: FeedbackOptions = {}) {
-  return message.success(resolveContent(content, options.literal))
+  const resolvedContent = resolveContent(content, options.literal)
+  return message.success({
+    content: resolvedContent,
+    key: messageKeyFor('success', resolvedContent),
+  })
 }
 
 export function notifyWarning(content: FeedbackContent, options: FeedbackOptions = {}) {
-  return message.warning(resolveContent(content, options.literal))
+  const resolvedContent = resolveContent(content, options.literal)
+  return message.warning({
+    content: resolvedContent,
+    key: messageKeyFor('warning', resolvedContent),
+  })
 }
 
 export function notifyError(content: FeedbackContent, options: FeedbackOptions = {}) {
-  return message.error(resolveContent(content, options.literal))
+  const resolvedContent = resolveContent(content, options.literal)
+  return message.error({
+    content: resolvedContent,
+    key: messageKeyFor('error', resolvedContent),
+  })
+}
+
+export function notifyInfo(content: FeedbackContent, options: FeedbackOptions = {}) {
+  const resolvedContent = resolveContent(content, options.literal)
+  return message.info({
+    content: resolvedContent,
+    key: messageKeyFor('info', resolvedContent),
+  })
 }
 
 export function showSuccessModal({
@@ -59,95 +95,23 @@ export function showSuccessModal({
   })
 }
 
-// ---------------------------------------------------------------------------
-// Rich toast pipeline — preserves AppErrorPayload's category/code/cause and
-// surfaces a "Details" affordance for support diagnostics.
-// ---------------------------------------------------------------------------
-
-type NotificationLevel = 'error' | 'warning' | 'success' | 'info'
-
-function notificationKeyFor(payload: FailureMetadata): string {
-  return `app-${payload.code ?? payload.category ?? 'generic'}`
-}
-
-function durationFor(level: NotificationLevel, payload?: FailureMetadata): number {
-  switch (level) {
-    case 'error':
-      return payload?.category === 'unknown' ? 0 : DEFAULT_DURATION_ERROR
-    case 'warning':
-      return DEFAULT_DURATION_WARNING
-    case 'success':
-      return DEFAULT_DURATION_SUCCESS
-    case 'info':
-      return DEFAULT_DURATION_INFO
-  }
-}
-
-function hasDiagnosticDetails(payload: FailureMetadata): boolean {
-  return Boolean(payload.code || payload.cause || payload.detail)
-}
-
-function openDetailsModal(payload: FailureMetadata, title: string): void {
-  Modal.info({
-    title,
-    width: 640,
-    content: () => h(AppErrorDetails, { payload }) as VNode,
-    okText: translateFeedback('feedback.close', 'Close'),
-  })
-}
-
-function buildDetailsButton(payload: FailureMetadata, dialogTitle: string): VNode | undefined {
-  if (!hasDiagnosticDetails(payload)) return undefined
-  const label = translateFeedback('feedback.details', 'Details')
-  return h(
-    'button',
-    {
-      type: 'button',
-      class: 'owallet-toast-details-btn',
-      onClick: () => openDetailsModal(payload, dialogTitle),
-      style: 'background:transparent;border:0;padding:0;color:#1677ff;cursor:pointer;font:inherit;',
-    },
-    label
-  )
-}
-
-function emit(level: NotificationLevel, payload: AppErrorPayload, title?: string): void {
-  const resolvedTitle = title ?? translateFeedback(payload.errorKey)
-  const description = payload.detail || undefined
-  const btn = buildDetailsButton(payload, resolvedTitle)
-
-  notification[level]({
-    message: resolvedTitle,
-    description,
-    btn,
-    duration: durationFor(level, payload),
-    key: notificationKeyFor(payload),
-  })
-}
-
 export function showAppError(payload: AppErrorPayload, options: { titleKey?: string } = {}): void {
-  emit('error', payload, options.titleKey ? translateFeedback(options.titleKey) : undefined)
+  notifyError(options.titleKey ?? payload.errorKey)
 }
 
 export function showAppWarning(
   payload: AppErrorPayload,
   options: { titleKey?: string } = {}
 ): void {
-  emit('warning', payload, options.titleKey ? translateFeedback(options.titleKey) : undefined)
+  notifyWarning(options.titleKey ?? payload.errorKey)
 }
 
 export function showAppSuccess(content: FeedbackContent, detail?: string): void {
-  notification.success({
-    message: resolveContent(content),
-    description: detail || undefined,
-    duration: durationFor('success'),
-  })
+  void detail
+  notifySuccess(content)
 }
 
 export function showAppInfo(content: FeedbackContent, detail?: string): void {
-  notification.info({
-    message: resolveContent(content),
-    description: detail || undefined,
-    duration: durationFor('info'),
-  })
+  void detail
+  notifyInfo(content)
 }

@@ -20,7 +20,16 @@ describe('useNodeApplyForm', () => {
 
   it('advances only after the node apply form validates', () => {
     const stakeWallet = ref<NodeApplyWallet | null>({ address: 'AQ-stake' } as NodeApplyWallet)
-    const form = useNodeApplyForm({ stakeWallet, getNodePublicKey: () => 'operation-pk' })
+    const ontBalance = ref('10000')
+    const ongBalance = ref('500.1')
+    const walletType = ref('commonWallet')
+    const form = useNodeApplyForm({
+      stakeWallet,
+      getNodePublicKey: () => 'operation-pk',
+      ontBalance,
+      ongBalance,
+      walletType,
+    })
     form.stakeAmount.value = '10000'
 
     form.next()
@@ -31,7 +40,16 @@ describe('useNodeApplyForm', () => {
 
   it('keeps the user on the current step when validation fails', () => {
     const stakeWallet = ref<NodeApplyWallet | null>(null)
-    const form = useNodeApplyForm({ stakeWallet, getNodePublicKey: () => '' })
+    const ontBalance = ref('10000')
+    const ongBalance = ref('500.1')
+    const walletType = ref('commonWallet')
+    const form = useNodeApplyForm({
+      stakeWallet,
+      getNodePublicKey: () => '',
+      ontBalance,
+      ongBalance,
+      walletType,
+    })
     mocks.notifyFailure.mockReturnValueOnce(true)
 
     form.next()
@@ -44,9 +62,15 @@ describe('useNodeApplyForm', () => {
   })
 
   it('validates amount format and moves back from the confirmation step', () => {
+    const ontBalance = ref('10000')
+    const ongBalance = ref('500.1')
+    const walletType = ref('commonWallet')
     const form = useNodeApplyForm({
       stakeWallet: ref<NodeApplyWallet | null>({ address: 'AQ-stake' } as NodeApplyWallet),
       getNodePublicKey: () => 'operation-pk',
+      ontBalance,
+      ongBalance,
+      walletType,
     })
 
     form.stakeAmount.value = '10.5'

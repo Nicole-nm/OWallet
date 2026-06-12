@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
     peerAttributes: {
       maxAuthorize: 0,
       maxAuthorizeStr: '0',
+      tPeerCost: 0,
+      tStakeCost: 0,
     },
     splitFee: { amount: '0' },
     posLimit: 1,
@@ -84,9 +86,53 @@ import { useNodeStakeAuthorizationPanel } from './useNodeStakeAuthorizationPanel
 describe('useNodeStakeAuthorizationPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.nodeAuthStore.currentPeer = {
+      initPos: 1,
+      initPosStr: '0',
+      totalPosStr: '0',
+    }
+    mocks.nodeAuthStore.peerAttributes = {
+      maxAuthorize: 0,
+      maxAuthorizeStr: '0',
+      tPeerCost: 0,
+      tStakeCost: 0,
+    }
+    mocks.nodeAuthStore.splitFee = { amount: '0' }
+    mocks.nodeAuthStore.posLimit = 1
+    mocks.nodeAuthStore.peerUnboundOng = 0
+    mocks.nodeAuthStore.setCurrentPeer.mockImplementation(({ peer }) => {
+      mocks.nodeAuthStore.currentPeer = peer as never
+    })
+    mocks.nodeAuthStore.setPeerAttributes.mockImplementation(({ peerAttributes }) => {
+      mocks.nodeAuthStore.peerAttributes = peerAttributes as never
+    })
+    mocks.nodeAuthStore.setSplitFee.mockImplementation(({ splitFee }) => {
+      mocks.nodeAuthStore.splitFee = splitFee as never
+    })
+    mocks.nodeAuthStore.setPosLimit.mockImplementation(({ posLimit }) => {
+      mocks.nodeAuthStore.posLimit = posLimit as never
+    })
+    mocks.nodeAuthStore.setPeerUnboundOng.mockImplementation(({ peerUnboundOng }) => {
+      mocks.nodeAuthStore.peerUnboundOng = peerUnboundOng as never
+    })
     mocks.nodeStakeService.refreshNodeStakeAuthorizationDetails.mockResolvedValue({ ok: true })
     mocks.feedback.notifyFailure.mockReturnValue(false)
     mocks.nodeStakeStore.stakeWallet = { address: 'AQ123' }
+  })
+
+  it('initializes editable authorization values from the current peer attributes', () => {
+    mocks.nodeAuthStore.peerAttributes = {
+      maxAuthorize: 1200,
+      maxAuthorizeStr: '1200',
+      tPeerCost: 15,
+      tStakeCost: 35,
+    }
+
+    const panel = useNodeStakeAuthorizationPanel()
+
+    expect(panel.unit.value).toBe(1200)
+    expect(panel.peerCost.value).toBe(15)
+    expect(panel.stakeCost.value).toBe(35)
   })
 
   it('keeps the allowed stake amount when authentication is canceled', () => {
@@ -103,7 +149,15 @@ describe('useNodeStakeAuthorizationPanel', () => {
     expect(panel.unit.value).toBe(1200)
   })
 
-  it('clears the allowed stake amount after the transaction is sent', () => {
+  it('syncs the allowed stake amount after the transaction is sent', async () => {
+    mocks.nodeStakeService.refreshNodeStakeAuthorizationDetails.mockResolvedValue({
+      ok: true,
+      currentPeer: { initPos: 10 },
+      peerAttributes: { maxAuthorize: 2400, maxAuthorizeStr: '2400' },
+      splitFee: { amount: 3 },
+      posLimit: 4,
+      peerUnboundOng: 5,
+    })
     const panel = useNodeStakeAuthorizationPanel()
 
     panel.unit.value = 1200
@@ -111,10 +165,11 @@ describe('useNodeStakeAuthorizationPanel', () => {
     panel.signVisible.value = true
 
     panel.handleTxSent()
+    await Promise.resolve()
 
     expect(panel.signVisible.value).toBe(false)
     expect(panel.tx.value).toBe('')
-    expect(panel.unit.value).toBe(0)
+    expect(panel.unit.value).toBe(2400)
     expect(mocks.nodeStakeService.refreshNodeStakeAuthorizationDetails).toHaveBeenCalledWith({
       stakeDetail: {},
       stakeWalletAddress: 'AQ123',
@@ -125,7 +180,7 @@ describe('useNodeStakeAuthorizationPanel', () => {
     mocks.nodeStakeService.refreshNodeStakeAuthorizationDetails.mockResolvedValue({
       ok: true,
       currentPeer: { initPos: 10 },
-      peerAttributes: { maxAuthorize: 20 },
+      peerAttributes: { maxAuthorize: 20, maxAuthorizeStr: '20' },
       splitFee: { amount: 3 },
       posLimit: 4,
       peerUnboundOng: 5,
@@ -138,8 +193,9 @@ describe('useNodeStakeAuthorizationPanel', () => {
       peer: { initPos: 10 },
     })
     expect(mocks.nodeAuthStore.setPeerAttributes).toHaveBeenCalledWith({
-      peerAttributes: { maxAuthorize: 20 },
+      peerAttributes: { maxAuthorize: 20, maxAuthorizeStr: '20' },
     })
+    expect(panel.unit.value).toBe(20)
     expect(mocks.nodeAuthStore.setSplitFee).toHaveBeenCalledWith({ splitFee: { amount: 3 } })
     expect(mocks.nodeAuthStore.setPosLimit).toHaveBeenCalledWith({ posLimit: 4 })
     expect(mocks.nodeAuthStore.setPeerUnboundOng).toHaveBeenCalledWith({ peerUnboundOng: 5 })
@@ -175,7 +231,6 @@ describe('useNodeStakeAuthorizationPanel', () => {
     await panel.confirmChangeAuthorization()
     await panel.confirmChangeAuthorization()
     panel.unit.value = 2
-    panel.unitVal.value = 3
     await panel.confirmChangeAuthorization()
 
     expect(mocks.feedback.notifyError).toHaveBeenNthCalledWith(1, 'nodeMgmt.invalidInput')
@@ -184,7 +239,6 @@ describe('useNodeStakeAuthorizationPanel', () => {
       stakeDetail: {},
       stakeWalletAddress: 'AQ123',
       unit: 2,
-      unitVal: 3,
       currentMaxAuthorize: 0,
     })
     expect(panel.tx.value).toBe('authorize-tx')
@@ -219,7 +273,16 @@ describe('useNodeStakeAuthorizationPanel', () => {
     })
     const panel = useNodeStakeAuthorizationPanel()
 
+    mocks.nodeAuthStore.peerAttributes = {
+      maxAuthorize: 0,
+      maxAuthorizeStr: '0',
+      tPeerCost: 13,
+      tStakeCost: 21,
+    }
     panel.editProportion()
+    expect(panel.peerCost.value).toBe(13)
+    expect(panel.stakeCost.value).toBe(21)
+
     panel.peerCost.value = 10
     panel.stakeCost.value = 20
     await panel.confirmChangeCost()

@@ -1,5 +1,8 @@
 import { computed, ref } from 'vue'
-import { validateNodeApplyOperationWallet } from '../../modules/governance/application/nodeStake/nodeApplyApplicationService'
+import {
+  loadNodeApplyStakeWalletBalance,
+  validateNodeApplyOperationWallet,
+} from '../../modules/governance/application/nodeStake/nodeApplyApplicationService'
 import {
   mapOperationWalletOptions,
   mapStakeWalletOptions,
@@ -56,6 +59,8 @@ export function useNodeApplyWalletSelection(walletsStore: NodeApplyWalletsStoreL
   const stakeWallet = ref<NodeApplyWallet | null>(null)
   const operationWallet = ref<string | undefined>(undefined)
   const operationPk = ref('')
+  const ontBalance = ref('0')
+  const ongBalance = ref('0')
 
   const ledgerList = computed(() => walletsStore.hardwareWallets)
   const stakeWalletOptions = computed(() => {
@@ -111,7 +116,7 @@ export function useNodeApplyWalletSelection(walletsStore: NodeApplyWalletsStoreL
     }
   }
 
-  function onWalletSelected(selection: WalletSelection) {
+  async function onWalletSelected(selection: WalletSelection) {
     const wallet = toNodeApplyWallet(selection)
     if (!wallet) {
       return
@@ -121,6 +126,20 @@ export function useNodeApplyWalletSelection(walletsStore: NodeApplyWalletsStoreL
     stakeWalletValue.value = wallet.address
     stakeWallet.value = wallet
     void onSelectOperationWallet()
+
+    try {
+      const balanceResult = await loadNodeApplyStakeWalletBalance(wallet.address)
+      if (balanceResult.ok) {
+        ontBalance.value = String(balanceResult.data.ont ?? '0')
+        ongBalance.value = String(balanceResult.data.ong ?? '0')
+      } else {
+        ontBalance.value = '0'
+        ongBalance.value = '0'
+      }
+    } catch {
+      ontBalance.value = '0'
+      ongBalance.value = '0'
+    }
   }
 
   return {
@@ -135,5 +154,7 @@ export function useNodeApplyWalletSelection(walletsStore: NodeApplyWalletsStoreL
     getNodePublicKey,
     onWalletSelected,
     onSelectOperationWallet,
+    ontBalance,
+    ongBalance,
   }
 }

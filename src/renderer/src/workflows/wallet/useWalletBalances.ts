@@ -10,6 +10,23 @@ import {
 } from '../../modules/wallet/application/dashboard/walletDashboardApplicationService'
 import { loadSelectedOep4TokenBalances } from '../../modules/wallet/application/transfer/tokenSelectionApplicationService'
 
+interface WalletBalanceLoadOptions {
+  notifyOnError?: boolean
+  throwOnError?: boolean
+}
+
+function createRefreshFailure(errorKey: string, result: Record<string, unknown>) {
+  return {
+    category: result.category ?? 'network',
+    code: result.code ?? 'network.request_failed',
+    detail: typeof result.detail === 'string' ? result.detail : undefined,
+    cause: result.error ?? result.cause,
+    retryable: result.retryable,
+    level: result.level,
+    errorKey,
+  }
+}
+
 export function useWalletBalances({
   address,
   currentWalletStore,
@@ -32,11 +49,16 @@ export function useWalletBalances({
     return selected.map((token) => ({ ...token, balance: 0 }))
   })
 
-  async function getBalance() {
+  async function getBalance(options: WalletBalanceLoadOptions = {}) {
     if (!address.value) return null
     const result = await loadWalletNativeBalance(address.value)
     if (!result.ok) {
-      notifyError(t('dashboard.getBalanceErr'), { literal: true })
+      if (options.throwOnError) {
+        throw createRefreshFailure('dashboard.getBalanceErr', result)
+      }
+      if (options.notifyOnError !== false) {
+        notifyError(t('dashboard.getBalanceErr'), { literal: true })
+      }
       return null
     }
 
@@ -46,13 +68,21 @@ export function useWalletBalances({
     return result.balance
   }
 
-  async function getOep4Balances() {
+  async function getOep4Balances(options: WalletBalanceLoadOptions = {}) {
     if (!address.value) return []
     const result = await loadSelectedOep4TokenBalances({
       address: address.value,
       selectedTokensByNetwork: tokensStore.oep4Tokens[settingStore.network],
     })
-    if (notifyFailure(result, 'common.networkErr')) return []
+    if (!result.ok) {
+      if (options.throwOnError) {
+        throw createRefreshFailure(result.errorKey || 'common.networkErr', result)
+      }
+      if (options.notifyOnError !== false) {
+        notifyFailure(result, 'common.networkErr')
+      }
+      return []
+    }
 
     tokensStore.setOep4Balances(result.balances)
     return result.balances

@@ -17,9 +17,14 @@
       </div>
     </div>
     <div v-show="addressCopied" class="ow-copied-label">Copied</div>
-    <img class="ow-detail-copy" src="../../assets/copy.png" @click="copyAddress(wallet)" alt="" />
+    <CopyOutlined class="ow-detail-copy" :title="$t('common.copy')" @click="copyAddress(wallet)" />
     <div class="ow-detail-actions">
-      <span class="ow-icon-delete" @click="deleteWallet()" v-if="!isCommonWallet"></span>
+      <DeleteOutlined
+        class="ow-icon-delete"
+        :title="$t('common.deleteWallet')"
+        @click="deleteWallet()"
+        v-if="!isCommonWallet"
+      />
       <a-dropdown v-if="isCommonWallet">
         <template #overlay>
           <a-menu>
@@ -140,7 +145,7 @@ import { useI18n } from 'vue-i18n'
 import { useCopyFeedback } from '../../shared/composables/useCopyFeedback'
 import { useCurrentWalletStore } from '../../stores/modules/CurrentWallet'
 import { ROUTE_NAMES } from '../../router/routes'
-import { DownOutlined, WarningFilled } from '@ant-design/icons-vue'
+import { DownOutlined, WarningFilled, CopyOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 import { usePasswordChange } from './usePasswordChange'
 import { useWalletExport } from './useWalletExport'
 import { useWalletDeletion } from './useWalletDeletion'

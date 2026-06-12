@@ -1,13 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const notifyError = vi.hoisted(() => vi.fn())
-const messageError = vi.hoisted(() => vi.fn())
 const loggerError = vi.hoisted(() => vi.fn())
 const hideRuntimeLoading = vi.hoisted(() => vi.fn())
 
 vi.mock('../../ui/feedback', () => ({ notifyError }))
-vi.mock('../../../lang', () => ({ default: { global: { t: (key: string) => key } } }))
-vi.mock('ant-design-vue', () => ({ message: { error: messageError } }))
 vi.mock('../logger', () => ({ logger: { error: loggerError } }))
 vi.mock('../runtimeFeedback', () => ({ hideRuntimeLoading }))
 
@@ -121,7 +118,7 @@ describe('withErrorBoundary', () => {
     expect(result).toEqual({ ok: false, errorKey: 'my.key', error: boom })
     expect(loggerError).toHaveBeenCalledWith('ctx', boom)
     expect(hideRuntimeLoading).toHaveBeenCalled()
-    expect(messageError).toHaveBeenCalledWith('my.key')
+    expect(notifyError).toHaveBeenCalledWith('my.key')
   })
 
   it('respects toast=false and hideLoading=false', async () => {
@@ -132,7 +129,7 @@ describe('withErrorBoundary', () => {
       { toast: false, hideLoading: false }
     )
 
-    expect(messageError).not.toHaveBeenCalled()
+    expect(notifyError).not.toHaveBeenCalled()
     expect(hideRuntimeLoading).not.toHaveBeenCalled()
     expect(loggerError).toHaveBeenCalled()
   })

@@ -11,7 +11,6 @@ function createEmptyStakeDetail(): StakeDetail {
     name: '',
     nodeAddress: '',
     ontid: '',
-    contract: '',
     stakeWalletAddress: '',
     commitmentQuantity: 0,
     transactionHash: '',

@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   applyManagementContext: vi.fn(),
   notifyError: vi.fn(),
   notifyFailure: vi.fn(),
+  ensureSignerReady: vi.fn(),
+  signAndSend: vi.fn(),
 }))
 
 vi.mock('../../modules/governance/application/nodeStake/nodeApplyApplicationService', () => ({
@@ -33,6 +35,16 @@ vi.mock('../../shared/ui/feedback', () => ({
 
 vi.mock('../../shared/ui/notifyFailure', () => ({
   notifyFailure: (...args: unknown[]) => mocks.notifyFailure(...args),
+}))
+
+vi.mock('./useGovernanceSignAndSend', () => ({
+  useGovernanceSignAndSend: () => ({
+    walletPassword: { value: '' },
+    usesCommonWallet: { value: true },
+    ledgerStatus: { value: '' },
+    ensureSignerReady: (...args: unknown[]) => mocks.ensureSignerReady(...args),
+    signAndSend: (...args: unknown[]) => mocks.signAndSend(...args),
+  }),
 }))
 
 import { useNodeApplyTransaction } from './useNodeApplyTransaction'
@@ -79,13 +91,15 @@ describe('useNodeApplyTransaction', () => {
       ok: true,
       nodePublicKey: 'node-pk',
     })
+    mocks.ensureSignerReady.mockReturnValue(true)
+    mocks.signAndSend.mockResolvedValue({ ok: true })
     mocks.openNodeManagement.mockReturnValue({
       route: { name: 'NodeStakeManagement' },
       context: { activeTab: 3, nodePublicKey: 'node-pk' },
     })
   })
 
-  it('creates a transaction draft and opens the signing modal', async () => {
+  it('creates a transaction draft and signs inline', async () => {
     const { subject } = createSubject()
 
     await expect(subject.confirm()).resolves.toMatchObject({ ok: true })
@@ -100,12 +114,12 @@ describe('useNodeApplyTransaction', () => {
       operationWalletPublicKey: 'node-pk',
       stakeAmount: '10000',
     })
-    expect(subject.tx.value).not.toBeNull()
-    expect(subject.signVisible.value).toBe(true)
-
-    subject.handleTxCancel()
-    expect(subject.tx.value).toBeNull()
-    expect(subject.signVisible.value).toBe(false)
+    expect(mocks.signAndSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        serializeUnsignedData: expect.any(Function),
+      })
+    )
+    expect(subject.registerSucceed.value).toBe(true)
   })
 
   it('persists pending node info after the transaction is sent', async () => {
@@ -149,8 +163,7 @@ describe('useNodeApplyTransaction', () => {
     const { subject } = createSubject()
     await subject.confirm()
 
-    expect(subject.tx.value).toBeNull()
-    expect(subject.signVisible.value).toBe(false)
+    expect(mocks.signAndSend).not.toHaveBeenCalled()
   })
 
   it('confirm stops before creating a draft when the operation public key is registered', async () => {
@@ -170,8 +183,7 @@ describe('useNodeApplyTransaction', () => {
       'common.networkErr'
     )
     expect(mocks.createNodeApplyTransactionDraft).not.toHaveBeenCalled()
-    expect(subject.tx.value).toBeNull()
-    expect(subject.signVisible.value).toBe(false)
+    expect(mocks.signAndSend).not.toHaveBeenCalled()
   })
 
   it('persistPendingNodeInfo records the failure but leaves the persisted flag false', async () => {

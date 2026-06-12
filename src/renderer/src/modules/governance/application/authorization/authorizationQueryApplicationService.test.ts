@@ -69,6 +69,11 @@ describe('authorizationQueryApplicationService', () => {
           detail_url: 'https://example.com/node-a',
           total_pos: 1700,
           max_authorize: 10,
+          fee_sharing_ratio: 1,
+          ontology_harbinger: 1,
+          bad_actor: 0,
+          risky: 0,
+          apr: '12.34%',
         },
       ],
       10,
@@ -83,10 +88,37 @@ describe('authorizationQueryApplicationService', () => {
         userProportion: '80%',
         currentStakeValue: 1200,
         currentStake: '1\u2009200',
+        annualizedYield: '12.34%',
+        fee_sharing_ratio: 1,
+        ontology_harbinger: 1,
+        bad_actor: 0,
+        risky: 0,
         detailUrl: 'https://example.com/node-a',
       }),
     ])
     expect(page.list[0]).not.toHaveProperty('node_rank')
+  })
+
+  it('sorts authorization node pages before pagination', () => {
+    const records = [
+      { rank: 1, name: 'Node A', current_stake: 1200, apr: '8.5%' },
+      { rank: 2, name: 'Node B', current_stake: 3000, apr: '6.25%' },
+      { rank: 3, name: 'Node C', current_stake: 900, apr: '12.34%' },
+    ]
+
+    expect(
+      mapAuthorizationNodeListPage(records, 10, 0, {
+        field: 'currentStake',
+        order: 'ascend',
+      }).list.map((node) => node.name)
+    ).toEqual(['Node C', 'Node A', 'Node B'])
+
+    expect(
+      mapAuthorizationNodeListPage(records, 2, 0, {
+        field: 'annualizedYield',
+        order: 'descend',
+      }).list.map((node) => node.name)
+    ).toEqual(['Node C', 'Node A'])
   })
 
   it('loads authorization overview data and returns normalized state', async () => {

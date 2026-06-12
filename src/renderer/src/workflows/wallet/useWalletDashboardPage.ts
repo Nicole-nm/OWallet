@@ -46,11 +46,11 @@ export function useWalletDashboardPage() {
     dashboard.currentWalletStore.resetCurrentTransfer({
       gas: resolveDefaultTransferFee(currentWallet.value.key ? 'common' : 'ledger'),
     })
-    router.push({ name: ROUTE_NAMES.COMMON_SEND_HOME })
+    router.push({ name: ROUTE_NAMES.SEND })
   }
 
   function commonReceive() {
-    router.push({ path: ROUTE_PATHS.commonReceive('commonWallet') })
+    router.push({ path: ROUTE_PATHS.receive('commonWallet') })
   }
 
   function redeemOng() {
@@ -67,11 +67,11 @@ export function useWalletDashboardPage() {
 
     dashboard.currentWalletStore.setCurrentRedeem({ redeem })
     if (currentWallet.value.key) {
-      router.push({ path: ROUTE_PATHS.commonRedeem('commonWallet') })
+      router.push({ path: ROUTE_PATHS.redeem('commonWallet') })
       return
     }
 
-    router.push({ path: ROUTE_PATHS.commonRedeem('hardwareWallet') })
+    router.push({ path: ROUTE_PATHS.redeem('hardwareWallet') })
   }
 
   async function copy(value: unknown) {
