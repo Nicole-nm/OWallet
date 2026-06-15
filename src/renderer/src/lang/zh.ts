@@ -733,7 +733,8 @@ export default {
     hasClaimableInitPos: '您还有可提取的初始质押。请先提取该部分ONT。',
     noClaimbleToRefund: '没有可提取的ONT。无法提款。',
     newNodeApply: '注册新节点',
-    nodeApplyTip: '注册成为本体的节点',
+    nodeApplyTip: '更高收益、灵活配置，以及更强的社区治理。',
+    nodeApplyReq: '需至少质押 10,000 ONT，并支付 500 ONG 手续费。',
   },
   vote: {
     node: '治理',

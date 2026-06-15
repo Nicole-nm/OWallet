@@ -746,7 +746,8 @@ Within their 50% share each consensus node will receive their share according to
     hasClaimableInitPos: 'You have redeemable init pos. Please redeem this part first.',
     noClaimbleToRefund: 'No redeemable ONT to refund.',
     newNodeApply: 'New Node Apply',
-    nodeApplyTip: '',
+    nodeApplyTip: 'Higher returns, flexible configuration, and stronger community governance.',
+    nodeApplyReq: 'Requires a minimum of 10,000 ONT plus a 500 ONG fee.',
   },
   vote: {
     node: 'Governance',

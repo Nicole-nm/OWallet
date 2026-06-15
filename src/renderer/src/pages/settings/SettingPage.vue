@@ -279,7 +279,7 @@ function handleThemeModeChange(value: string) {
 .setting-page {
   box-sizing: border-box;
   height: 100%;
-  padding: var(--ow-space-6) var(--ow-space-5) var(--ow-space-6) var(--ow-space-16);
+  padding: var(--ow-space-6) var(--ow-space-5) var(--ow-space-4) var(--ow-space-16);
   overflow: auto;
 }
 

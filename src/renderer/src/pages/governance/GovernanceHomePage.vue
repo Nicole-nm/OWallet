@@ -20,6 +20,9 @@
           <div class="ow-action-card ow-action-card--tile">
             <p class="ow-action-card__title">{{ $t('nodeMgmt.newNodeApply') }}</p>
             <p class="ow-action-card__meta">{{ $t('nodeMgmt.nodeApplyTip') }}</p>
+            <p class="ow-action-card__meta governance-apply-req">
+              {{ $t('nodeMgmt.nodeApplyReq') }}
+            </p>
             <div class="ow-action-card__control" @click="handleNodeApply">
               <ArrowRightOutlined />
             </div>
@@ -58,5 +61,12 @@ const { handleNodeStake, handleAuthorization, openPolicyPage, handleVote, handle
   top: var(--ow-space-4);
   right: var(--ow-space-5);
   cursor: pointer;
+}
+
+.governance-apply-req {
+  margin-top: var(--ow-space-2);
+  font-size: var(--ow-font-size-caption);
+  line-height: var(--ow-line-height-caption);
+  color: var(--ow-color-text-muted);
 }
 </style>
