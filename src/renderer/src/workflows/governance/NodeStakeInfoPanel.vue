@@ -26,7 +26,7 @@
         :node-public-key="nodePublicKey"
       />
 
-      <!-- 只有成为节点后可以操作初始质押部分 -->
+      <!-- Initial pledge can only be operated after becoming a node -->
       <div
         class="initPos-btns ow-button-row ow-button-row--end ow-button-row--wrap"
         v-if="detail.status === 8"

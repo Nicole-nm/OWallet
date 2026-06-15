@@ -74,17 +74,16 @@ const route = useRoute()
 const isWalletSectionActive = computed(() => {
   const path = route.path
   return (
-    path.startsWith('/Wallets') ||
-    path.startsWith('/sharedWallet') ||
-    path.startsWith('/commonWallet') ||
-    path === '/oep4Home' ||
-    path === '/loginLedger'
+    path.startsWith('/wallets') ||
+    path.startsWith('/shared-wallet') ||
+    path.startsWith('/wallet') ||
+    path.startsWith('/identities')
   )
 })
 
-const isNodeSectionActive = computed(() => route.path.startsWith('/node'))
-const isDappsActive = computed(() => route.path === '/dapps')
-const isSettingActive = computed(() => route.path === '/setting')
+const isNodeSectionActive = computed(() => route.path.startsWith('/governance'))
+const isDappsActive = computed(() => route.path.startsWith('/dapps'))
+const isSettingActive = computed(() => route.path.startsWith('/setting'))
 
 defineOptions({
   name: 'TopLeftNav',

@@ -28,7 +28,6 @@
             type="button"
             @click="handleExchangeCryptonex"
             class="dapp-item ow-action-card ow-action-card--tile"
-            :title="$t('exchange.cryptonex')"
           >
             <div class="dapp-title">
               <img src="../../assets/cryptonex.png" alt="" />
