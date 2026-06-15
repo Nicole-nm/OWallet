@@ -73,7 +73,6 @@ describe('i18n key consistency', () => {
       'createJsonWallet.details',
       'importIdentity.label',
       'importJsonWallet.details',
-      'nodeMgmt.nodeApplyTip',
     ]
     const knownEmptyZh = ['importIdentity.label']
     expect([...emptyEn].sort()).toEqual([...knownEmptyEn].sort())
