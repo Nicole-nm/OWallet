@@ -106,6 +106,9 @@
   --ow-color-sidebar-bg: #373a42;
   --ow-color-sidebar-text: #ffffff;
 
+  // Near-white glyphs (e.g. ontid.svg) need darkening on the light theme.
+  --ow-ontid-icon-filter: brightness(0);
+
   --ow-space-1: 4px;
   --ow-space-2: 8px;
   --ow-space-3: 12px;
@@ -239,6 +242,8 @@
   --ow-color-focus-ring: rgba(79, 149, 255, 0.32);
   --ow-color-sidebar-bg: #0b1016;
   --ow-color-sidebar-text: #f3f6fa;
+
+  --ow-ontid-icon-filter: none;
 
   --ow-shadow-footer: 0 -1px 0 rgba(0, 0, 0, 0.5);
   --ow-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.36);

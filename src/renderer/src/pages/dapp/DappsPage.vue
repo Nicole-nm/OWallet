@@ -44,7 +44,7 @@
             @click="handleOntidMgmt"
           >
             <div class="dapp-title">
-              <img src="../../assets/ontid.svg" alt="" />
+              <img class="dapp-ontid-icon" src="../../assets/ontid.svg" alt="" />
               <span>ONT ID</span>
             </div>
             <p class="dapp-content">{{ $t('dapps.ontidMgmt') }}</p>
@@ -106,6 +106,12 @@ const {
 .dapp-title > span {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+/* The ONT ID glyph is near-white. The token resolves to a darkening filter on
+   the light theme (where it would be invisible) and to `none` on dark. */
+.dapp-ontid-icon {
+  filter: var(--ow-ontid-icon-filter);
 }
 
 .dapp-content {

@@ -213,7 +213,7 @@ const {
 
 <style scoped lang="scss">
 .nodeStake-container {
-  width: min(100%, 820px);
+  width: min(100%, 860px);
   margin: 0 auto;
   padding-top: var(--ow-space-1);
   padding-bottom: calc(var(--ow-space-4) + 5.3rem);
@@ -226,7 +226,7 @@ const {
 .initPos-btns {
   margin: var(--ow-space-2) auto 0;
   width: 100%;
-  max-width: 820px;
+  max-width: 860px;
   padding-bottom: var(--ow-space-1);
 }
 

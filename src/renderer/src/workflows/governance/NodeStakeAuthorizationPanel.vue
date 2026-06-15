@@ -80,7 +80,7 @@ const {
 
 <style scoped lang="scss">
 .node-authorization-panel {
-  width: min(100%, 820px);
+  width: min(100%, 860px);
   margin: 0 auto;
   padding: var(--ow-space-1) 0 var(--ow-space-1);
   display: flex;
